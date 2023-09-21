@@ -1,0 +1,243 @@
+\chapter{Proposal}
+
+\section{Overview} % (fold)
+\label{sec:Overview}
+In this section I propose several modifications to the MEADcast protocol to 
+overcome certain limitations.
+The major modifications are:
+1) Usage of Designated Routers (DRs) similar to Xcast+ \cite{xcast+} to reduce
+the header size.
+2) Usage of MEADcast routing tables to speed up the discovery phase via an so
+called On-the-fly (OTF) discovery.
+
+% section Overview (end)
+
+
+\section{Designated Routers} % (fold)
+\label{sec:Designated Routers}
+The usage of DRs is derived from the Xcast+ protocol \cite{xcast+}.
+In this context a slightly deviating definition for DR is used compared to the 
+original one.
+DRs are not required to be directly connected to the EP, rather they are just 
+the closest MEADcast router towards an EP.
+In addition, they are completely optional.
+
+Due to the use of stateless routing, the MEADcast header must contain all
+relevant processing information for the routers along the packets path.
+This means, for each EP its address and the address of the MEADcast router
+performing the M2U gets added to the destination list.
+This enables a fast processing of the packets but also introduces the issue of a
+large header size, which is in fact the biggest downside of MEADcast.
+
+The size of the destination list can be significantly reduced, by solely storing
+the address of each DR.
+In fact this could also improve the processing time for previous MEADcast
+routers, because there are less addresses to parse and lookup routes for.
+This comes with the trade-off, that each DR needs to monitor which groups the 
+attached EPs joined.
+In Xcast+ DRs use IP multicast to monitor group membership and deliver data to 
+its EPs \cite{xcast+}.
+For several reasons this concept is not feasible for MEADcast: 
+1) No usage of Multicast IPs
+2) Clients are technology agnostic
+3) EPs are not required to be directly attached to the DR, which means multicast
+is may not supported by intermediate nodes.
+
+Consequently, MEADcast DRs store group memberships as tuples of \texttt{
+<<sender, channel>, EP>} in a so called Local Clients Table (LCT).
+If a router receives a packet with its own address in the destination list it 
+performs a LCT lookup and creates unicast packets for each EP in this group.
+How EPs get added to the LCT is described in
+\ref{sub:Receiving a Discovery Request}.
+These additional processing costs are considered acceptable, because the
+monitoring only happens close to the EPs, at the edge of the network, and can
+save at least 128 Bit per EP in a data packet.
+% section Designated Routers (end)
+
+
+\section{Routing Table} % (fold)
+\label{sec:Routing Table}
+Another drawback of MEADcast is a relative long discovery phase \cite{meadcast1,
+meadcast2}.
+If MEADcast routers store which subnets are reachable via adjacent MEADcast
+routers the duration of the discovery process could be reduced.
+The first MEADcast router receiving a DRQ could immediately determine whether
+the EP is reachable via MEADcast and encode this information in the DRP
+addressed to the sender.
+After the sender receives this DRP it can early exit the discovery phase and
+start the On-the-fly discovery (See: \ref{sub:On-the-fly discovery}).
+
+By now I am not completely sure if a speed up is really sensible, because during
+the discovery phase an EP already receives data via unicast.
+Well some could argue, that the concurrent delivery creates additional load on
+the sender side and increases bandwidth usage.
+It needs to be determined, if the speedup is worth the added complexity and
+furthermore whether there are additional benefits of MEADcast routing tables
+that justify their usage.
+
+
+\subsection{Neighbor discovery} % (fold)
+\label{sub:Neighbor discovery}
+To exchange routing information MEADcast routers need to know adjacent MEADcast
+routers.
+The neighbor discovery can be integrated into the MEADcast discovery phase by
+extending the Discovery Request (DRQ) and -Response (DRO) by a \textit{previous
+hop} field.
+Moreover the DRP gets send both to the sender and the address from the previous
+hop field.
+This ensures a two-way discovery between all adjacent MEADcast routers along a
+path from sender to EP.
+
+
+\subsection{Receiving a Discovery Request} % (fold)
+\label{sub:Receiving a Discovery Request}
+
+When a router receives a DRQ it performs several tasks, which can be devided in
+three stages:
+
+\paragraph{Receive} % (fold)
+\label{par:Receive}
+\begin{enumerate}
+    \item Packet parsing:
+          The router reads the previous hop field.
+          If the field is empty the packet comes directly from the sender,
+          though the router is its DR.
+          If the field is non empty it contains the address of an adjacent
+          MEADcast router, which will be added to the MCRT if its not already in
+          there.
+    \item Check if a matching MEADcast routing entry exists:
+          If an matching entry exists, the forwarding stage can be skipped.
+          The routers sets the early exit flag to true and directly enters the
+          acknowledge stage.
+\end{enumerate}
+% paragraph Receive (end)
+
+\paragraph{Forward} % (fold)
+\label{par:Forward}
+\begin{enumerate}
+    \item Update DRQ: The router increments the distance field and puts its own
+          address into the previous hop field.
+    \item Forward DRQ: The router forwards the DRQ and waits for a response
+          (DRP) until the discovery timeout is reached.
+          If a response arrives in time this means, a closer so far undiscovered
+          MEADcast router towards the EP was found.
+          The address of the discovered router will be added to the MCRT.
+          If no response arrives the router has the shortest distance towards
+          the EP.
+          The EPs address gets inserted into the LCT.
+\end{enumerate}
+% paragraph Forward (end)
+
+\paragraph{Acknowledge} % (fold)
+\label{par:Acknowledge}
+\begin{enumerate}
+    \item A DRP will be send to both the sender and the address
+          from the previous hop field.
+          If the early exit flag in the DRP is set to true, it indicates to the
+          sender that an MEADcast route towards the EP is known, thus no further
+          DRPs are expected and On-the-fly discovery can be used.
+\end{enumerate}
+
+% paragraph Acknowledge (end)
+% subsection DRQ (end)
+
+
+%\paragraph{Inbound DRQ} % (fold)
+%\label{par:Inbound DRQ}
+%If a router receives a DRQ it performs several tasks:
+%1) Increment the distance;
+%2) Read the previous hop field:
+%If the field is empty the packet comes directly from the sender, though the
+%router is its DR.
+%If the field is non empty it contains the address of an adjacent MEADcast
+%router, which will be added to the MCRT;
+%3) Put own address into the previous hop field;
+%4) Forward the DRQ and wait for a response (DRP) until the discovery timeout is
+%reached.
+%If a response arrives in time a closer MEADcast towards the EP exists.
+%The address of the discovered router will be added to the routing table.
+%If no response arrives the router has the shortest distance towards the EP.
+%The EP gets inserted into the LCT;
+%5) Send a DRP to the address from the previous hop field and the sender.
+%% paragraph Inbound DRQ (end)
+%% subsection Neighbor discovery (end)
+
+
+\subsection{Routing Algorithm} % (fold)
+\label{sub:Routing Algorithm}
+After, two neighbored MEADcast routers discovered each other, they can start
+to exchange routing information.
+This could be done in one of the following ways.
+
+\paragraph{Out of band} % (fold)
+\label{par:Out of band}
+Routers exchange routing information over some routing protocol.
+An overlay OSPF could be used for that.
+% paragraph Out of band (end)
+
+\paragraph{Embedded} % (fold)
+\label{par:Embedded}
+Routing information could also be embedded into the DRQ and DRP.
+For example, if a router receives a DRQ addressed to an EP without matching
+MEADcast route, it could add its own unicast routes to the DRQ.
+If there is no further MEADcast router along the path the routing informations
+could be exposed, but these information shouldn't be sensible.
+Similarly, a router could embed its routing infos into a DRP, if it receives a
+DRQ from an unknown MEADcast router.
+% paragraph Embedded (end)
+
+Currently I favor the out of band approach because it allows the usage of any
+routing algorithm without interfering with the MEADcast protocol itself.
+However, the approaches are not mutually exclusive, thus could be used in
+parallel.
+% subsection Routing Algorithm (end)
+
+
+\subsection{On-the-fly discovery} % (fold)
+\label{sub:On-the-fly discovery}
+The idea is to send discovery requests along with MEADcast data packets, thus
+reducing the time spend in the discovery phase.
+OTF discovery is applicable, if the sender receives an DRP with an early exit
+flag set.
+
+With the usage of DRs the destination list in the MEADcast header usally
+solely contains router addresses. For theses the bit in the router bitmap is set
+to 1 \cite{meadcast2}.
+This means if the destination list contains an address with a 0 in the router
+bitmap an OTF discovery is in progress.
+Data packet with a new EP in the destination list gets processed as following:
+\begin{enumerate}
+    \item Directly connected: If the EP is directly connected, the router
+          delivers the data via unicast to the EP.
+          Furthermore the EP will be added to the LCT and the sender gets
+          informed via a DRP.
+    \item If a matching MEADcast routing entry exists, a closer MEADcast router
+          is known and the packet gets forwarded as usual.
+    \item If a matching unicast routing entry exists, the current router is the
+          closest currently known DR and the data is delivered via unicast to
+          the EP.
+          The EP will be added to the LCT and the sender gets informed via a
+          DRP.
+          However, it could be the case that a closer so far unknown MEADcast
+          router towards the EP exists.
+          The router needs to verify this by sending a DRQ to the EP.
+          The DRQ needs to look like it is originated from the sender, therefore
+          sender, channel, distance and previous hop field have to be set
+          accordingly.
+          If no DRP arrives in time, the current router is the closest one.
+          If a DRP arrives a closer MEADcast router towards the EP was found.
+          The new DR will add the EP to its LCT and inform both the sender and
+          the address from the prev-hop field (previous closest DR) via an DRP.
+          After the sender receives this DRP, it needs to tell the previous DR
+          that it is no longer responsible for this EP.
+          Therefore the sender sends a leave message to the previous DR, which
+          then removes the EP from its LCT.
+          Alternatively, this could be done by removing unused entries from the
+          LCT after a certain time.
+\end{enumerate}
+% subsection On-the-fly discovery (end)
+
+
+% section Routing Table (end)
+
+

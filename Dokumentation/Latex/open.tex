@@ -1,0 +1,34 @@
+\chapter{Open Points} % (fold)
+\label{chap:Open Points}
+
+\section{Multicast} % (fold)
+\label{sec:Multicast}
+I guess Multicast protocols in general have to balance a trade-off between:
+routing complexity, data-to-header ratio, availability.
+% section Multicast (end)
+
+
+\section{Router processing costs} % (fold)
+\label{sec:Router processing costs}
+\begin{itemize}\itemsep0em
+    \item packet parsing (e.g. read MEADcast header and determine processing)
+    \item packet duplication
+    \item packet modification (e.g. set new IP dst)
+    \item routing table lookups
+    \item checksum calculation
+\end{itemize}
+
+Especially, how expensive are these operations compared to an increased header
+size?
+% section Router processing costs (end)
+
+\section{Testlab} % (fold)
+\label{sec:Testlab}
+\begin{itemize}\itemsep0em
+    \item How to test?
+    \item Big networks in simulator vs. concrete small testcases in ``real''
+        lab.
+    \item How to test if it works via Internet? I need IPv6 addresses.
+\end{itemize}
+% section Testlab (end)
+% chapter Open Points (end)

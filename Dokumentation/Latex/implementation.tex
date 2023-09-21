@@ -1,0 +1,103 @@
+\chapter{Implementation Concept}
+Sooner or later every packet created in user space gets passed to the kernel,
+just because the physical resources are managed by the kernel. 
+
+\section{Router}
+To enable the IP forwarding to handle MEADcast traffic appropriately, it's
+sensible to extend the kernel code.
+The idea is to extend the IPv6 processing, to check for a MEADcast header if
+hop-by-hop or routing extension header is present.
+
+\subsection{Functionality} % (fold)
+\label{sub:Functionality}
+If there is a hop-by-hop or router extension header check for a MEADcast header,
+parse it and start MEADcast specific processing:
+
+\paragraph{Discovery Request} % (fold)
+\label{par:Discovery Request}
+Increment hop-counter and forward packet.
+Send a discovery response to the sender.
+% paragraph Discovery Request (end)
+
+\paragraph{Data packet} % (fold)
+\label{par:Data packet}
+Check for which addresses it is the access router and create unicast packets for
+them.
+May modify upper layer data (e.g. port, checksum, \dots).
+Mark the addresses in delivery bitmap it is responsible for.
+If there are further router addresses in the packet, duplicate the IP-MEADcast
+packet for them.
+% paragraph Data packet (end)
+\\
+
+This means in sum routers are required to perform the following tasks: modify 
+duplicate and forward existing IP-MEADcast packets, create IP unicast packets
+and may modify upper layer.
+% subsection Functionality (end)
+
+
+\section{Sender}
+Provide an API, which makes it feasible to use MEADcast.
+May strive for a similar API design as proposed in RFC 7046
+\cite{wahlisch2013common}, which is recommended by \cite{meadcast2}.
+It is yet still to be clarified, whether the sender API is implemented mainly
+in kernel or user space.
+For an kernel space implementation may provide a C-library which performs the 
+syscalls.
+The question is, if there is any benefit of an kernel space implementation 
+compared to building on top of IPv6 sockets.
+No matter of the implementation, typical mechanisms for user- to kernel-space
+communication are: device file in \texttt{/dev}, proc file (\texttt{/proc}),
+\texttt{ioctl()} (just a way of interacting with device files), \texttt{sysfs} 
+filesystem, sockets and Netlink sockets.
+% https://stackoverflow.com/questions/3290590/what-options-do-we-have-for-communication-between-a-user-program-and-a-linux-ker?noredirect=1&lq=1
+% https://stackoverflow.com/questions/3299386/how-to-use-netlink-socket-to-communicate-with-a-kernel-module?noredirect=1&lq=1
+
+\subsection{Socket} % (fold)
+\label{sub:Socket}
+Kernel provides sockets as an kernel-userspace API (\href{https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/net/socket.c}{net/socket.c}).
+Socket system calls can hold one of the following arguments:
+\texttt{SOCKET}, \texttt{BIND}, \texttt{CONNECT}, \texttt{LISTEN},
+\texttt{ACCEPT}, \texttt{GETSOCKNAME}, \texttt{GETPEERNAME},
+\texttt{SOCKETPAIR}, \texttt{SEND}, \texttt{SENDTO}, \texttt{RECV},
+\texttt{RECVFROM}, \texttt{SHUTDOWN}, \texttt{SETSOCKOPT}, \texttt{GETSOCKOPT},
+\texttt{SENDMSG}, \texttt{SENDMMSG}, \texttt{RECVMSG}, \texttt{RECVMMSG},
+\texttt{ACCEPT4} (see line 3012).
+% subsection Socket (end)
+
+\subsection{API design} % (fold)
+\label{sub:API design}
+May two separate bindings:
+
+\paragraph{Naive} % (fold)
+\label{par:Naive}
+An application can listen on a port and all traffic is handled by MEADcast.
+Currently not sure, how to handle leave group.
+% paragraph Naive (end)
+
+\paragraph{Sophisticated} % (fold)
+\label{par:Sophisticated}
+Provide some API to handle multicasting behavior more in depth.
+May enable application to decide on its own, how to build groups.
+For example, an application could use URLs to serve different streaming
+content.
+Typical MEADcast specific tasks like discovery, usage of uni- vs. multicast,
+MTU selection, fallback etc. is handled internally.
+% paragraph Sophisticated (end)
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{API} & \textbf{Description}                   \\ \midrule
+createGroup  & Creates a MEADcast group               \\
+destroyGroup & Destroys a MEADcast group              \\
+joinGroup    & Adds endpoint to a MEADcast group      \\
+leaveGroup   & Removes endpoint from a MEADcast group \\
+sendToGroup  & Send data to MEADcast group            \\ \bottomrule
+\end{tabular}
+\caption{API design}
+\label{tab:my-table}
+\end{table}
+
+% subsection API design (end)

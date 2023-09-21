@@ -1,0 +1,214 @@
+\chapter{MEADcast improvement}
+
+
+\section{Idea} % (fold)
+\label{sec:Idea}
+The key idea is to reduce the header size, speedup the discovery phase and
+may split groups into several data packets to reduce load.
+This can be done by adapting concepts of Xcast+ \cite{xcast+} and GXcast
+\cite{gxcast}.
+
+\subsection{Grouping} % (fold)
+\label{sub:Grouping}
+\cite{gxcast} showed, that the fragmentation of group members into individual 
+sub packets has an immense impact on the number of required packets and
+therefore the performance.
+Moreover it is important, how the destinations are split into sub-groups.
+For example, similar to \cite{gxcast} receivers could be ordered by their IP and 
+split accordingly.
+% subsection Grouping (end)
+
+\subsection{Header size} % (fold)
+\label{sub:Header size}
+The largest downside of MEADcast is the size of its header, more precisely its
+destination list.
+For each endpoint its address and if existent, also the address of its
+Designated Router (DR) (Access MEADcast router) is stored.
+The size of the destination list could be significantly reduced, by solely
+storing the address of each DR.
+In fact, also the processing time of previous MEADcast routers would be slightly
+improved, because there are less addresses to parse and lookup routes for.
+This comes with the trade-off, that each DR is required to monitor which
+endpoint joined a certain MEADcast group, which leads to an increased processing
+effort.
+This should be an acceptable drawback, because it only happens close to the
+receiver at the edge of the network.
+This approach is derived from the Xcast+ protocol. \cite{xcast+}
+
+With DRs an receiver-side initialization seems reasonable, but this would also
+abandon agnostic clients.
+We could stick with agnostic clients, if the joining/leaving of a group happens
+out-of-band and the sender informs the DR about leaving endpoints.
+% subsection Header size (end)
+% section Idea (end)
+
+
+\subsection{Routing tables} % (fold)
+\label{sub:Routing tables}
+Adding MEADcast routing tables to the routers could greatly speedup the 
+discovery phase, by a so called ``on-the-fly discovery''.
+May dynamic routing tables could provide further benefits like, (faster)
+adoption to routing changes.
+The MEADcast routing table contains subnets, that can be reached via other
+MEADcast routers (own local subnets are not included).
+% subsection Routing tables (end)
+
+
+\subsection{Neighbor discovery} % (fold)
+\label{sub:Routing protocol}
+By adding a \texttt{prev-hop} field to the DRQ and DRP MEADcast routers are able
+to gain knowledge about adjacent routers.
+
+For example, consider the following topology: \texttt{S--M1--M2--E1}.
+After an out-of-band join \textit{S} sends the following DRQ to \textit{E1}:
+
+\begin{lstlisting}
+    S  => M1             DRQ(S, 1, E1, 0, -)
+    S  <= M1             DRP(S, 1, E1, 1, M1)
+          M1 => M2       DRQ(S, 1, E1, 1, M1) // M2 knows M1 is neigh.
+          M1 <= M2       DRP(S, 1, E1, 2, M2) // M1 knows M2 is neigh.
+    S        <= M2       DRP(S, 1, E1, 2, M2) // M1 knows M2 is neigh.
+                M2 => E1 DRQ(S, 1, E1, 2, M2) // will timeout
+\end{lstlisting}
+
+When \textit{M2} receives an DRQ from \textit{M1} it knows \textit{M1} is an
+adjacent MEADcast router.
+After \textit{M1} receives an DRP from \textit{M2} it also knows that
+\textit{M2} is its neighbor.
+% subsection Routing protocol (end)
+
+
+\subsection{Routing protocol} % (fold)
+\label{sub:Routing protocol}
+After two adjacent routers know each other, they could start exchanging routing
+information.
+Therefore, two approaches need to be considered:
+
+\paragraph{Separate} % (fold)
+\label{par:Separate}
+On the one hand, adjacent router could exchange information independent of
+MEADcast (e.g. similar to OSPF).
+% paragraph Separate (end)
+
+\paragraph{Included} % (fold)
+\label{par:Included}
+On the other \textit{M1} could append its routing information to the forwarded
+DRQ if it has no matching MEADcast routing entry for the EP.
+The same applies for \textit{M2}, if it receives an DRQ from an unknown MEADcast
+router it appends its routing information to the DRP.
+With this approach it could be reasonable, to forward the DRP from
+\texttt{prev-hop} to \texttt{prev-hop} until it reaches the sender, to
+distribute routing information.\\
+% paragraph Included (end)
+
+On the first glance, the separate approach seems more promising, because it is 
+the more modular approach and doesn't seem to have any disadvantages so far.
+
+% subsection Routing protocol (end)
+
+
+\subsection{On the fly discovery} % (fold)
+\label{sub:On the fly discovery}
+If a sender can ensure it is connected to a MEADcast router\footnotemark\ the
+discovery phase can be significantly improved.
+In this case we could perform the discovery within MEADcast data packets.
+
+Following the approach of Xcast+ \cite{xcast+} the destination list solely
+contains DRs, which are marked in the router bitmap \cite{meadcast2}.
+If the destination list contains an address which is not marked as a router it 
+is part of an on the fly discovery.
+To ensure what to do with the on the fly discovery MEADcast routing tables are
+required (see \ref{subsub:newendpoint}).
+This table contains all subnets, a closer MEADcast router is known for.
+
+ \footnotetext{
+    May it's sensible, that the sender itself implements the DR or is able to 
+    retrieve MEADcast routing infos from it.
+}
+% subsection Discovery Phase (end)
+
+
+\section{Messages} % (fold)
+\label{sec:Messages}
+
+\subsection{Management} % (fold)
+\label{sec:Management}
+
+\paragraph{Discovery Request (DRQ)} % (fold)
+\label{par:Discovery Request}
+\texttt{(src, channel, dst, dist, prev-hop)}\\
+Similar to MEADcast \cite{meadcast2}, added \texttt{channel} and \texttt{prev-hop}.
+% paragraph Discovery Request (DRQ) (end)
+
+\paragraph{Discovery Response (DRP)} % (fold)
+\label{par:Discovery Response}
+\texttt{(src, channel, dst, dist, prev-hop)}\\
+Similar to MEADcast \cite{meadcast2}, added \texttt{channel} and \texttt{prev-hop}.
+% paragraph Discovery Response (DRP) (end)
+
+\paragraph{Leave Group} % (fold)
+\label{par:Leave Group}
+\texttt{(src, channel, DR, EP)}\\
+Sender tells an Designated Router (DR), that the endpoint (EP) left the group.
+Required, because of agnostic clients end DRs.
+% paragraph Leave Group (end)
+
+
+\subsection{Data} % (fold)
+\label{sub:Data}
+Data: same as MEADcast \cite{meadcast2}.
+% subsection Data (end)
+
+
+\subsection{Example: Router behavior} % (fold)
+\label{sub:Example: Router behavior}
+
+\subsubsection{Receives Discovery Request (DRQ)}
+\begin{enumerate}\itemsep0em
+    \item Increment distance
+    \item Read \texttt{prev-hop} field\\
+        empty \textrightarrow\ it comes from sender\\
+        else  \textrightarrow\ its an adjacent MEADcast router (add it to
+        MEADcast routing table)
+    \item Put itself into \texttt{prev-hop} header
+    \item Forward packet (DRQ) and wait for DRP till timeout is reached:\\
+        DRP \textrightarrow\ a closer MEADcast router exists (add it to MEADcast
+        routing table)\\
+        timeout \textrightarrow\ current router is closest
+    \item Send DRP to \texttt{prev-hop} and sender.
+\end{enumerate}
+
+\subsubsection{Receives Discovery Response (DRP)}
+\begin{enumerate}\itemsep0em
+    \item Read \texttt{prev-hop} field\\
+        empty \textrightarrow\ error\\
+        else  \textrightarrow\ its an adjacent MEADcast router (add it to
+        MEADcast routing table)
+\end{enumerate}
+
+
+\subsubsection{Receives data packet with new endpoint}
+\label{subsub:newendpoint}
+\begin{enumerate}\itemsep0em
+    \item If the endpoint is directly connected, the current router is EPs DR.
+        Send a DRP to sender.
+    \item If a matching MEADcast routing entry exists, forward packet.
+        This indicates, its a join message for another MEADcast router.
+    \item If a matching unicast routing entry exists:
+    \begin{itemize}\itemsep0em
+        \item Add endpoint to local group members
+        \item Deliver data via unicast to endpoint
+        \item Send DRP to sender to tell him, that the current router is DR for 
+            the EP.
+        \item Send a DRQ to the endpoint, to verify, if a closer unknown
+            MEADcast router exists.
+            If we get a response a closer router exists (it will tell the sender
+            about it). After the sender receives the DRP from the new DR will
+            tell the current router, to remove the endpoint from the local group
+            members (via leave msg).
+            On a timeout, the current router is the closest.
+    \end{itemize}
+\end{enumerate}
+% subsection Example: Router behavior (end)
+
+% section Messages (end)

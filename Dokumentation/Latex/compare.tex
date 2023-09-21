@@ -1,0 +1,65 @@
+\chapter{Comparision of Multicast Protocols}
+
+
+\section*{IP-Multicast}
+\subsection*{Pro}
+\begin{itemize}\itemsep0em
+	\item No increased header size
+\end{itemize}
+
+\subsection*{Contra}
+\begin{itemize}\itemsep0em
+	\item High technical complexity
+	\item Full network support required (disabled by most ISPs)
+	\item Complex routing (Class D)
+	\item Not enough addresses
+\end{itemize}
+
+
+\section*{ALM}
+\subsection*{Pro}
+\begin{itemize}\itemsep0em
+    \item No network support required
+\end{itemize}
+
+\subsection*{Contra}
+\begin{itemize}\itemsep0em
+    \item Not standardized
+    \item Leak of recipient infos
+    \item Unefficient bandwidth usage
+\end{itemize}
+
+
+\section*{Xcast}
+\subsection*{Pro}
+\begin{itemize}\itemsep0em
+    \item No discovery delay
+    \item Works with partial network support (\textit{Tunneling or Receiver upgrade})
+    \item Works well with small groups (also Contra)
+    \item No multicast state required (unicast based routing)
+\end{itemize}
+
+\subsection*{Contra}
+\begin{itemize}\itemsep0em
+    \item Potential leak of receiver infos
+\end{itemize}
+
+
+\section*{MEADcast}
+\subsection*{Pro}
+\begin{itemize}\itemsep0em
+	\item Eliminates management issues (agnostic receivers)
+	\item Works with partial network support
+	\item No leak of receiver infos (privacy preserving)
+	\item Works well with small groups
+	\item Simple stateless routing
+    \item Unicast fallback
+    \item Tied to upper layer (Ports, Checksum calculation)
+\end{itemize}
+
+\subsection*{Contra}
+\begin{itemize}\itemsep0em
+	\item Large Header
+    \item Long discovery (\textit{concurrent unicast})
+    \item Tied to upper layer (Ports, Checksum calculation)
+\end{itemize}

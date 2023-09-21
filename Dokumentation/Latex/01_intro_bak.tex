@@ -1,0 +1,88 @@
+\chapter{Introduction} % (fold)
+\label{chap:Introduction}
+
+
+\section{Motivation} % (fold)
+\label{sec:Motivation}
+\begin{itemize}\itemsep0em
+    \item Economic Volume
+    \begin{itemize}\itemsep0em
+        \item Plenty regions with limited bandwidth
+        \item Tackles ongoing increasing demand
+        \item Reduce CO2 emissions
+        \item Reduce Costs
+    \end{itemize}
+    \item Use cases
+    \begin{itemize}\itemsep0em
+        \item Video/Audio Conferences
+        \item Multimedia streams (especially apps)
+        \item Collaborative applications
+        \item VoIP \& IPTV
+        \item Multiplayer games
+        \item Huge file transfers?
+        \item Distributed simulation
+    \end{itemize}
+    \item Existing approaches
+    \begin{itemize}\itemsep0em
+        \item Existing approaches simplify multicast routing or increase the overall availability
+        \item But non of them tackles the following problem: client-side management effort, fallback, privacy
+    \end{itemize}
+\end{itemize}
+% section Motiviation (end)
+
+
+\section{Challenges} % (fold)
+\label{sec:Challenges}
+\begin{itemize}\itemsep0em
+    \item High technical complexity
+    \begin{itemize}\itemsep0em
+        \item Requires interaction of various protocol on multiple layers
+        \item Inefficient Class-D routing
+    \end{itemize}
+    \item Security
+    \begin{itemize}\itemsep0em
+        \item Higher complexity to implement reliability, encryption, authorization and authentication
+        \item Increased risk of amplification attacks
+    \end{itemize}
+    \item Availability
+    \begin{itemize}\itemsep0em
+        \item Limited address space (especially IPv4)
+        \item All nodes along a packets path must support multicast
+        \item All involved network operator must support Intra-Domain multicast
+    \end{itemize}
+    \item Limited urge for change
+    \begin{itemize}
+        \item Most traffic is TCP/HTTP, which is harder to implement over multicast
+        \item Browsers can't handle UDP (besides QUIC)
+        \item Just throw higher bandwidth and transfer speed at it to serve increasing requirements
+        \item No direct effect on user
+        \item ISPs are not interested in multicast
+        \item Limited use cases
+    \end{itemize}
+\end{itemize}
+% section Challanges (end)
+
+
+\section{Goal/Contribution} % (fold)
+\label{sec:Goal/Contribution}
+\begin{itemize}\itemsep0em
+    \item Goal
+    \begin{itemize}\itemsep0em
+        \item Overcome technical and availability obstacles while preserving privacy
+        \item This means: agnostic clients, unicast fallback
+    \end{itemize}
+    \item Contribution
+    \begin{itemize}
+        \item Kernel implementation of MEADcast for routers and senders
+        \item System library provides sender API
+        \item Evaluate ease of MEADcast adoption and performance comparison to unicast (may also IP multicast)
+    \end{itemize}
+\end{itemize}
+
+% section Goal/Contribution (end)
+
+\section{Structure} % (fold)
+\label{sec:Structure}
+
+% section Structure (end)
+% chapter Introduction (end)
