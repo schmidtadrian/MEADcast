@@ -1,0 +1,74 @@
+\chapter{Background Work} % (fold)
+\label{chap:Background Work}
+
+\section{Multicast} % (fold)
+\label{sec:Mutlicast}
+Multicast is a technique of sending data one-to-many or many-to-many.
+Related technologies are unicast, broadcast and anycast.
+% section Mutlicast (end)
+
+\subsection{IP Multicast} % (fold)
+\label{sub:IP Multicast}
+\begin{itemize}\itemsep0em
+    \item Separate address space
+    \item IGMP / MLD
+    \item Intra-Domain Routing: DVMRP, MOSPF, PIM dense/spare
+    \item Inter-Domain Routing: MBGP, MSDP
+\end{itemize}
+% subsection IP Multicast (end)
+
+
+\subsection{Multicast over Unicast} % (fold)
+\label{sub:Multicast over Unicast}
+\begin{itemize}\itemsep0em
+    \item Xcast family (Xcast, Xcast+, GXcast, Xcast6 Treemap (island))
+    \item MEADcast
+    \item Bier
+\end{itemize}
+
+\subsubsection{Xcast}
+Traditional multicast scales well with large multicast groups but have issues
+with a high number of distinct groups.
+Xcast is a mutlicast protocol with complementary scaling properties compared to
+the traditional approach \cite{xcast_rfc}.
+The protocol is designed with the key idea of supporting huge numbers of small
+multicast sessions.
+Xcast achieves this by explicitly encoding the receiver addresses in each
+packet, instead of using a multicast addresses \cite{xcast_rfc}.
+
+%%%%%%%%% XCast %%%%%%%%%
+% many small groups
+% no multicast ips --> no multicast routing
+% no per-session signaling and state
+% routers must be Xcast capabale or tunneling
+% along each path must be an Xcast capabale node (may receiver)
+
+% hdr
+% ip
+% src: sender
+% dst: all_xcast_addr (multicast addrs routers must join)
+% xcast
+% dsts list of addrs
+% protocol id of next header
+% bitmap that indicates which addresses needs to be processed
+% optional list of ports
+
+%%%%%%%%% XCast+ %%%%%%%%%
+% incorporates host group model and Xcast
+% enhances routing efficiency
+% each sender/receiver has a designated router
+% to join a multicast group a receiver sends an IGMP. The DRs intercepts the
+% message and sends an registration request msg to the sender. At the senders
+% side this msg is intercepted by its DR
+% S <--MC--> DR <--XC--> DR <--MC--> R
+% Only diff to Xcast is, that the Receivers DRs addresses are encoded in Xcast
+% dsts field
+% --> better than Xcast, if multiple receivers per DR
+% --> DRs keep track, which clients joined the Xcast group (usally via MC)
+
+%%%%%%%%% GXCast %%%%%%%%%
+
+
+% subsection Multicast over Unicast (end)
+
+% chapter Background Work (end)

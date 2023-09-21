@@ -1,0 +1,275 @@
+\chapter{Introduction} % (fold)
+\label{chap:Introduction}
+
+
+\section{Motivation} % (fold)
+\label{sec:Motivation}
+
+
+% what is multicast
+% why it makes sense in theory
+% still lacks far behind expectations
+% several reasons...
+Over the last two decades, the number of people with access to the internet has
+    continuously increased at a rate of 5\%, resulting in a current total of
+    over 5 billion individual internet users \cite{itu_digdev}.
+Furthermore, the unrelenting demand for data has led to an average growth in
+    total bandwidth usage of 30\% over the past five years.
+This development was further accelerated by the COVID-19 pandemic, as the
+    increased reliance on remote work, online education, and digital
+    entertainment surged the bandwidth consumption \cite{cartesian_us_bw}.
+These growth rates are expected to remain high in the future.
+Especially Multimedia content like Video Streams, Conferences, and Online Games
+    depict a major portion of the global internet traffic.
+Video traffic is accountable for more than half of the bandwidth consumed in
+    2020 \cite{cartesian_us_bw}.
+Network Operators and Service Providers need to comply with the continuously
+    rising demand.
+
+Already in the late 1980s, \citeauthor{deering1990multicast} proposed a
+    multicast extension to the IP protocol, to facilitate efficient multipoint
+    communication (\textit{1:m, m:n})\cite{deering1990multicast, rfc1112_ipmc}.
+Multicast offers the advantage, to greatly reduce the occupied bandwidth by
+    condensing identical traffic into a single stream, targeted towards
+    multiple recipients \cite{rfc3376_igmp}.
+Routers may replicate packets of that stream at points where the paths towards 
+    the receivers diverge.
+Many of today's internet services, particularly those with high bandwidth
+    demands, may benefit significantly from multicast delivery
+    \cite{ratnasamy2006revisiting, meadcast1}.
+Besides technical benefits, the adoption of multicast communication could
+    reduce the emissions caused by \gls{ct}.
+Several studies assert that networks are accountable for a major portion of
+    today's \gls{ct} emissions \cite{andrae2015global}.
+Furthermore, they forecast strongly increasing energy consumption by networks
+    until 2030.
+Multicast communication has the potential to lower energy consumption and
+    therefore emissions by promoting more efficient use of network resources
+    and potentially reducing the need for additional infrastructure.
+% section Problem (end)
+
+
+\section{Challenges of Multicast} % (fold)
+\label{sec:Challenges of Multicast}
+% Security
+%   - Higher comlexity to implement known features like reliability,
+%     encryption, authorization, authentication
+%   - Increased risk of amplification attacks
+
+
+% usage on local scope (examples!)
+The application of IP-Multicast has yielded mixed results.
+Practically all of today's devices support IP-Multicast
+    \cite{ratnasamy2006revisiting}.
+Furthermore, it is utilized on a local scale, and various protocols like RIPv2
+    \cite{rfc2453_rip}, OSPF \cite{rfc2328_ospf} and mDNS \cite{rfc6762_mdns}
+    rely on multicast.
+
+However, more than thirty years since the initial proposal of IP-Multicast, its
+    global deployment and usage still lags far behind expectations
+    \cite{diot2000deployment, ratnasamy2006revisiting}.
+Despite the potential advantages of Multicast, the majority of internet traffic
+    continues to rely on point-to-point communication, known as
+    \textit{unicast}.
+There are several reasons for the limited usage of IP-Multicast.
+
+\paragraph{Feasibility} % (fold)
+\label{par:Feasibility}
+Besides the aforementioned advantages, IP-Multicast entails various technical
+    obstacles.
+In comparison to unicast, it suffers from an increased technical complexity,
+    requiring the interaction of various protocols on multiple network layers
+    \cite{ratnasamy2006revisiting,diot2000deployment}.
+Furthermore, multipoint communication in general interferes with the
+    application of today's widespread security mechanisms like encryption
+    \cite{rafaeli2003group_key_mgm}.
+IP-Multicast is based on a fixed class D address space \cite{rfc1112_ipmc},
+    which bears an insufficient number of addresses \cite{meadcast2} and a
+    complex routing procedure
+    \cite{diot2000deployment,ratnasamy2006revisiting}.
+Global IP-Multicast availability is limited because successful packet delivery
+    necessitates all routers along the path to support multicast.
+However, this scenario is unlikely since many commercial routers come
+    preconfigured with IP-Multicast disabled \cite{aruba_doc}.
+Moreover, the following paragraph describes, why Network Operators are probably
+    not willing to enable it.
+% All involved network operators are required to support Intra-Domain,
+% paragraph Feasibility (end)
+
+\paragraph{Desirability} % (fold)
+\label{par:Desirability}
+% General:
+%   - by default no built in security & harder to implement todays security
+%     standards on top
+%   - No explicit effect on end user --> they will not push ISPs
+%   - Most traffic is TCP/HTTP which is hard to implement over multicast
+%   - Browsers can't handle UDP
+%   - Limited use cases
+
+% Network Operators are not interested:
+%   - amplification attacks
+%   - billing harder
+%   - technical complexity not worth effort, unicast is "good enough" (there is a source)
+
+% IP-Multicast, formally known as \gls{igmp}, offers very limited security
+%     features.
+So far, Network Operators and ISPs have shown limited efforts to deploy
+    Multicast within their Administrative Domains
+    \cite{diot2000deployment, ratnasamy2006revisiting}.
+The additional technical complexity of Multicast requires more extensive
+    management efforts.
+Moreover, due to the complex routing, infrastructure upgrades may be necessary.
+ISPs seem to assess this as an unsuitable investment, despite its potential
+    for significant bandwidth savings \cite{diot2000deployment}.
+Charging for multicast services is also non-trivial compared to existing
+    unicast billing \cite{ratnasamy2006revisiting}.
+IP-Multicast hampers Network Operators' ability to anticipate network load, and
+    amplification attacks may become more likely to occur
+    \cite{diot2000deployment}.
+As long as there is no growing pressure on ISPs to extend their service
+    offering, increasing multicast deployment is doubtful.
+Multicast delivery has no direct impact on receivers, so customers are unlikely
+    to apply the required pressure.
+Moreover, statistics illustrate that more than half of the internet traffic
+    volume is HTTP-based \cite{cloudflare2023radar}, which is not well suited
+    for multipoint communication.
+Additionally, web browsers, the most widely utilized HTTP clients, are not
+    designed for IP-multicast usage.
+% paragraph Desirability (end)
+% section Challenges of Multicast (end)
+
+
+\section{Goal and Contribution} % (fold)
+\label{sec:Contribution}
+% Current limitations --> alternatives lending to multicast (ALM, Xcast, MEADcast)
+% Investigate MEADcast
+% As suggested in the paper kernel implementation follows simulation & SDN
+% Compare the implementation with uni- & multicast
+% verify if MEADcast really works over internet (feasibility)
+% Provide some suggestion, for which scenarios the usage of MEADcast is sensible
+
+% Router Implementation
+% Feasibility study of using MEADcast over the internet due to concerns
+%   regarding extension header processing
+% Performance comparison to uni- and multicast
+% Identify scenarios & application categories the usage of MEADcast is sensible
+
+% Evaluation Goals
+% Studying the feasibility of deploying MEADcast in a real-network & the internet
+%   (limitations or structural problems of the protocol design)
+% Conducting a performance comparison to IP uni- and multicast
+% Identify scenarios & application categories/characteristics justifying the usage of MEADcast
+
+The current state of the internet put forth various unicast-based alternatives,
+    aimed at addressing the absence of a globally usable multicast protocol.
+One such alternative, known as MEADcast, offers the capability for 1:n
+    sender-based IPv6 multipoint communication over the internet
+    \cite{meadcast1, meadcast2}.
+Key features of MEADcast include the preservation of receiver privacy,
+    technology-agnostic destinations, and zero network support requirements.
+
+As proposed by \citeauthor{meadcast2}, the primary goal of this thesis is to
+    conduct a real-world evaluation of MEADcast, utilizing a Linux Kernel
+    implementation of the required router software \cite{meadcast2}.
+This step represents a logical progression following previous investigations of
+    MEADcast, which were based on network simulations \cite{meadcast1} and
+    \gls{sdn} \cite{sdn_ba}.
+% This step represents the next logical step following a simulation- \cite{meadcast1}
+%     and SDN-based \cite{sdn_ba} investigation of MEADcast.
+The evaluation will focus on the following aspects:
+
+\paragraph{Feasibility Study} % (fold)
+\label{par:Feasibility Study}
+The first part of the evaluation will assess the feasibility of deploying
+    MEADcast in a real network.
+This aims to identify potential limitations and structural issues of the
+    current protocol specification.
+Further investigation will examine the practicality of using MEADcast on the
+    internet, taking into consideration concerns related to IPv6 extension
+    header processing.
+% paragraph Feasibility Study (end)
+
+\paragraph{Performance Evaluation} % (fold)
+\label{par:Performance Evaluation}
+A comparative performance analysis will be conducted to evaluate MEADcast in
+    comparison to both IP unicast and multicast.
+This assessment will provide insights into the efficiency and effectiveness of
+    MEADcast as a multipoint communication solution.
+% paragraph Performance Evaluation (end)
+
+\paragraph{Scenario identification} % (fold)
+\label{par:Scenario identification}
+Building on the results of the previous evaluation steps, this phase involves
+    identifying scenarios, application categories, and characteristics that
+    justify the utilization of MEADcast.
+Thereby, it can be determined where MEADcast may offer advantages and excel in
+    real-world applications.
+    
+% paragraph Scenario identification (end)
+    
+% The evaluation shows...
+
+% section Contribution (end)
+
+
+\section{Procedure and Structure} % (fold)
+\label{sec:Structure}
+To assure the achievement of the previously defined goals this thesis pursues
+    the following procedure.
+This approach ensures a cohesive narrative, with each chapter building upon the
+    knowledge acquired in the previous sections.
+
+\paragraph{\autoref{chap:Introduction}} % (fold)
+\label{par:Intro_Structure_Introduction}
+The introductory chapter depicts the motivation for investigating multipoint
+    communication, highlights the current challenges of IP-Multicast, and
+    articulates the goal of this thesis.
+% paragraph Introduction (end)
+
+\paragraph{\autoref{chap:Background Work}} % (fold)
+\label{par:Intro_Structure_Background Work}
+Moving forward, this chapter establishes the theoretical foundation for
+    subsequent investigations, by examining several multicast protocols,
+    including IP-Multicast, Xcast, and MEADcast.
+Additionally, the chapter provides a brief overview of Kernel development
+    fundamentals, laying the groundwork for the router implementation.
+% paragraph Background Work (end)
+
+\paragraph{\autoref{chap:Design}} % (fold)
+\label{par:Intro_Structure_Design}
+With a clear understanding of the relevant protocols and fundamentals,
+    \autoref{chap:Design} begins with the selection of metrics to measure the
+    achievement of the thesis' objectives.
+Subsequently, experiments are designed, aimed to capture these metrics.
+This chapter finishes by outlining the testbed requirements derived from the 
+    experiments and presents the corresponding design.
+% paragraph Design (end)
+
+\paragraph{\autoref{chap:Implementation}} % (fold)
+\label{par:Intro_Structure_Implementation}
+This chapter provides technical insights into the Kernel implementation of the
+    router software and details the specifications of the testbed.
+Hereby, the chapter serves as the basis for the practical experiments.
+% paragraph Implementation (end)
+
+\paragraph{\autoref{chap:Evaluation}} % (fold)
+\label{par:Intro_Structure_Evaluation}
+Following the conduction of our experiments, \autoref{chap:Evaluation} presents
+    the obtained results. 
+These findings are critically evaluated with respect to the thesis' overarching
+    goal, providing valuable insights into the feasibility and performance of
+    MEADcast.
+This opens the door to identify scenarios and applications the protocol is
+    well suited for.
+% paragraph Evaluation (end)
+
+\paragraph{\autoref{chap:Summary}} % (fold)
+\label{par:Intro_Structure_Summary}
+The closing chapter summarizes the findings and draws conclusions from this
+    research.
+Additionally, it outlines potential avenues for further work and exploration in
+    this field.
+% paragraph Summary (end)
+
+% section Structure (end)
+% chapter Introduction (end)

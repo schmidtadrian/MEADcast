@@ -1,0 +1,86 @@
+%
+% Einfache LaTeX-Vorlage für Arbeiten am Lehrstuhl Kranzlmüller / MNM-Team
+% - optimiert für die Arbeit mit gängigen LaTeX-Editoren
+% - funktioniert ohne Makefile und Anpassungen der LaTeX-Verzeichnisstruktur
+% - verwendet Komaskript für ein (nach europäischen Gepflogenheiten) schöneres Layout
+% 
+% v1, 2007 (Michael Brenner)
+% v1.1, 2012 (Michael Brenner)
+% v1.2, 2017 (Michael Brenner)
+% v1.2.1, 2017 (Benjamin Schnoy)
+% Diese Version: v1.2.2, 2019 "Robin Lösch <robin@chilio.net>"
+% Entfernen von OSX spezifischen Files
+% Konvertierung auf UTF8
+% Entfernen von executable bits auf text Files
+
+\documentclass[bibliography=totoc,listof=totoc,BCOR=5mm,DIV=12]{scrbook} % Rand für Bindung: 5mm / falls Index verwendet, ergänze "index=totoc" zu den Optionen 
+%\usepackage{ngerman} % Trennung nach neuer deutscher Rechtschreibung, deutsche Sonderzeichen, z.B. \glqq und \grqq für deutsche Anführungszeichen 
+\usepackage[main=english]{babel}
+\usepackage[utf8]{inputenc} % Umlaute im Text
+\usepackage{graphicx} % Einfügen von Grafiken  - für PDF-Latex: .pdf und .png (.jpg möglich, sollte aber vermieden werden)
+\usepackage{url}           % URL's (z.B. in Literatur) schöner formatieren
+\usepackage{hyperref} % sorgt für für Hyperlinks in PDF-Dokumenten
+
+\def\chapterautorefname{Chapter}%
+\def\sectionautorefname{Section}%
+\def\subsectionautorefname{Subsection}%
+\def\subsubsectionautorefname{Subsubsection}%
+\def\paragraphautorefname{Paragraph}%
+\def\tableautorefname{Table}%
+\def\equationautorefname{Equation}%
+
+\graphicspath{{./Bilder/}}
+
+\input{hyphenation} % in dieses File kommen Wörter die Latex nicht richtig trennt
+
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{textcomp}
+\usepackage[style=alphabetic,natbib=true]{biblatex}
+\usepackage[acronym]{glossaries}
+
+\makeglossaries
+\input{glossary}
+
+\addbibresource{Bib/main.bib}
+
+\begin{document}
+
+% ---------------------------------------------------------------
+\frontmatter % Titelblätter und Erklärung jeweils spezifisch für die jeweilige Uni einbinden
+    \include{./Titel/titel-lmu} % Titelblätter LMU - auskommentieren falls TUM-Arbeit
+%    \include{./Titel/titel-tum} % Titelblätter TUM - auskommentiert lassen falls LMU-Arbeit
+    \thispagestyle{empty}
+    \cleardoublepage
+    \include{./Titel/erklaerung-lmu} % Erklärung (Arbeit selbstständig verfasst) - auskommentieren falls TUM-Arbeit
+%    \include{./Titel/erklaerung-tum} % Erklärung (Arbeit selbstständig verfasst) - auskommentiert lassen falls LMU-Arbeit
+    \thispagestyle{empty}
+    \cleardoublepage
+    \include{abstract} % Abstract
+    \thispagestyle{empty}
+    \tableofcontents % Inhaltsverzeichnis
+
+% ---------------------------------------------------------------
+\mainmatter % die eigentliche Arbeit
+
+    \input{01_intro.tex}
+    \input{02_related_work.tex}
+    \input{03_design.tex}
+    \input{04_implementation.tex}
+    \input{05_evaluation.tex}
+    \input{06_conclusion.tex}
+    % \input{compare.tex}
+    % \input{improvement.tex}
+    % \input{implementation.tex}
+    % \input{open.tex}
+    % \input{proposal.tex}
+
+% ---------------------------------------------------------------
+\backmatter % ab hier keine Nummerierung mehr
+    \listoffigures
+    \printglossary[type=\acronymtype]
+    % \bibliographystyle{alphadin}
+    % \bibliography{Bib/main}
+    \printbibliography
+
+\end{document}
