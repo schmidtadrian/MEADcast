@@ -1,0 +1,31 @@
+name: Publish PDF
+run-name: Publish PDF
+on:
+  push:
+    branches:
+      - main
+jobs:
+  Publish-PDF:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Install prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install texlive-latex-extra texlive-bibtex-extra biber latexmk
+      - uses: actions/checkout@v3
+      - name: Build
+        working-directory: Dokumentation/Latex
+        run: latexmk
+      - name: Copy
+        run: |
+          mkdir public -v
+          cp Dokumentation/Latex/out/schm24.pdf public/ -v
+          pwd
+          ls -l
+      - name: Publish
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: public
+
