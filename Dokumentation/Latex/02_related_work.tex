@@ -1,8 +1,8 @@
-\chapter{Background Work} % (fold)
-\label{chap:Background Work}
+\chapter{Background and Related Work} % (fold)
+\label{chap:Background and Work}
 
-\section{Multicast} % (fold)
-\label{sec:Mutlicast}
+\section{Multicast Protocols} % (fold)
+\label{sec:Mutlicast Protocols}
 Multicast is a technique of sending data one-to-many or many-to-many.
 Related technologies are unicast, broadcast and anycast.
 % section Mutlicast (end)
@@ -18,15 +18,16 @@ Related technologies are unicast, broadcast and anycast.
 % subsection IP Multicast (end)
 
 
-\subsection{Multicast over Unicast} % (fold)
-\label{sub:Multicast over Unicast}
-\begin{itemize}\itemsep0em
-    \item Xcast family (Xcast, Xcast+, GXcast, Xcast6 Treemap (island))
-    \item MEADcast
-    \item Bier
-\end{itemize}
+% \subsection{Multicast over Unicast} % (fold)
+% \label{sub:Multicast over Unicast}
+% \begin{itemize}\itemsep0em
+%     \item Xcast family (Xcast, Xcast+, GXcast, Xcast6 Treemap (island))
+%     \item MEADcast
+%     \item Bier
+% \end{itemize}
 
-\subsubsection{Xcast}
+\subsection{Xcast}
+\label{sub:Xcast}
 Traditional multicast scales well with large multicast groups but have issues
 with a high number of distinct groups.
 Xcast is a mutlicast protocol with complementary scaling properties compared to
@@ -67,8 +68,25 @@ packet, instead of using a multicast addresses \cite{xcast_rfc}.
 % --> DRs keep track, which clients joined the Xcast group (usally via MC)
 
 %%%%%%%%% GXCast %%%%%%%%%
+% subsection Xcast (end)
 
+\subsection{MEADcast} % (fold)
+\label{sub:MEADcast}
 
-% subsection Multicast over Unicast (end)
+% subsection MEADcast (end)
+
+\section{Linux Kernel} % (fold)
+\label{sec:Linux Kernel}
+
+\subsection{Fundamentals} % (fold)
+\label{sub:Fundamentals}
+
+% subsection Fundamentals (end)
+
+\subsection{Network Stack} % (fold)
+\label{sub:Network Stack}
+
+% subsection Network Stack (end)
+% section Linux Kernel Network Internals (end)
 
 % chapter Background Work (end)
