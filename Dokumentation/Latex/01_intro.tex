@@ -62,9 +62,9 @@ Multicast communication has the potential to lower energy consumption and
 The application of IP-Multicast has yielded mixed results.
 Practically all of today's devices support IP-Multicast
     \cite{ratnasamy2006revisiting}.
-Furthermore, it is utilized on a local scale, and various protocols like RIPv2
-    \cite{rfc2453_rip}, OSPF \cite{rfc2328_ospf} and mDNS \cite{rfc6762_mdns}
-    rely on multicast.
+Furthermore, it is utilized on a local scale, and various protocols like IPv6
+    Neighbor Discovery \cite{rfc4861_ipv6_nd}, RIPv2 \cite{rfc2453_rip}, OSPF
+    \cite{rfc2328_ospf} and mDNS \cite{rfc6762_mdns} rely on multicast.
 
 However, more than thirty years since the initial proposal of IP-Multicast, its
     global deployment and usage still lags far behind expectations
@@ -198,7 +198,7 @@ This aims to identify potential limitations and structural issues of the
     current protocol specification.
 Further investigation will examine the practicality of using MEADcast on the
     internet, taking into consideration concerns related to IPv6 extension
-    header processing.
+    header processing \cite{rfc7872_ext_hdrs_drop_rate}.
 % paragraph Feasibility Study (end)
 
 \paragraph{Performance Evaluation} % (fold)
@@ -220,6 +220,7 @@ Thereby, it can be determined where MEADcast may offer advantages and excel in
 % paragraph Scenario identification (end)
     
 \paragraph{} % (fold)
+% \hfill\newline
 The findings indicate, that with certain limitations, MEADcast is applicable in
     real networks.
 The current protocol specification suffers from poor availability on the
