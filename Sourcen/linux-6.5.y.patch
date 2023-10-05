@@ -1,0 +1,191 @@
+diff --git a/include/linux/mdcast.h b/include/linux/mdcast.h
+new file mode 100644
+index 000000000000..652c07a5c0a0
+--- /dev/null
++++ b/include/linux/mdcast.h
+@@ -0,0 +1,60 @@
++#ifndef _LINUX_MDCAST_H
++#define _LINUX_MDCAST_H
++
++#include "linux/in6.h"
++#include "linux/ipv6.h"
++#include "linux/stddef.h"
++#include <linux/ipv6.h>
++#include <linux/skbuff.h>
++
++int md_rcv(struct sk_buff *skb);
++
++/*
++ * May using similar approach as rpl.h::ipv6_rpl_sr_hdr.
++ * For example, segments property is used in exthdrs.c:585
++ */
++
++/*
++ * Fix sized part of MEADcast header, bc so far I'm not sure how to handle two
++ * var sized properties in struct (dst array and router map)
++ * substitute hop-count by segments left
++ *  8 bit num dsts
++ *  1 bit disc flag
++ *  1 bit resp flag
++ * 30 bit reserved
++ */
++
++// struct rtmd_hdr {
++// 	struct ipv6_rt_hdr	rt_hdr;
++//     __u8    num_dst;
++//     int dicover: 1;
++//     int response: 1;
++//     int reserved: 30;
++//     __u32 dlvmap;
++//     __u32 rtmap;
++//     union {
++//         __DECLARE_FLEX_ARRAY(struct in6_addr, addr);
++//         __DECLARE_FLEX_ARRAY(__u16, ports);
++//     } addresses;
++//
++// #define rtmd_dstaddr addresses.addr
++// #define rtmd_dstrtmap addresses.ports
++// #define rtmd_type		rt_hdr.type
++// };
++
++struct ipv6_rt_md_hdr {
++    struct ipv6_rt_hdr rt_hdr;
++    __u8 num_dst;
++    __u32
++        discovery:  1,
++        response:   1,
++        hopcount:   6,
++        reserved:  24;
++    __u32 dlvmap;
++    __u32 rtmap;
++    struct in6_addr dst[];
++
++#define rt_md_type		rt_hdr.type
++} __attribute__((packed));
++
++#endif // !_LINUX_MDCAST_H
+diff --git a/include/uapi/linux/ipv6.h b/include/uapi/linux/ipv6.h
+index ac56605fe9bc..55d0fe29f445 100644
+--- a/include/uapi/linux/ipv6.h
++++ b/include/uapi/linux/ipv6.h
+@@ -43,6 +43,9 @@ struct in6_ifreq {
+ #define IPV6_SRCRT_TYPE_2	2	/* IPv6 type 2 Routing Header	*/
+ #define IPV6_SRCRT_TYPE_3	3	/* RPL Segment Routing with IPv6 */
+ #define IPV6_SRCRT_TYPE_4	4	/* Segment Routing with IPv6 */
++#ifdef CONFIG_IPV6_MEADCAST
++#define IPV6_MEADCAST 253   /* Using experimental header for MEADcast */
++#endif
+ 
+ /*
+  *	routing header
+diff --git a/net/ipv6/Kconfig b/net/ipv6/Kconfig
+index 08d4b7132d4c..809bd04a3476 100644
+--- a/net/ipv6/Kconfig
++++ b/net/ipv6/Kconfig
+@@ -340,4 +340,13 @@ config IPV6_IOAM6_LWTUNNEL
+ 
+ 	  If unsure, say N.
+ 
++config IPV6_MEADCAST
++	bool "IPv6: MEADcast support"
++	depends on IPV6
++    default y
++	help
++	  Support for MEADcast (Multicast to Explicit Agnostic Destinations).
++
++	  If unsure, say N.
++
+ endif # IPV6
+diff --git a/net/ipv6/Makefile b/net/ipv6/Makefile
+index 3036a45e8a1e..9a45c28b69ec 100644
+--- a/net/ipv6/Makefile
++++ b/net/ipv6/Makefile
+@@ -26,6 +26,7 @@ ipv6-$(CONFIG_IPV6_SEG6_LWTUNNEL) += seg6_iptunnel.o seg6_local.o
+ ipv6-$(CONFIG_IPV6_SEG6_HMAC) += seg6_hmac.o
+ ipv6-$(CONFIG_IPV6_RPL_LWTUNNEL) += rpl_iptunnel.o
+ ipv6-$(CONFIG_IPV6_IOAM6_LWTUNNEL) += ioam6_iptunnel.o
++ipv6-$(CONFIG_IPV6_MEADCAST) += mdcast.o
+ 
+ obj-$(CONFIG_INET6_AH) += ah6.o
+ obj-$(CONFIG_INET6_ESP) += esp6.o
+diff --git a/net/ipv6/exthdrs.c b/net/ipv6/exthdrs.c
+index 202fc3aaa83c..dd0338174908 100644
+--- a/net/ipv6/exthdrs.c
++++ b/net/ipv6/exthdrs.c
+@@ -28,6 +28,10 @@
+ #include <linux/slab.h>
+ #include <linux/export.h>
+ 
++#ifdef CONFIG_IPV6_MEADCAST
++#include <linux/mdcast.h>
++#endif /* ifdef CONFIG_IPV6_MEADCAST */
++
+ #include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/snmp.h>
+@@ -684,6 +688,10 @@ static int ipv6_rthdr_rcv(struct sk_buff *skb)
+ 	case IPV6_SRCRT_TYPE_3:
+ 		/* rpl segment routing */
+ 		return ipv6_rpl_srh_rcv(skb);
++#ifdef CONFIG_IPV6_MEADCAST
++    case IPV6_MEADCAST:
++        return md_rcv(skb);
++#endif
+ 	default:
+ 		break;
+ 	}
+diff --git a/net/ipv6/mdcast.c b/net/ipv6/mdcast.c
+new file mode 100644
+index 000000000000..30474ded5695
+--- /dev/null
++++ b/net/ipv6/mdcast.c
+@@ -0,0 +1,49 @@
++#include "linux/ipv6.h"
++#include "linux/skbuff.h"
++#include <linux/printk.h>
++#include <linux/mdcast.h>
++#include <linux/in.h>
++
++#ifndef INET6_ADDRSTRLEN
++#define INET6_ADDRSTRLEN 46
++#endif
++
++int md_rcv(struct sk_buff *skb)
++{
++    struct ipv6hdr *iphdr;
++    struct ipv6_rt_md_hdr *hdr;
++
++    iphdr = ipv6_hdr(skb);
++
++    printk("MEADcast: Got a packet from %pI6c\n", &iphdr->saddr);
++
++    hdr = (struct ipv6_rt_md_hdr *)skb_transport_header(skb);
++
++    if (hdr->rt_md_type != IPV6_MEADCAST) {
++        printk("MEADcast: early exit\n");
++        return -1;
++    }
++
++    // TODO: handle wrong num_dst
++
++    // if (hdr->discovery) {
++    //     printk("MEADcast: Its a discovery packet\n");
++    // } else {
++    //     printk("MEADcast: Its a data packet\n");
++    // }
++
++    printk("MEADcast:\n"
++           "  num dst:\t%u\n"
++           "  discovery:\t%d\n"
++           "  response:\t%d\n"
++           "  hopcount:\t%d\n"
++           "  dlvmap:\t%u\n"
++           "  rtmap:\t%u\n",
++           hdr->num_dst, hdr->discovery ? 1 : 0, hdr->response ? 1 : 0,
++           hdr->hopcount, ntohl(hdr->dlvmap), ntohl(hdr->rtmap));
++
++    for (int i = 0; i < hdr->num_dst; i++)
++        printk("MEADcast: Dst[%d] is %pI6c\n", i, &hdr->dst[i]);
++
++    return 0;
++}
