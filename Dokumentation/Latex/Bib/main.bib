@@ -123,6 +123,7 @@
 
 
 %%%%%%%%%%%%%%%%%%% IPv6 Extension Headers %%%%%%%%%%%%%%%%%%%
+% just shows statistics
 @misc{rfc7872_ext_hdrs_drop_rate,
     series =    {Request for Comments},
     number =    7872,
@@ -137,6 +138,40 @@
     month =     jun,
     abstract =  {This document presents real-world data regarding the extent to which packets with IPv6 Extension Headers (EHs) are dropped in the Internet (as originally measured in August 2014 and later in June 2015, with similar results) and where in the network such dropping occurs. The aforementioned results serve as a problem statement that is expected to trigger operational advice on the filtering of IPv6 packets carrying IPv6 EHs so that the situation improves over time. This document also explains how the results were obtained, such that the corresponding measurements can be reproduced by other members of the community and repeated over time to observe changes in the handling of packets with IPv6 EHs.},
 }
+
+% "attempts to analyze reasons why packets with ext hdrs are often dropped"
+@misc{rfc9098_ext_hdrs_op_impl,
+    series =    {Request for Comments},
+    number =    9098,
+    howpublished =  {RFC 9098},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC9098},
+    url =       {https://www.rfc-editor.org/info/rfc9098},
+        author =    {Fernando Gont and Nick Hilliard and Gert Döring and Warren "Ace" Kumari and Geoff Huston and Will (Shucheng) LIU},
+    title =     {{Operational Implications of IPv6 Packets with Extension Headers}},
+    pagetotal = 17,
+    year =      2021,
+    month =     sep,
+    abstract =  {This document summarizes the operational implications of IPv6 extension headers specified in the IPv6 protocol specification (RFC 8200) and attempts to analyze reasons why packets with IPv6 extension headers are often dropped in the public Internet.},
+}
+
+% recommends to drop packets with ext hdrs at transit routers
+@misc{rfc9288,
+    series =    {Request for Comments},
+    number =    9288,
+    howpublished =  {RFC 9288},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC9288},
+    url =       {https://www.rfc-editor.org/info/rfc9288},
+        author =    {Fernando Gont and Will (Shucheng) LIU},
+    title =     {{Recommendations on the Filtering of IPv6 Packets Containing IPv6 Extension Headers at Transit Routers}},
+    pagetotal = 33,
+    year =      2022,
+    month =     aug,
+    abstract =  {This document analyzes the security implications of IPv6 Extension Headers and associated IPv6 options. Additionally, it discusses the operational and interoperability implications of discarding packets based on the IPv6 Extension Headers and IPv6 options they contain. Finally, it provides advice on the filtering of such IPv6 packets at transit routers for traffic not directed to them, for those cases where such filtering is deemed as necessary.},
+}
+
+
 
 %%%%%%%%%%%%%%%%%%% Protocols using IP-Multicast %%%%%%%%%%%%%%%%%%%
 @misc{rfc4861_ipv6_nd,
@@ -200,6 +235,41 @@
     abstract =  {As networked devices become smaller, more portable, and more ubiquitous, the ability to operate with less configured infrastructure is increasingly important. In particular, the ability to look up DNS resource record data types (including, but not limited to, host names) in the absence of a conventional managed DNS server is useful. Multicast DNS (mDNS) provides the ability to perform DNS-like operations on the local link in the absence of any conventional Unicast DNS server. In addition, Multicast DNS designates a portion of the DNS namespace to be free for local use, without the need to pay any annual fee, and without the need to set up delegations or otherwise configure a conventional DNS server to answer for those names. The primary benefits of Multicast DNS names are that (i) they require little or no administration or configuration to set them up, (ii) they work when no infrastructure is present, and (iii) they work during infrastructure failures.},
 }
 
+%%%%%%%%%%%%%%%%%%% QUIC %%%%%%%%%%%%%%%%%%%
+@misc{rfc9000_quic,
+    series =    {Request for Comments},
+    number =    9000,
+    howpublished =  {RFC 9000},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC9000},
+    url =       {https://www.rfc-editor.org/info/rfc9000},
+    author =    {Jana Iyengar and Martin Thomson},
+    title =     {{QUIC: A UDP-Based Multiplexed and Secure Transport}},
+    pagetotal = 151,
+    year =      2021,
+    month =     may,
+    abstract =  {This document defines the core of the QUIC transport protocol. QUIC provides applications with flow-controlled streams for structured communication, low-latency connection establishment, and network path migration. QUIC includes security measures that ensure confidentiality, integrity, and availability in a range of deployment circumstances. Accompanying documents describe the integration of TLS for key negotiation, loss detection, and an exemplary congestion control algorithm.},
+}
+
+@misc{ietf2021quic,
+    title = {QUIC in the Internet industry},
+    author = {IETF},
+    publisher = {IETF},
+    organization = {IETF},
+    date = {2021-06-03},
+    url = {https://www.ietf.org/blog/quic-industry/},
+    urldate = {2023-09-23}
+}
+
+@misc{fb2020quic,
+    author = {Matt Joras and Yang Chi},
+    title = {How Facebook is bringing QUIC to billions},
+    publisher = {Meta},
+    organization = {Meta},
+    date = {2020-10-21},
+    url = {https://engineering.fb.com/2020/10/21/networking-traffic/how-facebook-is-bringing-quic-to-billions/},
+    urldate = {2023-09-23}
+}
 
 %%%%%%%%%%%%%%%%%%% MEADcast %%%%%%%%%%%%%%%%%%%
 @inproceedings{meadcast1,

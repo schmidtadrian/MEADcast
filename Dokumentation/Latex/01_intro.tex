@@ -84,9 +84,9 @@ In comparison to unicast, it suffers from an increased technical complexity,
 Furthermore, multipoint communication in general interferes with the
     application of today's widespread security mechanisms like encryption
     \cite{rafaeli2003group_key_mgm}.
-IP-Multicast is based on a fixed class D address space \cite{rfc1112_ipmc},
-    which bears an insufficient number of addresses \cite{meadcast2} and a
-    complex routing procedure
+Moreover, IPv4-Multicast is based on a fixed class D address space
+    \cite{rfc1112_ipmc}, which bears an insufficient number of addresses
+    \cite{meadcast2} and a complex routing procedure
     \cite{diot2000deployment,ratnasamy2006revisiting}.
 Global IP-Multicast availability is limited because successful packet delivery
     necessitates all routers along the path to support multicast.
@@ -145,8 +145,15 @@ Moreover, statistics illustrate that more than half of the internet traffic
     for multipoint communication.
 Additionally the usage of Multicast is discouraged by web browsers, the most 
     widely utilized HTTP clients, due to their technical limitation to
-    TCP/HTTP.
-% TODO: footnote quic
+    TCP/HTTP\footnotemark.
+
+\footnotetext{
+Despite the growing popularity and browser support for QUIC \cite{ietf2021quic,
+    fb2020quic}, also known as HTTP over UDP, it encounters similar challenges
+    as TCP/HTTPS.
+This include issues such as packet acknowledgment and the client side
+    generation of random numbers \cite{rfc9000_quic}.
+}
 % paragraph Desirability (end)
 % section Challenges of Multicast (end)
 
@@ -174,38 +181,37 @@ Additionally the usage of Multicast is discouraged by web browsers, the most
 
 The current state of the internet put forth various unicast-based alternatives,
     aimed at addressing the absence of a globally usable multicast protocol.
-One such alternative, known as MEADcast, offers the capability for 1:n
-    sender-based IPv6 multipoint communication over the internet
-    \cite{meadcast1, meadcast2}.
+One such alternative, known as MEADcast \cite{meadcast1}, offers the capability
+    for 1:n sender-based IPv6 multipoint communication over the internet
+    \cite{meadcast2}.
 Key features of MEADcast include the preservation of receiver privacy,
     technology-agnostic destinations, and zero network support requirements.
 
-As proposed by \citeauthor{meadcast2}, the primary goal of this thesis is to
-    conduct a real-world evaluation of MEADcast, utilizing a Linux Kernel
-    implementation of the required router software \cite{meadcast2}.
-This step represents a logical progression following previous investigations of
+Building upon prior research conducted by \citeauthor{meadcast2}
+    \cite{meadcast2}, the primary goal of this thesis is to conduct a
+    real-world evaluation of MEADcast, utilizing a Linux Kernel implementation
+    of the required router software.
+This step represents a logical progression from earlier investigations of
     MEADcast, which were based on network simulations \cite{meadcast1} and
     \gls{sdn} \cite{sdn_ba}.
-% This step represents the next logical step following a simulation- \cite{meadcast1}
-%     and SDN-based \cite{sdn_ba} investigation of MEADcast.
-The evaluation will focus on the following aspects:
+The evaluation primarily focuses on the following aspects:
 
 \paragraph{Feasibility Study} % (fold)
 \label{par:Feasibility Study}
-The first part of the evaluation will assess the feasibility of deploying
+The first part of the evaluation assesses the feasibility of deploying
     MEADcast in a real network.
 This aims to identify potential limitations and structural issues of the
     current protocol specification.
-Further investigation will examine the practicality of using MEADcast on the
+Further investigation examines the practicality of using MEADcast on the
     internet, taking into consideration concerns related to IPv6 extension
     header processing \cite{rfc7872_ext_hdrs_drop_rate}.
 % paragraph Feasibility Study (end)
 
 \paragraph{Performance Evaluation} % (fold)
 \label{par:Performance Evaluation}
-A comparative performance analysis will be conducted to evaluate MEADcast in
+A comparative performance analysis is conducted to evaluate MEADcast in
     comparison to both IP unicast and multicast.
-This assessment will provide insights into the efficiency and effectiveness of
+This assessment provides insights into the efficiency and effectiveness of
     MEADcast as a multipoint communication solution.
 % paragraph Performance Evaluation (end)
 
@@ -216,11 +222,20 @@ Building on the results of the previous evaluation steps, this phase involves
     justify the utilization of MEADcast.
 Thereby, it can be determined where MEADcast may offer advantages and excel in
     real-world applications.
-    
 % paragraph Scenario identification (end)
     
-\paragraph{} % (fold)
-% \hfill\newline
+% TODO: The formatting of this doesn't look nice. However, so far I have no
+% better idea
+\noindent\\
+Based on the defined objectives, this thesis makes the following contributions:
+\begin{enumerate}[itemsep=0.3em]
+    \item Development of a Linux Kernel implementation of the MEADcast router.
+    \item Implementation of a traffic generator serving as the MEADcast sender.
+    \item Deployment of MEADcast in both a testbed and a real network.
+    \item Evaluation of MEADcast's feasibility, performance, and potential
+            application scenarios, derived from the conducted experiments.
+\end{enumerate}
+
 The findings indicate, that with certain limitations, MEADcast is applicable in
     real networks.
 The current protocol specification suffers from poor availability on the
@@ -235,66 +250,92 @@ Our measurements suggest that MEADcast's performance falls between uni- and
 % section Contribution (end)
 
 
-\section{Procedure and Structure} % (fold)
-\label{sec:Structure}
-To assure the achievement of the previously defined goals this thesis pursues
-    the following procedure.
-This approach ensures a cohesive narrative, with each chapter building upon the
-    knowledge acquired in the previous sections.
+\section{Method} % (fold)
+\label{sec:Method}
+To ensure the achievement of the previously defined goals this thesis follows
+    the procedure illustrated in \autoref{fig:method}.
+% First, we conduct a literature review to analyze the current challenges of
+%     IP-Multicast.
+First, we conduct a literature review of several multicast protocols and
+    analyze the current challenges of global multipoint communication.
+With a clear understanding of the relevant protocols and their limitations we
+    define the objectives of this thesis.
+% Based on these results, we define the objectives of this thesis.
+Furthermore, we select adequate evaluation metrics and criteria to asses
+    MEADcast's feasibility, performance, and potential application scenarios.
+Subsequently, we design experiments aimed at capturing these metrics.
+Next, we outline the testbed requirements derived from the experiments and
+    elaborate on a corresponding testbed design.
+% Next, we derive requirements from the experiments and elaborate on a testbed
+%     design.
+MEADcast is deployed in the testbed and the experiments are conducted.
+Finally, we present the obtained results.
+These findings are critically evaluated with respect to the thesis' overarching
+    goal, providing valuable insights into the feasibility and performance of
+    MEADcast.
+This analysis allows us to identify scenarios and applications for which the
+    protocol is well-suited.
+% This analysis opens the door to identifying scenarios and applications the
+%     protocol is well suited for.
 
-\paragraph{\autoref{chap:Introduction}} % (fold)
-\label{par:Intro_Structure_Introduction}
-The introductory chapter depicts the motivation for investigating multipoint
+
+\begin{figure}
+\centering
+\begin{tikzpicture}
+[auto,font=\footnotesize,
+% STYLES
+every node/.style={node distance=1.2cm},
+force/.style={rectangle, rounded corners, draw, fill=black!8, text width=2.75cm, text badly centered, minimum height=1cm, font=\footnotesize\sffamily}]
+
+\node [force]                                                           (problem)       {Problem analysis};
+\node [force, below of=problem,         right=-1.35cm of problem]       (goal)          {Goal definition};
+\node [force, below of=goal,            right=-1.35cm of goal]          (criteria)      {Metric \& Criteria selection};
+\node [force, below of=criteria,        right=-1.35cm of criteria]      (design)        {Experiment design};
+\node [force, below of=design,          right=-1.35cm of design]        (requirements)  {Requirements analysis};
+\node [force, below of=requirements,    right=-1.35cm of requirements]  (testbed)       {Testbed design};
+\node [force, below of=testbed,         right=-1.35cm of testbed]       (experiment)    {Experiment conduction};
+\node [force, below of=experiment,      right=-1.35cm of experiment]    (evaluation)    {Evaluation};
+
+\draw[-latex,thick] (problem.south west)        +(7mm,0) |- (goal.west);
+\draw[-latex,thick] (goal.south west)           +(7mm,0) |- (criteria.west);
+\draw[-latex,thick] (criteria.south west)       +(7mm,0) |- (design.west);
+\draw[-latex,thick] (design.south west)         +(7mm,0) |- (requirements.west);
+\draw[-latex,thick] (requirements.south west)   +(7mm,0) |- (testbed.west);
+\draw[-latex,thick] (testbed.south west)        +(7mm,0) |- (experiment.west);
+\draw[-latex,thick] (experiment.south west)     +(7mm,0) |- (evaluation.west);
+\end{tikzpicture}
+
+\caption{Research method} \label{fig:method}
+\end{figure}
+
+% section Method (end)
+
+\section{Structure} % (fold)
+\label{sec:Structure}
+The method employed in this thesis ensures a cohesive narrative, with each
+    chapter building upon the knowledge acquired in the previous sections.
+\autoref{chap:Introduction} depicts the motivation for investigating multipoint
     communication, highlights the current challenges of IP-Multicast, and
     articulates the goal of this thesis.
-% paragraph Introduction (end)
-
-\paragraph{\autoref{chap:Background and Work}} % (fold)
-\label{par:Intro_Structure_Background Work}
 Moving forward, \autoref{chap:Background and Work} establishes the theoretical
     foundation for subsequent investigations, by examining several multicast
     protocols, including IP-Multicast, Xcast, and MEADcast.
 Additionally, the chapter provides a brief overview of Kernel development
     fundamentals and the network stack, laying the groundwork for the router
     implementation.
-% paragraph Background Work (end)
-
-\paragraph{\autoref{chap:Design}} % (fold)
-\label{par:Intro_Structure_Design}
-With a clear understanding of the relevant protocols and fundamentals,
-    \autoref{chap:Design} begins with the selection of metrics to measure the
-    achievement of the thesis' objectives.
-Subsequently, experiments are designed, aimed to capture these metrics.
-This chapter concludes by outlining the testbed requirements derived from the 
-    experiments and presenting the corresponding design.
-% paragraph Design (end)
-
-\paragraph{\autoref{chap:Implementation}} % (fold)
-\label{par:Intro_Structure_Implementation}
-\autoref{chap:Implementation} provides technical insights into the Kernel
+\autoref{chap:Design} presents our selection of evaluation metrics and
+    criteria, outlines the testbed requirements and presents the corresponding
+    testbed design.
+\autoref{chap:Implementation} delves into technical details about the Kernel
     implementation of the router software and provides detailed specifications
     of the testbed.
 This chapter serves as the foundation for the practical experiments.
-% paragraph Implementation (end)
-
-\paragraph{\autoref{chap:Evaluation}} % (fold)
-\label{par:Intro_Structure_Evaluation}
-Following the conduction of our experiments, \autoref{chap:Evaluation} presents
-    the obtained results. 
-These findings are critically evaluated with respect to the thesis' overarching
-    goal, providing valuable insights into the feasibility and performance of
-    MEADcast.
-This analysis opens the door to identifying scenarios and applications the
-    protocol is well suited for.
-% paragraph Evaluation (end)
-
-\paragraph{\autoref{chap:Summary}} % (fold)
-\label{par:Intro_Structure_Summary}
-The closing chapter summarizes the findings and draws conclusions from this
-    research.
-Additionally, it outlines potential avenues for further work and exploration in
+In \autoref{chap:Evaluation} we present the results from our experiments and
+    evaluate them.
+Finally, \autoref{chap:Summary} summarizes the findings and draws conclusions
+    from this research.
+Additionally, it outlines potential avenues for future work and exploration in
     this field.
-% paragraph Summary (end)
-
 % section Structure (end)
+
 % chapter Introduction (end)
