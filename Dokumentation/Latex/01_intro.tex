@@ -29,7 +29,7 @@ Network Operators and Service Providers need to comply with the continuously
 Already in the late 1980s, \citeauthor{deering1990multicast} proposed a
     multicast extension to the IP protocol, to facilitate efficient multipoint
     communication (\textit{1:m, m:n})
-    \cite{deering1990multicast, rfc1112_ipmc}.
+    \cite{deering1990multicast, rfc1112_ip4mc}.
 Multicast offers the advantage, to greatly reduce the occupied bandwidth by
     condensing identical traffic into a single stream, targeted towards
     multiple recipients \cite{rfc3376_igmp}.
@@ -78,18 +78,21 @@ There are several reasons for the limited usage of IP-Multicast.
 \label{par:Feasibility}
 Besides the aforementioned advantages, IP-Multicast entails various technical
     obstacles.
-In comparison to unicast, it suffers from an increased technical complexity,
-    requiring the interaction of various protocols on multiple network layers
+Compared to unicast, it exhibits increased technical complexity, requiring
+    the interaction of various protocols on multiple network layers
     \cite{ratnasamy2006revisiting,diot2000deployment}.
 Furthermore, multipoint communication in general interferes with the
     application of today's widespread security mechanisms like encryption
     \cite{rafaeli2003group_key_mgm}.
-Moreover, IPv4-Multicast is based on a fixed class D address space
-    \cite{rfc1112_ipmc}, which bears an insufficient number of addresses
-    \cite{meadcast2} and a complex routing procedure
-    \cite{diot2000deployment,ratnasamy2006revisiting}.
-Global IP-Multicast availability is limited because successful packet delivery
-    necessitates all routers along the path to support multicast.
+Moreover, IP-Multicast is based on a fixed address space \cite{rfc1112_ip4mc,
+    rfc4291_ip6mc}, which has an insufficient number of addresses.
+This limitation makes it infeasible to map highly dynamic sessions, like
+    conferences, onto this space \cite{meadcast2}.
+Additionally, the protocol involves a complex routing procedure, which requires
+    all routers along the path to maintain a per-session state
+    \cite{diot2000deployment, ratnasamy2006revisiting}.
+Consequently, global IP-Multicast availability is constrained, as successful
+    packet delivery necessitates all routers to support the protocol.
 However, this scenario is unlikely since many commercial routers come
     preconfigured with IP-Multicast disabled \cite{aruba_doc}.
 Moreover, the following paragraph describes, why Network Operators are probably
@@ -252,7 +255,7 @@ Our measurements suggest that MEADcast's performance falls between uni- and
 
 \section{Method} % (fold)
 \label{sec:Method}
-To ensure the achievement of the previously defined goals this thesis follows
+To ensure the achievement of the previously defined goals, this thesis follows
     the procedure illustrated in \autoref{fig:method}.
 % First, we conduct a literature review to analyze the current challenges of
 %     IP-Multicast.
@@ -263,12 +266,13 @@ With a clear understanding of the relevant protocols and their limitations we
 % Based on these results, we define the objectives of this thesis.
 Furthermore, we select adequate evaluation metrics and criteria to asses
     MEADcast's feasibility, performance, and potential application scenarios.
-Subsequently, we design experiments aimed at capturing these metrics.
-Next, we outline the testbed requirements derived from the experiments and
+Subsequently, we design a series of experiments aimed at capturing these
+    metrics.
+Next, we outline the testbed requirements derived from these experiments and
     elaborate on a corresponding testbed design.
 % Next, we derive requirements from the experiments and elaborate on a testbed
 %     design.
-MEADcast is deployed in the testbed and the experiments are conducted.
+MEADcast is then deployed in the testbed, and the experiments are conducted.
 Finally, we present the obtained results.
 These findings are critically evaluated with respect to the thesis' overarching
     goal, providing valuable insights into the feasibility and performance of
