@@ -53,12 +53,15 @@ void send_rt_ip(int *sockfd, struct sockaddr_ll *dev, size_t dev_len,
 int main(int argc, char *argv[])
 {
     int sockfd;
-    char *if_name = "eth0"; // change
-    char *src_ip = "2a00:1450:4016:80a::200e"; // change
+    char *if_name = "enp4s0f3u1u1"; // change
+    char *src_ip = "2001:a61:2a71:4601:4248:ff3b:2113:ffcd"; // change
 
-    char *dst_ip = "2a00:1450:4016:80a::200e"; // change
+    // char *dst_ip = "2a00:1450:4016:80a::200e"; // change
+    // uint8_t dst_mac[ETH_ALEN] = {0x74, 0x42, 0x7f, 0x9e, 0x5e, 0xce}; // change
+    // char *dst_ip = "2001:a61:2a71:4601:5054:ff:fe54:c165"; // change
+    char *dst_ip = "fd14:c947:c4e7::13a"; // change
     // set to mac of default gw if dst_ip is in another network
-    uint8_t dst_mac[ETH_ALEN] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff}; // change
+    uint8_t dst_mac[ETH_ALEN] = {0x52, 0x54, 0x00, 0x54, 0xc1, 0x66}; // change
 
     uint8_t *src_mac, *eth_frame;
     struct sockaddr_ll dev;
@@ -122,8 +125,8 @@ char **create_dst_list(size_t len)
 {
     // pool of meadcast endoints to pick from
     static char *src[2] = {
-        "2a00:1450:4016:80a::200e", // change
-        "2a00:1450:4016:80a::200e" // change
+        "2001:a61:2a71:4601:4248:ff3b:2113:ffcd", // change
+        "2001:a61:2a71:4601:5054:ff:fe54:c166" // change
     };
 
     char **dsts = malloc(len * sizeof(char *));
@@ -283,7 +286,7 @@ void set_rt_hdr(struct mdc_hdr *hdr, uint8_t nh, uint8_t len, uint8_t type,
     hdr->rthdr.ip6r_segleft = segleft;
     hdr->num_dst = num_dst;
     hdr->discovery = 1;
-    hdr->response = 1;
+    hdr->response = 0;
     hdr->hopcount = 5;
     hdr->reserved = 0;
     hdr->dlvmap = htonl(16);
