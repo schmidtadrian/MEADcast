@@ -71,7 +71,7 @@ However, more than thirty years since the initial proposal of IP-Multicast, its
     \cite{diot2000deployment, ratnasamy2006revisiting}.
 Despite the potential advantages of Multicast, the majority of internet traffic
     continues to rely on point-to-point communication, known as
-    \textit{unicast}.
+    \textit{unicast} \cite{universal_mc}.
 There are several reasons for the limited usage of IP-Multicast.
 
 \paragraph{Feasibility} % (fold)
@@ -117,14 +117,14 @@ Moreover, the following paragraph describes, why Network Operators are probably
 
 % IP-Multicast, formally known as \gls{igmp}, offers very limited security
 %     features.
-So far, Network Operators and ISPs have shown limited efforts to deploy
+So far, Network Operators and \glspl{isp} have shown limited efforts to deploy
     Multicast within their Administrative Domains
-    \cite{diot2000deployment, ratnasamy2006revisiting}.
+    \cite{diot2000deployment, ratnasamy2006revisiting, overlay_mc_routing}.
 The increased technical complexity of Multicast requires more extensive
     management efforts.
 Additionally, due to the complex routing procedure, infrastructure upgrades may
     be necessary.
-Despite its potential for significant bandwidth savings, ISPs seem to assess
+Despite its potential for significant bandwidth savings, \glspl{isp} seem to assess
     the deployment of IP-Multicast as an unsuitable investment
     \cite{ratnasamy2006revisiting}.
 Another reason is the more complex pricing model of multipoint communication.
@@ -139,7 +139,7 @@ Combined with the limited security mechanisms of IP-Multicast, this represents
     a vulnerability, potentially exploited for amplification attacks.
 This fact makes intra-domain IP-Multicast even more unlikely.
 
-Unless ISPs face pressure to expand their service offering, increasing
+Unless \glspl{isp} face pressure to expand their service offering, increasing
     multicast deployment is doubtful.
 As multicast delivery has no direct impact on receivers, customers are not 
     expected to exert the necessary pressure.
@@ -183,7 +183,8 @@ This include issues such as packet acknowledgment and the client side
 % Identify scenarios & application categories/characteristics justifying the usage of MEADcast
 
 The current state of the internet put forth various unicast-based alternatives,
-    aimed at addressing the absence of a globally usable multicast protocol.
+    aimed at addressing the absence of a globally usable multicast protocol
+    \cite{universal_mc}.
 One such alternative, known as MEADcast \cite{meadcast1}, offers the capability
     for 1:n sender-based IPv6 multipoint communication over the internet
     \cite{meadcast2}.

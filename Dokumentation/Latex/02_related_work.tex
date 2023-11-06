@@ -1,11 +1,58 @@
 \chapter{Background and Related Work} % (fold)
 \label{chap:Background and Work}
 
+
 \section{Multicast Protocols} % (fold)
 \label{sec:Mutlicast Protocols}
-Multicast is a technique of sending data one-to-many or many-to-many.
-Related technologies are unicast, broadcast and anycast.
-% section Mutlicast (end)
+Multicast communication refers to the simultaneous delivery of data towards an
+    arbitrary number of destinations
+    \cite{mc_routing_multimedia, mc_comm_multicomputer}.
+Numerous network protocols have been developed to facilitate multicast
+communication, encompassing both Network Layer as well as Application Layer
+    implementations \cite{universal_mc, overlay_mc_routing}.
+This chapter first distinguishes Multicast from other communication schemes.
+Subsequently, various multicast protocols are introduced.
+
+According to the OSI model \cite{osi1980} Layer 3, known as the Network Layer,
+    is responsible for end-to-end delivery of data between nodes.
+In computer networks data is transferred through \glspl{pdu}, composed of
+    protocol specific control information (e.g. source and destination
+    address), along with a payload carrying the actual data.
+To establish a path from the sender to the destination(s), packets (Layer 3
+    \glspl{pdu}) may traverse multiple intermediate nodes \cite{rfc791_ip}.
+This process is called routing and can be classified into various schemes.
+For the purpose of this thesis, our primary focus lies on the schemes depicted
+    in \autoref{fig:multicast}.
+\textit{Unicast} denotes a one-to-one association between a sender and a single
+    destination.
+\textit{Broadcast} disseminates packets to all nodes within the sender's
+    broadcast domain (Layer 2) \cite{broadcast}.
+Typically, IP Routers (Layer 3) serve as the boundary of a broadcast domain.
+\textit{Multicast} transmits packets to a group of destinations, accommodating
+    both one-to-many and many-to-many communication \cite{rfc1112_ip4mc}.
+In contrast to Broadcast, Multicast does not necessarily deliver packets to all
+    available nodes.
+Furthermore, Multicast packets can be delivered beyond the sender's broadcast 
+    domain, implying subsequent replication of the packets.
+
+% This layer is responsible for end-to-end delivery of data between nodes across
+%     interconnected networks.
+% A network comprises interconnected nodes, each assigned a unique address within
+%     this network \cite{rfc791_ip}. 
+% Data delivery is achieved through the transmission of network packets,
+%     consisting of a header containing the source and destination address, along
+%     with a payload carrying the actual data.
+% If the data size exceeds the maximum transfer unit of Layer 2, it is fragmented
+%     into multiple packets and subsequently reassembled.
+
+\begin{figure}[h]
+    \begin{center}
+        \includegraphics[width=0.85\textwidth]{multicast.pdf}
+    \end{center}
+    \caption{Network Layer: Routing schemes}
+    \label{fig:multicast}
+\end{figure}
+
 
 \subsection{IP Multicast} % (fold)
 \label{sub:IP Multicast}
@@ -74,6 +121,7 @@ packet, instead of using a multicast addresses \cite{xcast_rfc}.
 \label{sub:MEADcast}
 
 % subsection MEADcast (end)
+% section Mutlicast (end)
 
 \section{Linux Kernel} % (fold)
 \label{sec:Linux Kernel}

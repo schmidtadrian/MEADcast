@@ -3,7 +3,91 @@
 
 \section{Metrics} % (fold)
 \label{sec:Metrics}
+Based on the goal, formulated in \autoref{sec:Contribution} we derived the
+    following questions:
 
+\begin{itemize}
+    \item How does MEADcast perform compared to unicast and multicast?
+    \item Under which conditions is the usage of MEADcast sensible?
+    \item Which applications and characteristics are well served by MEADcast?
+    \item How robust is the current MEADcast specification?
+    \item Is MEADcast usable in ``real'' networks?
+    \item Are there any issues or opportunities for improvement with the
+        current protocol specification?
+\end{itemize}
+
+\paragraph{Robustness} % (fold)
+\label{par:Robustness}
+\begin{itemize}
+    \item How does MEADcast handle routing changes?
+    \item How does MEADcast handle router failure?
+    \item How does MEADcast handle malicious packets?
+        \textit{(e.g. invalid discovery response)}
+    \item Does the fallback mechanism work properly?
+        \textit{(e.g. turn on a firewall)}
+    \item How does the sender/router handle high MEADcast load?
+\end{itemize}
+% paragraph Robustness (end)
+
+\paragraph{Discovery Phase} % (fold)
+\label{par:Discovery Phase}
+\begin{itemize}
+    \item Impact/Overhead of the discovery phase?
+    \begin{itemize}
+        \item Is there a drop in total transferred bytes/packets after the
+            initial discovery phase?
+        \item How does the recurring discovery phase influence the measured
+            performance metrics?
+    \end{itemize}
+    \item Sensible discovery interval?
+\end{itemize}
+% paragraph Discovery Phase (end)
+
+\paragraph{Characteristics (testing parameters)} % (fold)
+\label{par:Characteristics}
+\begin{itemize}
+    \item Endpoint distribution \textit{(avg. distance \& EPs per route)}
+    \item Group size \textit{(small vs. big)}
+    \item Session duration \textit{(short vs. long)}
+    \item Membership \textit{(static vs. dynamic)}
+    \item Available bandwidth \textit{(low vs. high)}
+    \item Latency or bandwidth sensitivity
+        \textit{(many small packets vs. few big ones)}
+\end{itemize}
+% paragraph Characteristics (testing parameters) (end)
+
+\paragraph{Availability} % (fold)
+\label{par:Availability}
+\begin{itemize}
+    \item Is MEADcast usable with intermediate notes like firewalls \& routers?
+        \textit{(Does it work at all? Does the fallback mechanism work?)}
+    \item Is MEADcast usable on the internet?
+\end{itemize}
+% paragraph Availability (end)
+
+\paragraph{KPIs} % (fold)
+\label{par:KPIs}
+\begin{itemize}
+    \item Total transferred bytes/packets
+    \item Latency \& Jitter
+    \item Packet loss
+    \item Resource utilization \textit{(CPU, Memory, Link)}
+    \item Hop count \& header size \textit{(mainly for internet availability)}
+\end{itemize}
+% paragraph KPIs (end)
+
+\paragraph{Scenarios} % (fold)
+\label{par:Scenarios}
+\begin{itemize}
+    \item Simulate typical application
+    \begin{itemize}
+        \item Video conference \textit{(may server vs. P2P)}
+        \item Live stream
+    \end{itemize}
+    \item Test these in different topologies with varying parameterization
+        \textit{(see Characteristics)}
+\end{itemize}
+% paragraph Scenarios (end)
 % section Metrics (end)
 
 

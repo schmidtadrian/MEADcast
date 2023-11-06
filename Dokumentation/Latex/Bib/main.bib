@@ -39,6 +39,82 @@
 }
 
 
+%%%%%%%%%%%%%%%%%%% OSI Model %%%%%%%%%%%%%%%%%%%
+@article{osi1980,
+  title={OSI reference model-the ISO model of architecture for open systems interconnection},
+  journal={IEEE Transactions on communications},
+  volume={28},
+  number={4},
+  pages={425--432},
+  year={1980},
+  publisher={IEEE},
+  author={Huber Zimmermann}
+}
+
+@misc{rfc791_ip,
+    series =    {Request for Comments},
+    number =    791,
+    howpublished =  {RFC 791},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC0791},
+    url =       {https://www.rfc-editor.org/info/rfc791},
+        author =    {Jon Postel},
+    title =     {{Internet Protocol}},
+    pagetotal = 51,
+    year =      1981,
+    month =     sep,
+    abstract =  {},
+}
+
+
+%%%%%%%%%%%%%%%%%%% Multicast %%%%%%%%%%%%%%%%%%%
+@article{mc_routing_multimedia,
+  title={Multicast routing for multimedia communication},
+  journal={IEEE/ACM transactions on Networking},
+  volume={1},
+  number={3},
+  pages={286--292},
+  author={Kompella, Vachaspathi P. and Pasquale, Joseph C. and Polyzos, George C.},
+  year={1993},
+  publisher={IEEE}
+}
+
+@article{mc_comm_multicomputer,
+  title={Multicast communication in multicomputer networks},
+  journal={IEEE transactions on Parallel and Distributed Systems},
+  volume={4},
+  number={10},
+  author={Lin, Xiaola, and Lionel M. Ni},
+  pages={1105--1117},
+  year={1993},
+  publisher={IEEE}
+}
+
+@article{universal_mc,
+  title={Universal IP multicast delivery},
+  author={Zhang, Beichuan and Wang, Wenjie and Jamin, Sugih and Massey, Daniel and Zhang, Lixia},
+  journal={Computer Networks},
+  volume={50},
+  number={6},
+  pages={781--806},
+  year={2006},
+  publisher={Elsevier}
+}
+
+@inproceedings{overlay_mc_routing,
+  title={Routing in overlay multicast networks},
+  author={Shi, Sherlia Y and Turner, Jonathan S},
+  booktitle={Proceedings. Twenty-First Annual Joint Conference of the IEEE Computer and Communications Societies},
+  volume={3},
+  pages={1200--1208},
+  year={2002},
+  organization={IEEE}
+}
+
+
+
+
+
 %%%%%%%%%%%%%%%%%%% IP Multicast %%%%%%%%%%%%%%%%%%%
 @article{deering1990multicast,
   title={Multicast routing in datagram internetworks and extended LANs},
@@ -134,6 +210,55 @@
     edition=1,
     url={https://www.arubanetworks.com/techdocs/AOS-Switch/16.09/Aruba%202530%20Multicast%20and%20Routing%20Guide%20for%20AOS-S%20Switch%2016.09.pdf},
     urldate={2023-09-20}
+}
+
+@misc{broadcast,
+    series =    {Request for Comments},
+    number =    922,
+    howpublished =  {RFC 922},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC0922},
+    url =       {https://www.rfc-editor.org/info/rfc922},
+    author =    {J.C. Mogul},
+    title =     {{Broadcasting Internet datagrams in the presence of subnets}},
+    pagetotal = 12,
+    year =      1984,
+    month =     oct,
+    abstract =  {We propose simple rules for broadcasting Internet datagrams on local networks that support broadcast, for addressing broadcasts, and for how gateways should handle them. This RFC suggests a proposed protocol for the ARPA-Internet community, and requests discussion and suggestions for improvements.},
+}
+
+
+
+%%%%%%%%%%%%%%%%%%% IPv6 Header %%%%%%%%%%%%%%%%%%%
+@misc{rfc8200_ipv6_hdr,
+    series =    {Request for Comments},
+    number =    8200,
+    howpublished =  {RFC 8200},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC8200},
+    url =       {https://www.rfc-editor.org/info/rfc8200},
+        author =    {Dr. Steve E. Deering and Bob Hinden},
+    title =     {{Internet Protocol, Version 6 (IPv6) Specification}},
+    pagetotal = 42,
+    year =      2017,
+    month =     jul,
+    abstract =  {This document specifies version 6 of the Internet Protocol (IPv6). It obsoletes RFC 2460.}
+}
+
+% Experimental Routing Type
+@misc{rfc3692_ipv6_rt_type,
+    series =    {Request for Comments},
+    number =    3692,
+    howpublished =  {RFC 3692},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC3692},
+    url =       {https://www.rfc-editor.org/info/rfc3692},
+        author =    {Dr. Thomas Narten},
+    title =     {{Assigning Experimental and Testing Numbers Considered Useful}},
+    pagetotal = 7,
+    year =      2004,
+    month =     jan,
+    abstract =  {When experimenting with or extending protocols, it is often necessary to use some sort of protocol number or constant in order to actually test or experiment with the new function, even when testing in a closed environment. For example, to test a new DHCP option, one needs an option number to identify the new function. This document recommends that when writing IANA Considerations sections, authors should consider assigning a small range of numbers for experimentation purposes that implementers can use when testing protocol extensions or other new features. This document reserves some ranges of numbers for experimentation purposes in specific protocols where the need to support experimentation has been identified.},
 }
 
 
@@ -351,31 +476,3 @@
   year={2013}
 }
 
-
-%%%%%%%%%%%%%%%%%%% TEMPLATE %%%%%%%%%%%%%%%%%%%
-@misc{latexbib,
-  title        = {Latex Bibliography Management},
-  author = {Wikibooks},
-  year         =  {2017},
-  url 		= {https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management},
-  note         = {abgerufen am 2. Mai 2017}
-}
-
-@manual{fitsm-0,
-  title = {{FitSM -- Teil 0: Überblick und Begriffe}},
-  organization = {{ITEMO}},
-  year = 2016,
-  month = sep,
-  address = {FitSM working group},
-  edition = {Version 2.4},
-  url = {http://fitsm.itemo.org/fitsm-standard}
-}
-
-@book{praxisbuch2017,
-   author	={Brenner, Michael and Nils {gentschen Felde} and Stefan Metzger and Helmut Reiser and Thomas Schaaf},
-   title	={Praxisbuch ISO-IEC 27001: Management der Informationssicherheit und Vorbereitung auf die Zertifizierung},
-   publisher={Hanser},
-   edition	= {2. Auflage},
-   year	= 2017,
-   month 	= apr
-}
