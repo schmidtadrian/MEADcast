@@ -45,7 +45,7 @@ Aligned with the goal of this thesis, we begin by formulating  overarching
     research questions, guiding the design of the experiments.
 Additionally, this section outlines our approach to answering these questions.
 
-\begin{itemize}
+\begin{enumerate}
     \item[\textit{RQ1}]
         \textit{How robust is the current MEADcast specification?}\par
         While prior research on MEADcast has primarily taken place in simulated
@@ -114,7 +114,7 @@ Additionally, this section outlines our approach to answering these questions.
             MEADcast's suitability across a diverse spectrum of use cases.
         The results aim to delineate MEADcast's application space by
             identifying its strengths and limitations.
-    \item[\textit{RQ4}]
+    \item[\textit{RQ4}] \label{itm:RQs}
         \textit{In which conditions is the usage of MEADcast sensible?}\par
         % testing parameters based on scenarios
         % Number of EPs
@@ -141,7 +141,7 @@ Additionally, this section outlines our approach to answering these questions.
         % The results aims to provide guidance, under which circumstances
         %     employing MEADcast is favorable in comparison to existing
         %     alternatives.
-\end{itemize}
+\end{enumerate}
 
 
 
@@ -410,8 +410,8 @@ The last domain is \textit{Distributed Simulation}, with exemplary applications
         Software Distribution, Updates, Patch Management, File-sharing and
             -synchronization, Logging
         \\\addlinespace
-        Information delivery &
-        Push notifications, RSS-feed, Logging, Stock quotes
+        Push notifications &
+        RSS-feed, Logging, Stock quotes
         \\\addlinespace
         Distributed simulation &
         Online Gaming, Virtual World, Simulation \\
@@ -483,28 +483,6 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
 % subsection Application Characteristics (end)
 % paragraph Application Domains (end)
 
-
-% \begin{table}
-%     \centering
-%     \begin{tabular}{lllccccl}
-%     \toprule
-%         & \multicolumn{3}{c}{\textbf{Group/Session}}
-%         & \multicolumn{2}{c}{\textbf{Network}}
-%         & \multicolumn{2}{c}{\textbf{Communication}} \\
-%         \cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(lr){7-8}
-%         \textbf{Domain}     & Duration      & \makecell{Member-\\ship} & Size & \makecell{Through-\\put} & \makecell{Latency\\/Jitter} & Pattern & Interval \\
-%     \midrule
-%         Live Stream         & long          & dynamic  & l         & med.      & med.  & 1:n & steady \\
-%         Conference          & short-med.    & static   & s-m       & high      & low   & m:n & steady \\
-%         File Transfer       & short-med.    & static   & l         & high      & high  & 1:m & burst \\
-%         Push Info.          & short         & dynamic  & l         & low       & med.  & 1:m & burst \\
-%         Online Gaming       & medium        & static   & s-m       & low       & low   & m:n & steady \\
-%     \bottomrule
-%         
-%     \end{tabular}
-%     \caption{App Scenarios}
-%     \label{tab:appscenarios}
-% \end{table}
 \begin{table}
     \centering
     \begin{threeparttable}
@@ -514,35 +492,132 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
         & \multicolumn{2}{c}{\textbf{Communication}}
         & \multicolumn{3}{c}{\textbf{Network}} \\
         \cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(lr){7-9}
-        \textbf{Scenario}
-        & \makecell{Dura-\\tion\tnote{1}} & \makecell{Mem.\\ship} & Size
+        \textbf{Domain}
+        & \makecell{Dura-\\tion\tnote{1}} & \makecell{Mem.\\ship} & Size\tnote{2}
         & \makecell{Pattern} & \makecell{Interval}
         & \makecell{Pkt.\\size} & \makecell{Through.\\(tx/rx)} & \makecell{Latency\\/Jitter} \\
     \midrule
-        Livestream      & h-d   & dyn.  & l     & 1:n   & steady    & med.  & high/med. & med.  \\
+        % Livestream      & h-d   & dyn.  & l     & 1:n   & steady    & med.  & high/med. & med.  \\
+        % Conference      & m-h   & stat. & s-m   & m:n   & steady    & med.  & high/high & low   \\
+        % File transfer   & s-h   & stat. & s-l   & 1:n   & burst     & large & high/high & high  \\
+        % Push info.      & s     & stat. & m-l   & 1:n   & burst     & small & med./low  & med.  \\
+        % Online game     & m-h   & stat. & s-m   & m:n   & steady    & small & low/med.  & low   \\
+        Multimedia      & h-d   & dyn.  & l     & 1:n   & steady    & med.  & high/med. & med.  \\
         Conference      & m-h   & stat. & s-m   & m:n   & steady    & med.  & high/high & low   \\
         File transfer   & s-h   & stat. & s-l   & 1:n   & burst     & large & high/high & high  \\
         Push info.      & s     & stat. & m-l   & 1:n   & burst     & small & med./low  & med.  \\
-        Online game     & m-h   & stat. & s-m   & m:n   & steady    & small & low/med.  & low   \\
+        Dist. sim.     & m-h   & stat. & s-m   & m:n   & steady    & small & low/med.  & low   \\
     \bottomrule
         
     \end{tabular}
     \begin{tablenotes}
     \item [1] \textsl{(s)econds, (h)ours, (d)ays}
+    \item [2] \textsl{(s)mall, (m)edium, (l)arge}
     \end{tablenotes}
     \end{threeparttable}
-    \caption{App Scenarios}
+    \caption{Characteristics of the application domains}
     \label{tab:appscenarios}
 \end{table}
 
 
 \subsection{Application Scenarios} % (fold)
 \label{sub:Application Scenarios}
+% Why theses scenarios?
+% Real-life example?
+
+% General goal:
+% - Test as many characteristic as possible and combinations within the scope
+%   of this thesis
+% - Test typical real-world scenarios to assert MEADcast and propose application
+%   scenarios where it excels
+
 % Live Stream: 1:n, large, steady, med through., med latency
+% - One of the most typical and promising use cases
+% - Live Stream wan't to lower egress bill, aspiring platform overcoming resource limitation
+
 % Conference: m:n, med, steady, high through., low latency
+% - One of the most typical and promising use cases
+% - Expending serivce offering for low bandwidth customers
+% - Low Latency and m:n
+
 % File transfer: 1:n, large, burst, high through., high latency
+% - high throughput over limited time periode
+% - also promising bc. latency is not important
 % - Distribute files to backup cloud instances
 % - Deploy an software update
+
+Based on the previously exhibited application domains and characteristics this
+    chapter formulates several application scenarios.
+
+The primary goal is, to develop a series of experiments encompassing various
+    domains and characteristics.
+This comprehensive selection ensures a throughout examination of MEADcast's
+    suitability across a diverse spectrum of use cases.
+Therefore, the results from the experiments are pivotal to answer \textit{RQ3}.
+The characteristics of each experiment are illustrated in
+    \autoref{tab:ex_char}.
+
+\paragraph{EX1: Live Stream} % (fold)
+\label{par:EX1: Live Stream}
+The first experiment is a video live stream, representing the multimedia stream
+    domain.
+As stated by \citeauthor{cartesian_us_bw} \cite{cartesian_us_bw}, multimedia 
+    traffic is accountable for more than half of the bandwidth consumed in
+    2020.
+Therefore, this experiment is representative for a major application space.
+Conceivable scenarios are, that a major streaming provider wants to lower their
+    egress costs, or an aspiring platform has to overcome preserving resource
+    limitations to satisfy rapidly growing bandwidth demands.
+Since, multimedia streams produce a high traffic volume on the sender it is
+    of particular interest, how much MEADcast can reduce the occupied
+    bandwidth.
+Moreover, it is examined if this comes with tradeoffs like, increased
+    latency/jitter or an increased CPU utilization of the sender
+% How much reduce the traffic volume on the sender
+% paragraph EX1: Live Stream (end)
+
+\paragraph{EX2: File tranfer} % (fold)
+\label{par:EX2: File tranfer}
+The second experiment imitates a file distribution, thus representing the
+    file transfer domain.
+Especially software updates and file backups share major characteristics with
+    this scenario.
+The primary focus of this experiment is to investigate, how well MEADcast copes
+    with recurring burst of a high traffic volume.
+The characteristics of this experiment are predestined to measure the effects
+    of the discover phase on metrics such as bandwidth and latency.
+By adjusting parameters like communication interval and group size, this
+    experiment can be conducted analogous to \textit{EX1}.
+% paragraph EX2: File tranfer (end)
+
+\paragraph{EX3 Video conference} % (fold)
+\label{par:EX3 Video conference}
+The third experiment simulates a \gls{p2p} video conference.
+This experiment is designed to investigate, whether MEADcast is capable of
+    bridging asymmetric access link bandwidth \cite{xcast_rfc}.
+Furthermore, the characteristics of this scenario facilitate an environment
+    in which the effects of an high MEADcast traffic volume on the MEADcast 
+    routers can be examined.
+Since, video conferences usually have a significant lower number of group
+    members it is analyzed, how MEADcast copes with a small number of
+    recipients.
+Since, this experiment is conducted for smaller group sizes the overhead of 
+    MEADcast is also analysed.
+% paragraph EX3 Video conference (end)
+
+\paragraph{EX4 Online game} % (fold)
+\label{par:EX4 Online game}
+The last experiment is an online multiplayer game, representing the application
+    domain distributed simulation.
+This experiment has two primary goals.
+First since, online games are highly sensitive to Latency and Jitter we examine
+    MEADcast's effect on these metrics.
+Secondly, the overhead of the protocol can be analyzed, hence online games have
+    low bandwidth requirements.
+By adjusting parameters such as packet size and communication interval, this
+    experiment can be conducted analogous to \textit{EX3}.
+
+% paragraph EX4 Online game (end)
 
 % Scenario      Pattern Interval    pkt size    throuput (eps)  latency
 % Live Stream   1:n     steady      med         med             med
@@ -572,7 +647,7 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
     \end{tablenotes}
     \end{threeparttable}
     \caption{Show diff scenarios meeting}
-    \label{tab:scediff}
+    \label{tab:ex_char}
 \end{table}
 % subsection Application Scenarios (end)
 
@@ -607,7 +682,12 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
 
 \subsection{Requirements} % (fold)
 \label{sub:Requirements}
-
+\begin{itemize}
+    \item Realistic topology
+    \item Medium sized (up to 200 nodes)
+    \item Adjustable number of MEADcast routers
+    \item Alternative routes (routing change/failure)
+\end{itemize}
 % subsection Requirements (end)
 
 \subsection{Architecture} % (fold)
