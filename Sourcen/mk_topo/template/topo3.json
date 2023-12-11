@@ -1,0 +1,73 @@
+{
+    "stub_range": "fd14:0::/32",
+    "tran_range": "fd14:0::/32",
+    "mgm_gw": "10.10.0.1/16",
+    "stubs": [
+        {
+            "id": 1,
+            "mask": 112,
+            "router": 1,
+            "clients": 1
+        },
+        {
+            "id": 2,
+            "mask": 112,
+            "router": 2,
+            "clients": 1
+        },
+        {
+            "id": 3,
+            "mask": 112,
+            "router": 3,
+            "clients": 1
+        },
+        {
+            "id": 4,
+            "mask": 112,
+            "router": 4,
+            "clients": 1
+        },
+        {
+            "id": 5,
+            "mask": 112,
+            "router": 5,
+            "clients": 1
+        },
+        {
+            "id": 6,
+            "mask": 112,
+            "router": 6,
+            "clients": 1
+        },
+        {
+            "id": 7,
+            "mask": 112,
+            "router": 7,
+            "clients": 1
+        },
+        {
+            "id": 8,
+            "mask": 112,
+            "router": 8,
+            "clients": 1
+        },
+        {
+            "id": 9,
+            "mask": 112,
+            "router": 9,
+            "clients": 1
+        }
+    ],
+    "trans": [
+        [1, 2],
+        [2, 4],
+        [2, 5],
+        [4, 5],
+        [3, 5],
+        [3, 6],
+        [5, 6],
+        [5, 7],
+        [7, 8],
+        [7, 9]
+    ]
+}

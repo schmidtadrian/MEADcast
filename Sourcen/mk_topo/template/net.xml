@@ -1,0 +1,7 @@
+<network>
+  <name>{NAME}</name>
+  <bridge name='{BRIDGE}' stp='on' delay='0'/>
+  <domain name='{NAME}'/>
+  <ip family='ipv6' address='{NETWORK}' prefix='{NETMASK}'></ip>
+</network>
+

@@ -1,0 +1,22 @@
+{
+    "stub_range": "fd14:0::/32",
+    "tran_range": "fd14:0::/32",
+    "mgm_gw": "10.10.0.1/16",
+    "stubs": [
+        {
+            "id": 1,
+            "mask": 112,
+            "router": 1,
+            "clients": 2
+        },
+        {
+            "id": 2,
+            "mask": 112,
+            "router": 2,
+            "clients": 2
+        }
+    ],
+    "trans": [
+        [11, 12]
+    ]
+}
