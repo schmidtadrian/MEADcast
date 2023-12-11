@@ -24,3 +24,30 @@ sudo python3 mk_topo.py \
 -k kernel=/var/lib/libvirt/images/kernel/vmlinuz-6.5.2-dirty,initrd=/var/lib/libvirt/images/kernel/initrd.img-6.5.2-dirty,kernel_args="root=/dev/vda1 ro console=ttyS0,115200 2"
 ```
 
+## Testing
+To test whether IPv6 Multicast routing is working use ssmping and iperf:
+
+### ssmping
+Multicast sender:
+```sh
+ssmpingd
+```
+
+Receivers:
+```sh
+ssmping -6 -I <interface> <sender_ip>
+```
+
+### iperf
+Multicast sender:
+(Setting TTL with `-T` is mandantory)
+```sh
+iperf -c [ff3e::4321:1234]%enp2s0 -V -u -i 1 -T 32 -t 0
+```
+
+Receivers:
+(Specifing source with `-H` is mandantory)
+```sh
+iperf -s -B [ff3e::4321:1234]%enp2s0 -V -u -i 1 -H fd14::b:11
+
+```
