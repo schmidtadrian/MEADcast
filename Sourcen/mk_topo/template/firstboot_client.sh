@@ -17,5 +17,5 @@ EOF
 resize2fs "$DISK$PART_NUM"
 
 apt-get update -y
-apt-get install ssmping iperf -y
+apt-get install ssmping iperf ncat libjudydebian1 libatomic1 -y
 

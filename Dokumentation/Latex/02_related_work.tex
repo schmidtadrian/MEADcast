@@ -56,6 +56,23 @@ Furthermore, Multicast packets can be delivered beyond the sender's broadcast
 
 \subsection{IP Multicast} % (fold)
 \label{sub:IP Multicast}
+Already in the late 1980s, \citeauthor{deering1990multicast}
+    \cite{deering1990multicast} proposed an extension to the IP protocol, to
+    facilitate efficient multipoint communication (\textit{1:n}, \textit{m:n}).
+This extension is known as IP-Multicast and was first standardized in RFC 988
+    (\citeyear{rfc988_initmc}) \cite{rfc988_initmc}.
+IP-Multicast offers the advantage, to greatly reduce the bandwidth by condensing
+    identical traffic into a single stream targeted to a so called ``Host
+    Group'' \cite{rfc1112_ip4mc}.
+IP-Multicast operates on a separate address space and host groups are
+    identified based on an IP address within the designated address range.
+For instance, IPv4 host groups are identified by class D IP addresses starting
+    with ``\texttt{1110}'' as their \glspl{msb} \cite{rfc1112_ip4mc}.
+This characteristic facilitates high scalability, such that host groups may
+    encompass thousands of receivers, since senders are not required of any
+    knowledge about the number of receivers nor receivers identity or location.
+Intermediate nodes like IP routers replicate multicast packets addressed to an
+    host group where the paths towards the receivers diverge.
 \begin{itemize}\itemsep0em
     \item Separate address space
     \item IGMP / MLD
