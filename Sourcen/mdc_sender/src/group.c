@@ -30,7 +30,7 @@ Word_t *_join(struct sockaddr_in6 *sa)
     return pv;
 }
 
-int init_group(char *addr, uint16_t port)
+int init_group(struct in6_addr *addr, uint16_t port)
 {
     int ret;
     Word_t *pv;
@@ -39,8 +39,9 @@ int init_group(char *addr, uint16_t port)
     if (root || ht)
         return -1;
 
-    if (init_sa(&sa, addr, port) < 0)
-        return -1;
+    sa.sin6_family = AF_INET6;
+    sa.sin6_addr = *addr;
+    sa.sin6_port = port;
 
     pv = _join(&sa);
     if (!pv) {
@@ -54,7 +55,7 @@ int init_group(char *addr, uint16_t port)
     return 0;
 }
 
-int join(char *addr, uint16_t port)
+int join(struct in6_addr *addr, uint16_t port)
 {
     Word_t *pv;
     struct sockaddr_in6 sa;
@@ -63,8 +64,9 @@ int join(char *addr, uint16_t port)
     if (!root || !ht)
         return -1;
 
-    if (init_sa(&sa, addr, 0) < 0)
-        return -1;
+    sa.sin6_family = AF_INET6;
+    sa.sin6_addr = *addr;
+    sa.sin6_port = 0;
 
     pv = _join(&sa);
     if (!pv)

@@ -98,17 +98,19 @@ close_tun:
     return ret;
 }
 
-int start(char *tif, char *bif, char *baddr, uint16_t bport, size_t mtu)
+int start(char *tif, char *bif, struct in6_addr *baddr, uint16_t bport,
+          size_t mtu, struct itimerspec *dcvr_int,
+          struct itimerspec *dcvr_tout)
 {
     int ret;
     int tun_fd, mdc_fd, ip6_fd;
     struct addr ba;
     struct dx_targs *dxargs;
-    pthread_t txid, rxid, dxid;
+    pthread_t txid, dxid;
 
-    ret = init_sa(&ba.sa, baddr, 0);
-    if (ret < 0)
-        return -1;
+    ba.sa.sin6_family = AF_INET6;
+    ba.sa.sin6_addr = *baddr;
+    ba.sa.sin6_port = 0;
     ba.port = bport;
 
     ret = init_fds(&tun_fd, &mdc_fd, &ip6_fd, tif, bif, &ba);
@@ -123,12 +125,10 @@ int start(char *tif, char *bif, char *baddr, uint16_t bport, size_t mtu)
     if (txid < 0)
         return -1;
 
-    // rxid = start_rx(tun_fd, ip6_fd, mtu);
-
     dxargs = malloc(sizeof(*dxargs));
     dxargs->fd = mdc_fd;
-    dxargs->tout = 2;
-    dxargs->tint = 5;
+    dxargs->tout = dcvr_tout;
+    dxargs->tint = dcvr_int;
     dxargs->evlen = 10;
     ret = pthread_create(&dxid, NULL, (void *) start_dx, dxargs);
     if (ret) {

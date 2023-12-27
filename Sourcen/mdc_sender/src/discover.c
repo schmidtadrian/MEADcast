@@ -47,32 +47,23 @@ int init_epoll(int mdc_fd, int tout_fd, int tint_fd)
     return fd;
 }
 
-int init_timerfd(struct timespec *ts, long tval_s, long tval_ns,
-                 long tint_s, long tint_ns)
+int init_timerfd(struct timespec **ts, struct itimerspec *its)
 {
     int fd, ret;
-    struct itimerspec tspec;
 
     fd = timerfd_create(CLOCK_MONOTONIC, 0);
     if (fd < 0) {
         perror("timerfd_create");
         return fd;
     }
-    
-    tspec.it_value.tv_sec = tval_s;
-    tspec.it_value.tv_nsec = tval_ns;
-    tspec.it_interval.tv_sec = tint_s;
-    tspec.it_interval.tv_nsec = tint_ns;
 
-    ts->tv_sec = tint_s;
-    ts->tv_nsec = tint_ns;
-
-    ret = timerfd_settime(fd, 0, &tspec, NULL);
+    ret = timerfd_settime(fd, 0, its, NULL);
     if (ret < 0) {
         perror("timerfd_settime");
         return ret;
     }
 
+    *ts = &its->it_interval;
     return fd;
 }
 
@@ -102,6 +93,9 @@ int flip_timers(int t1, int t2, struct timespec *ts)
 {
     int ret;
 
+    if (!ts)
+        return -1;
+
     ret = update_timer(t1, 0, 0);
     if (ret < 0)
         return ret;
@@ -124,7 +118,7 @@ int tint_handler(int mdc_fd, int tint_fd, int tout_fd)
 
     send_disc(mdc_fd);
 
-    n = flip_timers(tint_fd, tout_fd, &tout_ts);
+    n = flip_timers(tint_fd, tout_fd, tout_ts);
     if (n < 0)
         return n;
 
@@ -158,7 +152,7 @@ int tout_handler(int fd, int tint_fd)
     set_txg(&grp);
     rec_reset_tree(r, r);
 
-    n = flip_timers(fd, tint_fd, &tint_ts);
+    n = flip_timers(fd, tint_fd, tint_ts);
     if (n < 0)
         return n;
 
@@ -205,11 +199,11 @@ int start_dx(struct dx_targs *args)
     int epoll_fd;
     struct epoll_event ev[args->evlen];
 
-    tout_fd = init_timerfd(&tout_ts, 0, 0, args->tout, 0);
+    tout_fd = init_timerfd(&tout_ts, args->tout);
     if (tout_fd < 0)
         return tout_fd;
 
-    tint_fd = init_timerfd(&tint_ts, 5, 1, args->tint, 0);
+    tint_fd = init_timerfd(&tint_ts, args->tint);
     if (tint_fd < 0)
         return tint_fd;
 

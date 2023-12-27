@@ -31,8 +31,8 @@ struct tx_group {
 };
 
 
-int init_group(char *addr, uint16_t port);
-int join(char *addr, uint16_t port);
+int init_group(struct in6_addr *addr, uint16_t port);
+int join(struct in6_addr *addr, uint16_t port);
 struct router *get_root(void);
 struct tx_group *get_txg(void);
 void set_txg(struct tx_group **v);

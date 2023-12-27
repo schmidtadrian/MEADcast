@@ -6,8 +6,8 @@
 
 struct dx_targs {
     int fd;
-    long tout;
-    long tint;
+    struct itimerspec *tout;
+    struct itimerspec *tint;
     size_t evlen;
 };
 
@@ -15,7 +15,7 @@ int start_dx(struct dx_targs *args);
 
 static int tout_fd;
 static int tint_fd;
-static struct timespec tout_ts;
-static struct timespec tint_ts;
+static struct timespec *tout_ts = NULL;
+static struct timespec *tint_ts = NULL;
 
 #endif // !DISCOVER_H
