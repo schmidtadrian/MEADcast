@@ -12,12 +12,14 @@ void test()
 {
     struct router *root, *r;
     struct child *c;
+    struct tx_group *grp;
     create_topo(&root);
 
     reduce_tree(root);
     print_tree(root);
+    grp = greedy_grouping(root);
+    print_txg(grp);
     rec_reset_tree(root, root);
-    print_tree(root);
     exit(EXIT_SUCCESS);
 }
 
@@ -27,8 +29,8 @@ void create_topo(struct router **root)
     uint16_t *t;
 
     char n[INET6_ADDRSTRLEN];
-    char *rt_pref = "aa14::1";
-    char *ep_pref = "bb15::1";
+    char *rt_pref = "a::";
+    char *ep_pref = "f::";
 
     nr = 12;
     ne = 28;
@@ -55,9 +57,6 @@ void create_topo(struct router **root)
             perror("inet_pton (router)");
             exit(EXIT_FAILURE);
         }
-
-        print_ia(&rsa[i].sin6_addr);
-        printf("\n");
     }
 
     for (i = 1; i <= ne; i++) {
@@ -68,14 +67,11 @@ void create_topo(struct router **root)
             perror("inet_pton (ep)");
             exit(EXIT_FAILURE);
         }
-
-        print_ia(&lsa[i].sin6_addr);
-        printf("\n");
     }
 
     // root
     *root = create_router(&ssa, NULL);
-    r[1] = create_router(&lsa[15], *root);
+    r[1] = create_router(&rsa[1], *root);
     r[2] = create_router(&rsa[2], *root);
 
     // r1

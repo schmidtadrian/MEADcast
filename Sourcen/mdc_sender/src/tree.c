@@ -254,6 +254,9 @@ void reduce_tree(struct router *r)
         reduce_tree(n);
     }
 
+    if (!r->node.parent)
+        return;
+
     if (r->nchild < MIN_NUM_ROUTER && r->nleaf < MIN_NUM_LEAF) {
         printf("Removing node ");
         print_ia(&r->sa.sin6_addr);
@@ -295,19 +298,6 @@ struct router *get_start(struct router *r)
     }
 
     return s;
-    // if (s) {
-    //     printf("Start Router: ");
-    //     print_ia(&r->sa.sin6_addr);
-    //     printf("\n");
-    //     return s;
-    // }
-    //
-    // r = get_router(r->node.parent);
-    // if (r)
-    //     return get_start(r);
-    //
-    // printf("No start left\n");
-    // return s;
 }
 
 struct router *back_propagate(struct router *r)
@@ -330,27 +320,64 @@ void rec_back_propagate(struct router *r)
         r = back_propagate(r);
 }
 
+/* Sets router bit and copies router addr to address list.
+ * If `MERGE_NODES` is enabled routers will be merged under router with
+ * shortest distance to root.
+ * Returns start index offset for copying leafs to address list.
+ * The offset is 0 if nodes should be merged and otherwise 1, to skip router
+ * address. */
+size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
+                      size_t n)
+{
+    size_t i, off;
+    struct child *c;
+
+    i = 0;
+    off = 0;
+    if (!MERGE_NODES) {
+        off = n;
+        i = 1;
+        goto bitmap;
+    }
+
+    if (!closest) {
+        closest = r;
+        i = 1;
+        goto bitmap;
+    }
+
+    if (closest->hops > r->hops)
+        closest = r;
+
+    goto copy;
+
+bitmap:
+    /* set bitmap starting from msb. */
+    (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - off);
+copy:
+    memcpy(&l[off], &r->sa.sin6_addr, sizeof(r->sa.sin6_addr));
+
+    return i;
+}
+
 void add2txg(struct in6_addr *l, uint32_t *bm, struct router *r,
              size_t *n, size_t m)
 {
-    int i;
+    size_t i, s;
     struct child *c;
     struct node *v;
     struct rcvr *rcvr;
 
-    /* set bitmap starting from msb. */
-    (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - *n);
-    memcpy(&l[*n], &r->sa.sin6_addr, sizeof(r->sa.sin6_addr));
-
+    s = set_txg_router(l, bm, r, *n);
     c = get_free_leaf(r);
-    for (i = 1; i <= m; i++) {
+    for (i = s; i < m + s; i++) {
         v = c->v;
         c = c->n;
         rcvr = &get_leaf(v)->val;
         memcpy(&l[*n + i], &rcvr->addr.sa.sin6_addr, sizeof(struct in6_addr));
     }
 
-    (*n) += m + 1;
+    (*n) += m + s;
     r->fleaf -= m;
 }
 
@@ -380,12 +407,12 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
     print_grp(&addrs[0], *len, *bm);
     *len = 0;
     *bm = 0;
+    closest = NULL;
 }
 
 struct tx_group *greedy_grouping(struct router *s)
 {
-    int i;
-    size_t n, m, max;
+    size_t i, n, m, p, max;
     struct router *r;
     struct child *c, *mdc;
     struct tx_group *grp;
@@ -408,11 +435,15 @@ struct tx_group *greedy_grouping(struct router *s)
     while (r) {
 start:
         while (r->fleaf > 0) {
-            m = n + r->fleaf + 1;
+            /* if nodes can be merged, don't consider router address. */
+            p = closest ? 0 : 1;
+            m = n + r->fleaf + p;
 
             if (m > max) {
-                m = max - n - 1;
-                add2txg(&addrs[0], &bm, r, &n, m);
+                if (SPLIT_NODES) {
+                    m = max - n - p;
+                    add2txg(&addrs[0], &bm, r, &n, m);
+                }
                 goto next;
             }
 
@@ -465,9 +496,6 @@ next:
 
     /* TODO, if a group has less than X entries, break up to unicast. */
 
-    // for (c = grp->mdc; c; c = c->n)
-    //     print_mdc_hdr(c->v);
-
     return grp;
 }
 
@@ -490,16 +518,13 @@ void rec_reset_tree(struct router *s, struct router *r)
         j = i->n;
         adopt(s, i);
     }
-    r->nleaf = 0;
-    r->fleaf = 0;
+    r->nleaf  = 0;
+    r->fleaf  = 0;
     r->nchild = 0;
     r->fchild = 0;
-    r->hops  = 0;
+    r->hops   = 0;
 
     i = rm_nrouter(p, r);
-    printf("Removing child of ");
-    print_ia(&r->sa.sin6_addr);
-    printf("\n");
     free(i);
 
 }
