@@ -28,7 +28,7 @@ size_t get_mdc_pkt_size(size_t num_dst)
 }
 
 int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd,
-             char *tif, char *bif, struct addr *addr)
+             char *tif, char *bif, struct in6_addr *taddr, struct addr *baddr)
 {
     int ret;
     const int on = 1;
@@ -36,7 +36,7 @@ int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd,
     struct ifreq ifr;
 
     // TODO set TUN MTU according to bind interface MTU & group size
-    *tun_fd = init_tun(tif);
+    *tun_fd = init_tun(tif, taddr);
     if (*tun_fd < 1)
         return *tun_fd;
 
@@ -67,24 +67,24 @@ int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd,
         goto close_ip6;
     }
 
-    ret = bind(*mdc_fd, (struct sockaddr *) &addr->sa, sizeof(addr->sa));
+    ret = bind(*mdc_fd, (struct sockaddr *) &baddr->sa, sizeof(baddr->sa));
     if (ret < 0) {
         perror("bind (mdc)");
         goto close_ip6;
     }
     printf("MEADcast bound to ");
-    print_ia(&addr->sa.sin6_addr);
-    printf("/%d\n", addr->port);
+    print_ia(&baddr->sa.sin6_addr);
+    printf("/%d\n", baddr->port);
 
-    ret = bind(*ip6_fd, (struct sockaddr *) &addr->sa, sizeof(addr->sa));
+    ret = bind(*ip6_fd, (struct sockaddr *) &baddr->sa, sizeof(baddr->sa));
     if (ret < 0) {
         perror("bind (ip6)");
         goto close_ip6;
     }
 
     printf("Unicast bound to ");
-    print_ia(&addr->sa.sin6_addr);
-    printf("/%d\n", addr->port);
+    print_ia(&baddr->sa.sin6_addr);
+    printf("/%d\n", baddr->port);
 
     return 0;    
 
@@ -98,8 +98,8 @@ close_tun:
     return ret;
 }
 
-int start(char *tif, char *bif, struct in6_addr *baddr, uint16_t bport,
-          size_t mtu, struct itimerspec *dcvr_int,
+int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
+          uint16_t bport, size_t mtu, struct itimerspec *dcvr_int,
           struct itimerspec *dcvr_tout)
 {
     int ret;
@@ -113,7 +113,7 @@ int start(char *tif, char *bif, struct in6_addr *baddr, uint16_t bport,
     ba.sa.sin6_port = 0;
     ba.port = bport;
 
-    ret = init_fds(&tun_fd, &mdc_fd, &ip6_fd, tif, bif, &ba);
+    ret = init_fds(&tun_fd, &mdc_fd, &ip6_fd, tif, bif, taddr, &ba);
     if (ret) {
         printf("ERR INIT FDS\n");
         return -1;

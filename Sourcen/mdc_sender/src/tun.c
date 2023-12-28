@@ -1,6 +1,11 @@
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
+#include <linux/in6.h>
+#include <linux/ipv6_route.h>
+#include <linux/route.h>
+#include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -56,7 +61,45 @@ int tun_up(char *dev)
     return ret;
 }
 
-int init_tun(char *dev)
+int tun_setroute(char *dev, struct in6_addr *ia)
+{
+    struct in6_rtmsg rt;
+    struct ifreq ifr;
+    int fd, ret;
+
+    memset(&rt, 0, sizeof(rt));
+    memcpy(&rt.rtmsg_dst, ia, sizeof(struct in6_addr));
+
+    rt.rtmsg_dst_len = 128;
+    rt.rtmsg_flags = RTF_UP | RTF_HOST;
+    rt.rtmsg_metric = 1;
+
+    fd = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        perror("socket");
+        return -1;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+
+    ret = ioctl(fd, SIOCGIFINDEX, &ifr);
+    if (ret < 0) {
+        perror("ioctl(SIOCGIFINDEX)");
+        goto exit;
+    }
+
+    rt.rtmsg_ifindex = ifr.ifr_ifindex;
+    ret = ioctl(fd, SIOCADDRT, &rt);
+    if (ret < 0)
+        perror("ioctl(SIOCADDRT)");
+
+exit:
+    close(fd);
+    return ret;
+}
+
+int init_tun(char *dev, struct in6_addr *ia)
 {
     int fd, ret;
 
@@ -65,6 +108,12 @@ int init_tun(char *dev)
         return fd;
 
     ret = tun_up(dev);
+    if (ret < 0) {
+        close(fd);
+        return ret;
+    }
+
+    ret = tun_setroute(dev, ia);
     if (ret < 0) {
         close(fd);
         return ret;

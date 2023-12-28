@@ -10,6 +10,7 @@
 
 #define DEF_TIFNAME "tun0"
 #define DEF_BIFNAME NULL
+#define DEF_TADDR "fd15::1"
 #define DEF_BADDR "::"
 #define DEF_BPORT 9999
 #define DEF_PPORT 0
@@ -30,13 +31,14 @@ static char doc[] = "Exemplary MEADcast sender";
 static char args_doc[] = "[PEER ADDRESSES] [PEER PORT]";
 
 static struct argp_option options[] = {
-    { "tun", 't', "ifname", 0, "Specify the name of the created TUN device."},
-    { "interface", 'i', "ifname", 0, "Specify interface to use."},
-    { "address", 'a', "ipv6", 0, "Specify source address."},
-    { "port", 'p', "port", 0, "Specify source port."},
-    { "interval", 'I', "secs", 0, "Specify discovery interval."},
-    { "delay", 'd', "secs", 0, "Specify delay until initial discovery phase."},
-    { "timeout", 'T', "secs", 0, "Specify discovery timeout."},
+    { "tun",         't', "ifname", 0, "Specify name of the created TUN device."},
+    { "tun-address", 'A', "ipv6",   0, "Specify host route to send traffic to."},
+    { "interface",   'i', "ifname", 0, "Specify interface to use."},
+    { "address",     'a', "ipv6",   0, "Specify source address."},
+    { "port",        'p', "port",   0, "Specify source port."},
+    { "interval",    'I', "secs",   0, "Specify discovery interval."},
+    { "delay",       'd', "secs",   0, "Specify delay until initial discovery phase."},
+    { "timeout",     'T', "secs",   0, "Specify discovery timeout."},
     { 0 }
 };
 
@@ -136,6 +138,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case 'a':
             _parse_addr(&arguments->baddr, arg, state, "bind");
             break;
+        case 'A':
+            _parse_addr(&arguments->taddr, arg, state, "tun");
+            break;
         case 'p':
             _parse_port(&arguments->bport, arg, state, "bind");
             break;
@@ -202,6 +207,7 @@ void set_default_args(struct arguments *args)
 {
     args->tifname = malloc(IFNAMSIZ);
     strncpy(args->tifname, DEF_TIFNAME, sizeof(*args->tifname));
+    inet_pton(AF_INET6, DEF_TADDR, &args->taddr);
 
     args->bifname = DEF_BIFNAME;
     args->bport = DEF_BPORT;

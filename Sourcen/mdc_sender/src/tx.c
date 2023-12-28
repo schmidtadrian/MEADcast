@@ -118,7 +118,7 @@ void init_tx(size_t mtu)
 }
 
 /* Sends `l3pl` of size `plen` to each MEADcast header in `grp`.
- * Copies MEADcast header in front of  `l3pl`.
+ * Copies MEADcast header in front of `l3pl`.
  * This overwrites existing l3 headers!
  * Caller must ensure sufficient preceding space. */
 int tx_mdc(int fd, struct tx_group *grp, uint8_t *l3pl, size_t plen)
@@ -187,14 +187,14 @@ int tx_uni(int fd, struct tx_group *grp, struct ipv6hdr *ip, size_t len)
                                     &ip->saddr, &ip->daddr, udp));
         }
 
-        // if (ip->nexthdr == IPPROTO_TCP) {
-        //     tcp = (struct tcphdr *) (ip + 1);
-        //     tcp->dest = htons(addr->port);
-        //     tcp->check = htons(1);
-        //     tcp->check = htons(
-        //         net_checksum_tcpudp(ntohs(ip->payload_len), 0, IPPROTO_TCP,
-        //                             &ip->saddr, &ip->saddr, tcp));
-        // }
+        /* if (ip->nexthdr == IPPROTO_TCP) {
+            tcp = (struct tcphdr *) (ip + 1);
+            tcp->dest = htons(addr->port);
+            tcp->check = htons(1);
+            tcp->check = htons(
+                net_checksum_tcpudp(ntohs(ip->payload_len), 0, IPPROTO_TCP,
+                                    &ip->saddr, &ip->saddr, tcp));
+        } */
 
         n = sendto(fd, ip, len, 0, (struct sockaddr *) &dst, sizeof(dst));
         if (n < 1) {

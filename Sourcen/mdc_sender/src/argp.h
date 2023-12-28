@@ -14,6 +14,7 @@ struct paddr {
 struct arguments {
     char *tifname;
     char *bifname;
+    struct in6_addr taddr;
     struct in6_addr baddr;
     uint16_t bport;
     uint16_t pport;
