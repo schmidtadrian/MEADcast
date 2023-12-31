@@ -97,7 +97,8 @@ void df_print(struct router *n, size_t lvl)
     print_lvl(lvl);
     printf("└─ ");
     print_ia(&n->sa.sin6_addr);
-    printf(" (%zu/%zu,%zu/%zu)\n", n->nleaf, n->nchild, n->fleaf, n->fchild);
+    printf(" (%zu/%zu,%zu/%zu) %zu\n",
+           n->nleaf, n->nchild, n->fleaf, n->fchild, n->hops);
 
     lvl++;
     for (c = n->leaf; c; c = c->n) {

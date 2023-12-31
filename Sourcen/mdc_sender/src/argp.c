@@ -238,8 +238,6 @@ void set_default_args(struct arguments *args)
         // network
         .tifname = "tun0",
         .bifname = NULL,
-        .taddr   = NULL,
-        .baddr   = NULL,
         .bport   = 9999,
         .pport   = 0,
         .paddr   = NULL,

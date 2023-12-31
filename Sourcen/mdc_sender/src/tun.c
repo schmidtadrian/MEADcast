@@ -11,6 +11,9 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+/* Creates TUN device of name `dev`.
+ * If `dev` is NULL, the os sets a default name.
+ * The name of the created interface gets written to `dev`. */
 int tun_alloc(char *dev)
 {
     int fd, ret;
@@ -19,7 +22,7 @@ int tun_alloc(char *dev)
     fd = open("/dev/net/tun", O_RDWR);
     if (fd < 0) {
         perror("open /dev/net/tun");
-        return -1;
+        return fd;
     }
 
     memset(&ifr, 0, sizeof(ifr));
@@ -31,7 +34,7 @@ int tun_alloc(char *dev)
     if (ret < 0) {
         perror("ioctl(TUNSETIFF)");
         close(fd);
-        return -1;
+        return ret;
     }
 
     strncpy(dev, ifr.ifr_name, IFNAMSIZ);
@@ -46,7 +49,7 @@ int tun_up(char *dev)
     fd = socket(AF_INET6, SOCK_DGRAM, 0);
     if (fd < 0) {
         perror("socket");
-        return -1;
+        return fd;
     }
 
     memset(&ifr, 0, sizeof(ifr));
@@ -61,6 +64,7 @@ int tun_up(char *dev)
     return ret;
 }
 
+/* Set host route to `ia` via interface of name `dev`. */
 int tun_setroute(char *dev, struct in6_addr *ia)
 {
     struct in6_rtmsg rt;
@@ -77,7 +81,7 @@ int tun_setroute(char *dev, struct in6_addr *ia)
     fd = socket(AF_INET6, SOCK_DGRAM, 0);
     if (fd < 0) {
         perror("socket");
-        return -1;
+        return fd;
     }
 
     memset(&ifr, 0, sizeof(ifr));

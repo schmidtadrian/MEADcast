@@ -28,7 +28,7 @@ void set_rt_hdr(struct ip6_rthdr *hdr, uint8_t nh, uint8_t len, uint8_t type,
     hdr->ip6r_segleft = segleft;
 }
 
-uint8_t set_disc_hdr(struct ip6_mdc_hdr *hdr)
+uint8_t set_dcvr_hdr(struct ip6_mdc_hdr *hdr)
 {
     uint8_t rt_len;
     size_t mdc_len;
@@ -63,12 +63,12 @@ void set_data_hdr(void **buf, struct in6_addr *addrs, size_t len, uint32_t bm)
 
     hdr->dsts = len;
     hdr->dlvm = bm;
-    hdr->rtm = bm;
+    hdr->rtm  = bm;
 
     memcpy(hdr->addr, addrs, len * sizeof(*hdr->addr));
 }
 
-int send_disc(int fd)
+int send_dcvr(int fd)
 {
     int ret;
     struct rcvr *i;
@@ -77,7 +77,7 @@ int send_disc(int fd)
     size_t len;
 
     hdr = (struct ip6_mdc_hdr *) txbuf;
-    len = set_disc_hdr(hdr);
+    len = set_dcvr_hdr(hdr);
 
     for(i = get_rcvr(); i; i = i->next) {
         dst = &i->addr.sa;

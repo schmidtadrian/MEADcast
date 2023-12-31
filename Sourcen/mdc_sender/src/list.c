@@ -48,65 +48,34 @@ int add_childs(struct router *p, struct child **l, struct child *c,
     return 0;
 }
 
-struct child *rm_child(struct child *c, struct child **l,
-                       size_t *n, size_t *f)
+struct child *rm_child(void *v, struct child **l, size_t *n, size_t *f)
 {
-    struct child *i;
-
-    if (!c)
-        return NULL;
-
-    if (!*l)
-        return c;
-
-    for (i = *l; i->n; i = i->n) {
-        if (i->n == c) {
-            (*n)--;
-            (*f)--;
-            i->n = c->n;
-            c->n = NULL;
-            return c;
-        }
-    }
-
-    if (*l == c) {
-        (*n)--;
-        (*f)--;
-        *l = c->n;
-        c->n = NULL;
-    }
-
-    return c;
-}
-
-struct child *rm_nchild(void *v, struct child **l, size_t *n, size_t *f)
-{
-    struct child *i, *j;
+    struct child *i, *j, **k;
 
     if (!v || !*l)
         return NULL;
 
     for (i = *l; i->n; i = i->n) {
         if (i->n->v == v) {
-            if (*n > 0) (*n)--;
-            if (*f > 0) (*f)--;
-            j = i->n;
-            i->n = i->n->n;
-            j->n = NULL;
-            return j;
+            k = &i->n;
+            goto update_ptrs;
         }
     }
 
     if ((*l)->v == v) {
-        if (*n > 0) (*n)--;
-        if (*f > 0) (*f)--;
-        j = *l;
-        *l = (*l)->n;
-        j->n = NULL;
-        return j;
+        k = l;
+        goto update_ptrs;
     }
 
     return NULL;
+
+update_ptrs:
+    if (*n > 0) (*n)--;
+    if (*f > 0) (*f)--;
+    j = *k;
+    *k = (*k)->n;
+    j->n = NULL;
+    return j;
 }
 
 struct child *get_free(struct child *l, size_t n, size_t f)

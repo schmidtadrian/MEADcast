@@ -89,6 +89,8 @@ int update_timer(int t, long sec, long nsec)
 
     return 0;
 }
+
+/* Disarms `t1` and sets `it_value` of `t2` to `ts`. */
 int flip_timers(int t1, int t2, struct timespec *ts)
 {
     int ret;
@@ -116,7 +118,7 @@ int tint_handler(int mdc_fd, int tint_fd, int tout_fd)
         return n;
     }
 
-    send_disc(mdc_fd);
+    send_dcvr(mdc_fd);
 
     n = flip_timers(tint_fd, tout_fd, tout_ts);
     if (n < 0)
@@ -210,8 +212,6 @@ int start_dx(struct dx_targs *args)
     epoll_fd = init_epoll(args->fd, tout_fd, tint_fd);
     if (epoll_fd < 1)
         return epoll_fd;
-
-
 
     ret = dx_loop(epoll_fd, args->fd, ev, args->evlen);
     if (ret < 0)

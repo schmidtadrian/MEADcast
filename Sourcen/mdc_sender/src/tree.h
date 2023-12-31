@@ -88,7 +88,6 @@ static inline int set_parent(struct child *c, struct router *p)
     return EXIT_SUCCESS;
 }
 
-struct child *rm_childl(void *v, struct child **l, size_t *n, size_t *f);
 /*
  * Tree modification
  */
@@ -121,10 +120,11 @@ struct child *get_path_pos(struct leaf *l, uint8_t h);
 /* Remove unnecessary routers from tree */
 void reduce_tree(struct router *r);
 
-/* Greedily groups leafs into MEADcast packets. */
+/* Main entry point to greedily group leafs into
+ * MEADcast packets starting at `s`.
+ * Returns a list of ready to ship MEADcast headers and
+ * a list of addresses that should be served via unicast. */
 struct tx_group *greedy_grouping(struct router *s);
-// void greedy_grouping(struct router *s);
 
-void reset_tree(struct router *s);
 void rec_reset_tree(struct router *s, struct router *r);
 #endif // !TREE_H

@@ -137,35 +137,3 @@ int rx_disc(int fd)
 
     return 0;
 }
-
-void rx_loop(struct rx_targs *args)
-{
-}
-
-pthread_t start_rx(int tun_fd, int ip6_fd, int udp_fd, int tcp_fd,
-                   struct addr *ta, size_t buflen)
-{
-    int ret;
-    pthread_t tid;
-    struct rx_targs *args;
-
-    init_rx(buflen);
-
-    args = malloc(sizeof(*args));
-    args->tun_fd = tun_fd;
-    args->ip6_fd = ip6_fd;
-    args->udp_fd = udp_fd;
-    args->tcp_fd = tcp_fd;
-    args->ta = ta;
-
-    ret = pthread_create(&tid, NULL, (void *) rx_loop, args);
-
-    if (ret) {
-        perror("pthread_create (rx)");
-        return -1;
-    }
-
-    printf("Started rx thread\n");
-    return tid;
-
-}

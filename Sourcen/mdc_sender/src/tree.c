@@ -21,47 +21,8 @@ struct child *get_child(void *n, struct child *l)
     return NULL;
 }
 
-struct child *rm_childl(void *v, struct child **l, size_t *n, size_t *f)
-{
-    struct child *i, *j;
-
-    if (!v || !*l)
-        return NULL;
-
-    printf("Searching ");
-    print_ia(&get_router(v)->sa.sin6_addr);
-    printf("\n");
-
-    for (i = *l; i->n; i = i->n) {
-        if (i->n->v == v) {
-            (*n)--;
-            (*f)--;
-            j = i->n;
-            i->n = i->n->n;
-            j->n = NULL;
-            printf("Removing ");
-            print_ia(&get_router(j->v)->sa.sin6_addr);
-            printf("\n");
-            return j;
-        }
-    }
-
-    if ((*l)->v == v) {
-        (*n)--;
-        (*f)--;
-        j = *l;
-        *l = (*l)->n;
-        j->n = NULL;
-        printf("Removing ");
-        print_ia(&get_router(j->v)->sa.sin6_addr);
-        printf("\n");
-        return j;
-    }
-
-    return NULL;
-}
-
-struct leaf *create_leaf(struct sockaddr_in6 *addr, uint16_t port, struct router *p)
+struct leaf *create_leaf(struct sockaddr_in6 *addr, uint16_t port,
+                         struct router *p)
 {
     struct leaf *l;
     struct child *c;
@@ -126,7 +87,7 @@ int free_router(struct router *r, struct child **childs, size_t *nchild,
 
     p = get_router(r->node.parent);
     c = get_child(&r->node, p->child);
-    c = rm_router(p, c);
+    c = rm_router(p, r);
 
     *childs = r->child;
     *nchild = r->nchild;
@@ -172,11 +133,11 @@ int adopt(struct router *p, struct child *c)
 
     switch (n->type) {
         case ROUTER_NODE:
-            rm_router(r, c);
+            rm_router(r, get_router(n));
             return add_router(p, c);
 
         case LEAF_NODE:
-            rm_leaf(r, c);
+            rm_leaf(r, get_leaf(n));
             return add_leaf(p, c);
 
         default:
@@ -227,6 +188,9 @@ struct child *get_path_pos(struct leaf *l, uint8_t h)
 
 /*
  * Grouping
+ *
+ * `set_txg_router, `add2txg` and `finish_txg` are tightly coupled to
+ * `greedy_grouping` thus not designed for separate usage.
  */
 
 void reduce_tree(struct router *r)
@@ -258,6 +222,11 @@ void reduce_tree(struct router *r)
     }
 }
 
+/* Returns router to start grouping at with at least one free child.
+ * Searches in the following sequence, stopping at the first match:
+ *   1) Free child routers of `r` (depth first)
+ *   2) `r` - the input router
+ *   3) Sets `r` to its parent and repeats the process */
 struct router *get_start(struct router *r)
 {
     struct child *c;
@@ -293,6 +262,7 @@ struct router *get_start(struct router *r)
     return s;
 }
 
+/* Updates free leafs counter of `r's` parent. */
 struct router *back_propagate(struct router *r)
 {
     struct router *p;
@@ -313,12 +283,19 @@ void rec_back_propagate(struct router *r)
         r = back_propagate(r);
 }
 
-/* Sets router bit and copies router addr to address list.
- * If `MERGE_NODES` is enabled routers will be merged under router with
- * shortest distance to root.
- * Returns start index offset for copying leafs to address list.
- * The offset is 0 if nodes should be merged and otherwise 1, to skip router
- * address. */
+/* Updates the router bitmap `bm` and the address list `l`.
+ * Decides whether the leafs of `r` will be merged with those already present
+ * in `l`. Staying within `MERGE_RANGE` must be ensured by the caller.
+ *
+ * Merge:
+ * Returns an offset of 0, indicating that leafs will be merged.
+ * If `r` is closer to the sender than `closest`, `closest` will be set to `r`
+ * and the address of its predecessor in `l` will be overwritten.
+ *
+ * No merge:
+ * Returns an offset of 1, indicating that leafs will not be merged.
+ * Sets the router bit in `bm` at index `n` and copies the address of `r` to
+ * `l` at index `n`. */
 size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
                       size_t n)
 {
@@ -356,6 +333,7 @@ copy:
     return i;
 }
 
+/* Appends `m` free leafs of `r` to `l` at index `l`. */
 void add2txg(struct in6_addr *l, uint32_t *bm, struct router *r,
              size_t *n, size_t m)
 {
@@ -390,6 +368,9 @@ void print_grp(struct in6_addr *l, size_t n, uint32_t bm)
     printf("]\t%u\n", bm);
 }
 
+/* Creates a MEADcast header for `addrs` of length `len`
+ * and the router bitmap `bm`.
+ * The newly created header gets prepended to `grp`.*/
 void finish_txg(struct child **grp, struct in6_addr *addrs,
                 size_t *len, uint32_t *bm)
 {
@@ -402,7 +383,7 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
 
     print_grp(&addrs[0], *len, *bm);
     *len = 0;
-    *bm = 0;
+    *bm  = 0;
     closest = NULL;
     init_hops = 0;
 }
@@ -527,7 +508,7 @@ void rec_reset_tree(struct router *s, struct router *r)
     r->fchild = 0;
     r->hops   = 0;
 
-    i = rm_nrouter(p, r);
+    i = rm_router(p, r);
     free(i);
 
 }

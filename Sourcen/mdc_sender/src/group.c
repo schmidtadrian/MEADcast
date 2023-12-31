@@ -30,6 +30,7 @@ Word_t *_join(struct sockaddr_in6 *sa)
     return pv;
 }
 
+/* Create MEADcast group. */
 int init_group(struct in6_addr *addr, uint16_t port)
 {
     int ret;
@@ -55,6 +56,7 @@ int init_group(struct in6_addr *addr, uint16_t port)
     return 0;
 }
 
+/* Add receiver to MEADcast group. */
 int join(struct in6_addr *addr, uint16_t port)
 {
     Word_t *pv;
@@ -86,10 +88,7 @@ struct router *get_root(void)
 
 struct tx_group *get_txg(void)
 {
-    // TODO make one liner
-    struct  tx_group *ret;
-    ret = atomic_load(&txg);
-    return ret;
+    return atomic_load(&txg);
 }
 
 void set_txg(struct tx_group **v)

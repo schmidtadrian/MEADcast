@@ -17,7 +17,7 @@ struct tx_targs {
 void init_tx(size_t mtu);
 void tx_loop(struct tx_targs *args);
 pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu);
-int send_disc(int fd);
+int send_dcvr(int fd);
 void set_data_hdr(void **buf, struct in6_addr *addrs, size_t len, uint32_t bm);
 
 

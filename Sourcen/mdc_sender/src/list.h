@@ -37,38 +37,25 @@ static inline int add_leaf(struct router *p, struct child *c)
     return add_child(p, &p->leaf, c, &p->nleaf, &p->fleaf);
 }
 
-/* Remove `c` from `l`, replace it with its successor
- * & decrement `n` & `f`.
+/* Remove `v` from `l`, replace it with its successor
+ * and decrement `n` and `f`.
  * Returns oprhan child. */
-struct child *rm_child(struct child *c, struct child **l,
-                       size_t *n, size_t *f);
+struct child *rm_child(void *v, struct child **l, size_t *n, size_t *f);
 
 /* Remove `c` from router list of `p`.
  * Returns oprhan child. */
-static inline struct child *rm_router(struct router *p, struct child *c)
+static inline struct child *rm_router(struct router *p, struct router *c)
 {
+    c->node.parent = NULL;
     return rm_child(c, &p->child, &p->nchild, &p->fchild);
 }
 
 /* Remove `c` from leaf list of `p`.
  * Returns oprhan child. */
-static inline struct child *rm_leaf(struct router *p, struct child *c)
+static inline struct child *rm_leaf(struct router *p, struct leaf *c)
 {
+    c->node.parent = NULL;
     return rm_child(c, &p->leaf, &p->nleaf, &p->fleaf);
-}
-
-struct child *rm_nchild(void *v, struct child **l, size_t *n, size_t *f);
-
-static inline struct child *rm_nrouter(struct router *p, struct router *c)
-{
-    c->node.parent = NULL;
-    return rm_nchild(c, &p->child, &p->nchild, &p->fchild);
-}
-
-static inline struct child *rm_nleaf(struct router *p, struct leaf *c)
-{
-    c->node.parent = NULL;
-    return rm_nchild(c, &p->leaf, &p->nleaf, &p->fleaf);
 }
 
 /* Returns the first free element from list `l` of len `n`.

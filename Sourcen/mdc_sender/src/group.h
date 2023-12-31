@@ -7,6 +7,8 @@
 #include <stdint.h>
 
 
+/* Helper struct, to store port and sockaddr.
+ * L3 sockets require port of sockaddr to be zero. */
 struct addr {
     struct sockaddr_in6 sa;
     uint16_t port;
@@ -21,7 +23,7 @@ struct rcvr {
 /* Only struct the sender needs to know.
  *
  * With each discovery the receiver creates a new instance.
- * TX & RX thread share an atomic to the current group.
+ * TX & RX thread share an atomic pointer to the current group.
  * `mdc` is a list of ready to ship MEADcast packets.
  * `uni` is a list of addresses that can't be delivered via MEADcast */
 struct tx_group {
