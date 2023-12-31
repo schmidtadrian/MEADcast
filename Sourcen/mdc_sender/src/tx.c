@@ -32,13 +32,10 @@ uint8_t set_disc_hdr(struct ip6_mdc_hdr *hdr)
     uint8_t rt_len;
     size_t mdc_len;
 
-    hdr->dsts = 1;
-    hdr->dcv  = 1;
-    hdr->rsp  = 0;
-    hdr->hops = 0;
-    hdr->res  = 0;
-    hdr->dlvm = 0;
-    hdr->rtm  = 0;
+    /* Sets `dsts` and `dcv` to 1 and clears other flags. */
+    hdr->flags = 0x101;
+    hdr->dlvm  = 0;
+    hdr->rtm   = 0;
 
     // rthdr len equals number of octets minus first octet.
     mdc_len = get_mdc_pkt_size(1);

@@ -93,17 +93,9 @@ struct router *create_router(struct sockaddr_in6 *addr, struct router *p)
     struct router *r;
     struct child *c;
 
-    r = malloc(sizeof(struct router));
-    r->node.parent = NULL;
+    r = calloc(1, sizeof(*r));
     r->node.type = ROUTER_NODE;
     r->sa = *addr;
-    r->hops = 0;
-    r->child = NULL;
-    r->leaf = NULL;
-    r->nchild = 0;
-    r->fchild = 0;
-    r->nleaf = 0;
-    r->fleaf = 0;
 
     if (!p)
         return r;

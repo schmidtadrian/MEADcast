@@ -11,12 +11,17 @@
 
 struct ip6_mdc_hdr {
     struct ip6_rthdr rthdr;
-    uint32_t
-        dsts: 8,
-        dcv: 1,
-        rsp: 1,
-        hops: 6,
-        res: 16;
+    union {
+        struct {
+            uint32_t
+                dsts: 8,
+                dcv: 1,
+                rsp: 1,
+                hops: 6,
+                res: 16;
+        };
+        uint32_t flags;
+    };
     uint32_t dlvm;
     uint32_t rtm;
     struct in6_addr addr[];
