@@ -335,14 +335,17 @@ size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
 
     if (!closest) {
         closest = r;
+        init_hops = r->hops;
         i = 1;
         goto bitmap;
     }
 
-    if (closest->hops > r->hops)
+    if (closest->hops > r->hops) {
         closest = r;
+        goto copy;
+    }
 
-    goto copy;
+    return i;
 
 bitmap:
     /* set bitmap starting from msb. */
@@ -401,6 +404,7 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
     *len = 0;
     *bm = 0;
     closest = NULL;
+    init_hops = 0;
 }
 
 struct tx_group *greedy_grouping(struct router *s)
@@ -429,7 +433,13 @@ struct tx_group *greedy_grouping(struct router *s)
 start:
         while (r->fleaf > 0) {
             /* if nodes can be merged, don't consider router address. */
-            p = closest ? 0 : 1;
+            if (closest) {
+                p = 0;
+                if (abs(init_hops - (int) r->hops) > args.merge_range)
+                    goto next;
+            } else
+                p = 1;
+
             m = n + r->fleaf + p;
 
             if (m > max) {

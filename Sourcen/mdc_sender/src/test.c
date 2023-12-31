@@ -27,6 +27,7 @@ void create_topo(struct router **root)
 {
     int i, nr, ne;
     uint16_t *t;
+    struct router *p;
 
     char n[INET6_ADDRSTRLEN];
     char *rt_pref = "a::";
@@ -154,4 +155,8 @@ void create_topo(struct router **root)
     e[27] = create_leaf(&lsa[27], 0, r[12]);
     e[28] = create_leaf(&lsa[28], 0, r[12]);
 
+    for (i = 1; i <= nr; i++) {
+        p = get_router(r[i]->node.parent);
+        r[i]->hops = p->hops + 1;
+    }
 }

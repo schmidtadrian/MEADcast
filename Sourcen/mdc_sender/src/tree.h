@@ -48,7 +48,14 @@ struct router {
 };
 
 
+/*
+ * Required for node merging
+ */
+
+/* Points to closest router in current group. */
 static struct router *closest = NULL;
+/* Stores distance of first router in current group. */
+static int init_hops = 0;
 
 /*
  *  Convenience functions
