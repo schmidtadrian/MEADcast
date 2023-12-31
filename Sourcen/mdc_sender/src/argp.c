@@ -2,43 +2,42 @@
 #include <arpa/inet.h>
 #include <linux/if.h>
 #include <netinet/in.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "argp.h"
 
 
-#define DEF_TIFNAME "tun0"
-#define DEF_BIFNAME NULL
-#define DEF_TADDR "fd15::1"
-#define DEF_BADDR "::"
-#define DEF_BPORT 9999
-#define DEF_PPORT 0
-#define DEF_PADDR NULL
-
-#define DEF_DCVR_TOUT_V_S  0
-#define DEF_DCVR_TOUT_V_NS 0
-#define DEF_DCVR_TOUT_I_S  2
-#define DEF_DCVR_TOUT_I_NS 0
-
-#define DEF_DCVR_INT_V_S   5
-#define DEF_DCVR_INT_V_NS  0
-#define DEF_DCVR_INT_I_S   5
-#define DEF_DCVR_INT_I_NS  0
-
+struct arguments args;
 
 static char doc[] = "Exemplary MEADcast sender";
 static char args_doc[] = "[PEER ADDRESSES] [PEER PORT]";
 
 static struct argp_option options[] = {
-    { "tun",         't', "ifname", 0, "Specify name of the created TUN device."},
-    { "tun-address", 'A', "ipv6",   0, "Specify host route to send traffic to."},
-    { "interface",   'i', "ifname", 0, "Specify interface to use."},
-    { "address",     'a', "ipv6",   0, "Specify source address."},
-    { "port",        'p', "port",   0, "Specify source port."},
-    { "interval",    'I', "secs",   0, "Specify discovery interval."},
-    { "delay",       'd', "secs",   0, "Specify delay until initial discovery phase."},
-    { "timeout",     'T', "secs",   0, "Specify discovery timeout."},
+    { 0, 0, 0, 0, "Network:", OPT_GRP_NET},
+    { "tun",         OPT_TIFNAME,     "ifname",   0, "Specify name of the created TUN device.", OPT_GRP_NET },
+    { "interface",   OPT_BIFNAME,     "ifname",   0, "Specify interface to use.", OPT_GRP_NET },
+    { "tun-address", OPT_TADDR,       "ipv6",     0, "Specify host route to send traffic to.", OPT_GRP_NET },
+    { "address",     OPT_BADDR,       "ipv6",     0, "Specify source address.", OPT_GRP_NET },
+    { "port",        OPT_BPORT,       "port",     0, "Specify source port.", OPT_GRP_NET },
+
+    { 0, 0, 0, 0, "Discovery:", OPT_GRP_DCVR },
+    { "interval",    OPT_DCVR_INT,    "secs",     0, "Specify discovery interval.", OPT_GRP_DCVR },
+    { "timeout",     OPT_DCVR_TOUT,   "secs",     0, "Specify discovery timeout.", OPT_GRP_DCVR },
+    { "delay",       OPT_DCVR_DELAY,  "secs",     0, "Specify delay until initial discovery phase.", OPT_GRP_DCVR },
+
+    { 0, 0, 0, 0, "Grouping:", OPT_GRP_GRP},
+    { "max",         OPT_MAX_ADDRS,   "max",      0, "Specify the maximal number of addresses per MEADcast packet.", OPT_GRP_GRP },
+    { "ok",          OPT_OK_ADDRS,    "ok",       0, "Specify whether a packet can be finished prematurely if it contains "
+                                                     "an equal or greater number of addresses than `ok`. "
+                                                     "Assigning `ok` a value greater or equal than `max` disables this feature.", OPT_GRP_GRP },
+    { "min-leafs",   OPT_MIN_LEAFS,   "leafs",    0, "Routers with less leafs than `leafs` and less routers than `routers` get removed from tree.", OPT_GRP_GRP },
+    { "min-routers", OPT_MIN_ROUTERS, "routers",  0, "See `min-leafs`.", OPT_GRP_GRP },
+    { "split",       OPT_SPLIT_NODES, 0,          0, "Specify whether leafs of same parent can be split into multiple packets.", OPT_GRP_GRP},
+    { "merge",       OPT_MERGE_RANGE, "distance", 0, "Specify whether to merge leafs with distinct parent routers under an common ancestor. "
+                                                     "`distance` determines the range within which leafs will be merged. "
+                                                     "Assigning `distance` a value of 0 disables this feature.", OPT_GRP_GRP},
     { 0 }
 };
 
@@ -82,6 +81,18 @@ void _parse_port(uint16_t *port, char *arg, struct argp_state *state,
         return;
 
     argp_failure(state, 1, 0, "Invalid %s port: %s. %s", info, arg, help_info);
+    exit(ARGP_KEY_ERROR);
+}
+
+void _parse_int(int *v, char *arg, struct argp_state *state, char *info,
+                int min)
+{
+    if ((*v = atoi(arg)) >= min)
+        return;
+
+    argp_failure(state, 1, 0,
+                 "Invalid value for %s: %s. %s must be at least %d. %s",
+                 info, arg, arg, min, help_info);
     exit(ARGP_KEY_ERROR);
 }
 
@@ -129,29 +140,47 @@ void empty_check(char *arg, struct argp_state *state, char *info)
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct arguments *arguments = state->input;
     switch (key) {
-        case 't':
+        case OPT_TIFNAME:
             _parse_if((void *) &arguments->tifname, arg, state, "TUN");
             break;
-        case 'i':
+        case OPT_BIFNAME:
             _parse_if((void *) &arguments->bifname, arg, state, "bind");
             break;
-        case 'a':
-            _parse_addr(&arguments->baddr, arg, state, "bind");
-            break;
-        case 'A':
+        case OPT_TADDR:
             _parse_addr(&arguments->taddr, arg, state, "tun");
             break;
-        case 'p':
+        case OPT_BADDR:
+            _parse_addr(&arguments->baddr, arg, state, "bind");
+            break;
+        case OPT_BPORT:
             _parse_port(&arguments->bport, arg, state, "bind");
             break;
-        case 'I':
+        case OPT_DCVR_INT:
             arguments->dcvr_int.it_interval.tv_sec = atoi(arg);
             break;
-        case 'T':
+        case OPT_DCVR_TOUT:
             arguments->dcvr_tout.it_interval.tv_sec = atoi(arg);
             break;
-        case 'd':
+        case OPT_DCVR_DELAY:
             arguments->dcvr_int.it_value.tv_sec = atoi(arg);
+            break;
+        case OPT_MAX_ADDRS:
+            _parse_int((int *)&arguments->max_addrs, arg, state, "MAX_ADDRS", 2);
+            break;
+        case OPT_OK_ADDRS:
+            _parse_int((int *)&arguments->ok_addrs, arg, state, "OK_ADDRS", 2);
+            break;
+        case OPT_MIN_LEAFS:
+            _parse_int((int *)&arguments->min_leafs, arg, state, "MIN_LEAFS", 1);
+            break;
+        case OPT_MIN_ROUTERS:
+            _parse_int((int *)&arguments->min_routers, arg, state, "MIN_ROUTERS", 1);
+            break;
+        case OPT_SPLIT_NODES:
+            arguments->split_nodes = true;
+            break;
+        case OPT_MERGE_RANGE:
+            _parse_int((int *)&arguments->merge_range, arg, state, "MERGE_RANGE", 0);
             break;
         case ARGP_KEY_ARG:
             if (state->argc != state->next)
@@ -205,28 +234,37 @@ static struct argp argp = { options, parse_opt, args_doc, doc };
 
 void set_default_args(struct arguments *args)
 {
-    args->tifname = malloc(IFNAMSIZ);
-    strncpy(args->tifname, DEF_TIFNAME, sizeof(*args->tifname));
-    inet_pton(AF_INET6, DEF_TADDR, &args->taddr);
+    struct arguments tmp = {
+        // network
+        .tifname = "tun0",
+        .bifname = NULL,
+        .taddr   = NULL,
+        .baddr   = NULL,
+        .bport   = 9999,
+        .pport   = 0,
+        .paddr   = NULL,
 
-    args->bifname = DEF_BIFNAME;
-    args->bport = DEF_BPORT;
-    args->pport = DEF_PPORT;
-    args->paddr = DEF_PADDR;
-    inet_pton(AF_INET6, DEF_BADDR, &args->baddr);
+        // discovery
+        .dcvr_int  = { .it_interval = { .tv_sec = 5, .tv_nsec = 0 },
+                       .it_value    = { .tv_sec = 5, .tv_nsec = 0 }},
+        .dcvr_tout = { .it_interval = { .tv_sec = 2, .tv_nsec = 0 },
+                       .it_value    = { .tv_sec = 0, .tv_nsec = 0 }},
 
-    args->dcvr_int.it_value.tv_sec     = DEF_DCVR_INT_V_S;
-    args->dcvr_int.it_value.tv_nsec    = DEF_DCVR_INT_V_NS;
-    args->dcvr_int.it_interval.tv_sec  = DEF_DCVR_INT_I_S;
-    args->dcvr_int.it_interval.tv_nsec = DEF_DCVR_INT_I_NS;
+        // grouping
+        .max_addrs   = 10,
+        .ok_addrs    =  8,
+        .min_leafs   =  2,
+        .min_routers =  1,
+        .split_nodes =  0,
+        .merge_range =  0
+    };
 
-    args->dcvr_tout.it_value.tv_sec     = DEF_DCVR_TOUT_V_S;
-    args->dcvr_tout.it_value.tv_nsec    = DEF_DCVR_TOUT_V_NS;
-    args->dcvr_tout.it_interval.tv_sec  = DEF_DCVR_TOUT_I_S;
-    args->dcvr_tout.it_interval.tv_nsec = DEF_DCVR_TOUT_I_NS;
+    inet_pton(AF_INET6, "fd15::1", &tmp.taddr);
+    inet_pton(AF_INET6, "::", &tmp.baddr);
+    memcpy(args, &tmp, sizeof(*args));
 }
 
-void get_args(struct arguments *args, int argc, char *argv[])
+void init_args(struct arguments *args, int argc, char *argv[])
 {
     set_default_args(args);
     argp_parse(&argp, argc, argv, 0, 0, args);

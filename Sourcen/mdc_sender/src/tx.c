@@ -1,3 +1,4 @@
+#include "argp.h"
 #include "checksum.h"
 #include "core.h"
 #include "group.h"
@@ -103,7 +104,7 @@ void init_tx(size_t mtu)
     txlen = mtu;
     txbuf = malloc(txlen);
 
-    hlen = get_mdc_pkt_size(MAX_NUM_ADDR);
+    hlen = get_mdc_pkt_size(args.max_addrs);
     buflen = mtu - hlen;
     buf = txbuf + hlen;
 

@@ -1,4 +1,5 @@
 #include "core.h"
+#include "argp.h"
 #include "discover.h"
 #include "group.h"
 #include "rx.h"
@@ -119,7 +120,7 @@ int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
         return -1;
     }
 
-    init_rx(mtu - get_mdc_pkt_size(MAX_NUM_ADDR));
+    init_rx(mtu - get_mdc_pkt_size(args.max_addrs));
 
     txid = start_tx(tun_fd, mdc_fd, ip6_fd, mtu);
     if (txid < 0)

@@ -1,4 +1,5 @@
 #include "tree.h"
+#include "argp.h"
 #include "group.h"
 #include "list.h"
 #include "tx.h"
@@ -249,7 +250,7 @@ void reduce_tree(struct router *r)
     if (!r->node.parent)
         return;
 
-    if (r->nchild < MIN_NUM_ROUTER && r->nleaf < MIN_NUM_LEAF) {
+    if (r->nchild < args.min_routers && r->nleaf < args.min_leafs) {
         printf("Removing node ");
         print_ia(&r->sa.sin6_addr);
         printf("\n");
@@ -326,7 +327,7 @@ size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
 
     i = 0;
     off = 0;
-    if (!MERGE_NODES) {
+    if (!args.merge_range) {
         off = n;
         i = 1;
         goto bitmap;
@@ -412,7 +413,7 @@ struct tx_group *greedy_grouping(struct router *s)
     struct addr *addr;
     uint32_t bm;
 
-    max = MAX_NUM_ADDR < BITMAP_LIMIT ? MAX_NUM_ADDR : BITMAP_LIMIT;
+    max = args.max_addrs < BITMAP_LIMIT ? args.max_addrs : BITMAP_LIMIT;
     struct in6_addr addrs[max];
 
     if (!s)
@@ -432,14 +433,14 @@ start:
             m = n + r->fleaf + p;
 
             if (m > max) {
-                if (SPLIT_NODES) {
+                if (args.split_nodes) {
                     m = max - n - p;
                     add2txg(&addrs[0], &bm, r, &n, m);
                 }
                 goto next;
             }
 
-            if (m >= max - 1 || m >= OK_NUM_ADDR) {
+            if (m >= max - 1 || m >= args.ok_addrs) {
                 add2txg(&addrs[0], &bm, r, &n, r->fleaf);
                 rec_back_propagate(r);
                 goto next;

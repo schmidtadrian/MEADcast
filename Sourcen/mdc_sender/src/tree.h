@@ -19,39 +19,6 @@
 #define BITMAP_LIMIT 32
 #endif /* !BITMAP_LIMIT */
 
-/* Max num of addresses per MEADcast packet. */
-#ifndef MAX_NUM_ADDR
-#define MAX_NUM_ADDR 10
-#endif /* ifndef MAX_NUM_ADDR */
-
-/* Determines whether a group can be finished prematurely if it contains an
- * equal or greater number of members than `OK_NUM_ADDR`. */
-#ifndef OK_NUM_ADDR
-#define OK_NUM_ADDR 7
-#endif /* ifndef OK_NUM_ADDR */
-
-/* Routers with less leafs than `MIN_NUM_LEAF` and less routers than
- * `MIN_NUM_ROUTER` get removed from tree. */
-#ifndef MIN_NUM_LEAF
-#define MIN_NUM_LEAF 2
-#endif /* !MIN_NUM_LEAF */
-
-/* See MIN_NUM_LEAF */
-#ifndef MIN_NUM_ROUTER
-#define MIN_NUM_ROUTER 1
-#endif /* !MIN_NUM_ROUTER */
-
-/* Specifies whether to split nodes into multiple packets if neccessary. */
-#ifndef SPLIT_NODES
-#define SPLIT_NODES 0
-#endif /* !SPLIT_NODES */
-
-/* Specifies whether to merge nodes under router with shortest distance. */
-#ifndef MERGE_NODES
-#define MERGE_NODES 1
-#endif /* !MERGE_NODES */
-
-
 
 struct child {
     void *v;
