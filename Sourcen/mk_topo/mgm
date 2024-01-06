@@ -1,0 +1,83 @@
+#!/bin/bash
+
+MIN_ARGC=3
+
+function print_help() {
+    echo "Usage: ${0##*/} <vm|net> <start|restart|stop|rm> <regex>"
+}
+
+function handle_vm_cmd() {
+    case $1 in
+        "start")
+            virsh list --name --inactive | grep -P "$2" | while read vm ; do
+                virsh start $vm
+            done;;
+        "restart")
+            virsh list --name | grep -P "$2" | while read vm ; do
+                virsh destroy $vm
+                virsh start $vm
+            done;;
+        "stop")
+            virsh list --name | grep -P "$2" | while read vm ; do
+                virsh destroy $vm
+            done;;
+        "rm")
+            virsh list --name | grep -P "$2" | while read vm ; do
+                virsh destroy $vm
+            done
+            virsh list --name --inactive | grep -P "$2" | while read vm ; do
+                virsh undefine $vm --remove-all-storage
+            done;;
+        *)
+            print_help
+            exit 2;;
+    esac
+}
+
+function handle_net_cmd() {
+    case $1 in
+        "start")
+            virsh net-list --name --inactive | grep -P "$2" | while read net ; do
+                virsh net-start $net
+            done;;
+        "restart")
+            virsh net-list --name | grep -P "$2" | while read net ; do
+                virsh net-destroy $net
+                virsh net-start $net
+            done;;
+        "stop")
+            virsh net-list --name | grep -P "$2" | while read net ; do
+                virsh net-destroy $net
+            done;;
+        "rm")
+            virsh net-list --name | grep -P "$2" | while read net ; do
+                virsh net-destroy $net
+            done
+            virsh net-list --name --inactive | grep -P "$2" | while read net ; do
+                virsh net-undefine $net
+            done;;
+        *)
+            print_help
+            exit 2;;
+    esac
+
+}
+
+if [[ $# -ne $MIN_ARGC ]]; then
+    print_help
+    exit 2
+fi
+
+obj=$1
+cmd=$2
+filter=$3
+
+if [ "$obj" == "vm" ]; then
+    handle_vm_cmd $cmd $filter
+elif [ "$obj" == "net" ]; then
+    handle_net_cmd $cmd $filter
+else
+    print_help
+    exit 2
+fi
+

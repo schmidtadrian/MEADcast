@@ -1,22 +1,5 @@
 #!/bin/bash
 
-DISK="/dev/vda"
-PART_NUM=1
-
-# increase partition size
-sed -e 's/\s*\([\+0-9a-zA-Z]*\).*/\1/' << EOF | fdisk $DISK
-  d # del partition
-  $PART_NUM # select partition 1
-  n # new partition
-    # default number
-    # default start sector
-    # default last sector
-  w # write
-EOF
-
-resize2fs "$DISK$PART_NUM"
-
-
 # enable ip forwarding
 sed -i "/net\.ipv4\.ip_forward=1/s/^#//g" /etc/sysctl.conf
 sed -i "/net\.ipv6\.conf.all.forwarding=1/s/^#//g" /etc/sysctl.conf
@@ -45,4 +28,4 @@ apt-get install frr tcpdump -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Opt
 sed -i "s/ospf6d=no/ospf6d=yes/" /etc/frr/daemons
 sed -i "s/pim6d=no/pim6d=yes/" /etc/frr/daemons
 
-systemctl restart frr
+#systemctl restart frr

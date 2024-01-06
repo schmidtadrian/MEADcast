@@ -12,11 +12,23 @@
         {
             "id": 2,
             "mask": 112,
+            "router": 1,
+            "clients": 2
+        },
+        {
+            "id": 3,
+            "mask": 112,
+            "router": 2,
+            "clients": 2
+        },
+        {
+            "id": 4,
+            "mask": 112,
             "router": 2,
             "clients": 2
         }
     ],
     "trans": [
-        [11, 12]
+        [1, 2]
     ]
 }

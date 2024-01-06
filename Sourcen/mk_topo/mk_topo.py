@@ -7,6 +7,7 @@ from argparse import ArgumentParser, HelpFormatter
 from dataclasses import dataclass
 from ipaddress import IPv6Address, IPv6Network, IPv4Interface
 from os import path
+from pathlib import Path
 from subprocess import run
 from sys import argv
 from typing import List
@@ -20,21 +21,36 @@ NETPLAN_CFG = '90-default.yaml'
 NETPLAN_DIR = '/etc/netplan/'
 IMG_DIR = '/var/lib/libvirt/images/'
 IMG_FORMAT = 'qcow2'
+CHRONY_CFG = 'chrony.conf'
+CHRONY_DIR = '/etc/chrony/'
 
 FRR_CFG = 'frr.conf'
 FRR_DIR = '/etc/frr/'
+
+# for each stub network this block will be appended to
+# frr template provided via cli args
 FRR_STUB_CFG = """!
 interface {IFNAME}
  ipv6 mld
  ipv6 pim passive
 exit
 """
+
+# for each transit network this block will be appended to
+# frr template provided via cli args
 FRR_TRAN_CFG = """!
 interface {IFNAME}
  ipv6 ospf6 area 0
  ipv6 pim
 exit
 """
+
+
+def i2h_char(v: int) -> int:
+    """Helper to keep IPv6 addresses and router ids the same.
+       E.g. 11 -> 0x11
+       Use it such that router 11 gets fd14::11/112 instead of fd14::b/112"""
+    return int(f'0x{v}', 16)
 
 
 def init_argparse() -> ArgumentParser:
@@ -48,16 +64,22 @@ def init_argparse() -> ArgumentParser:
             ('-n', '--net',              'xml template to create libvirt net', dict(required=True, type=open)),
             ('-u', '--user',             'vm user', dict(default='user', type=str)),
             ('-k', '--kernel',           'router direct kernel boot', dict(type=str)),
+            ('-M', '--modules',          'router kernel modules', dict(type=str)),
             ('-f', '--frr',              'router frr config template', dict(required=True, type=open)),
+            ('-c', '--chrony',           'chrony config template', dict(required=True, type=str)),
+            ('-m', '--mgm',              'name of mgm net', dict(default=MGM_NET, type=str)),
+            ('-s', '--start',            'autostart vm after creation', dict(action='store_true')),
             (None, '--ssh',              'ssh pub key injected into vms', dict(required=True, type=str)),
             (None, '--client-cpu',       'client vm vcpus', dict(default=1, type=int)),
-            (None, '--client-mem',       'client vm mem', dict(default=512, type=int)),
+            (None, '--client-mem',       'client vm mem', dict(default=256, type=int)),
             (None, '--client-disksize',  'client vm disk size', dict(default="8G", type=str)),
-            (None, '--client-firstboot', 'script to run on first boot in client vm', dict(nargs='+', default=[])),
+            (None, '--client-run',       'script to run inside client template', dict(nargs='*', default=[])),
+            (None, '--client-share-mem', 'sets memory backing to shared', dict(action='store_false')),
             (None, '--router-cpu',       'router vm vcpus', dict(default=1, type=int)),
-            (None, '--router-mem',       'router vm mem', dict(default=512, type=int)),
+            (None, '--router-mem',       'router vm mem', dict(default=256, type=int)),
             (None, '--router-disksize',  'router vm disk size', dict(default="8G", type=str)),
-            (None, '--router-firstboot', 'script to run on first boot inside router vm', dict(nargs='+', default=[])),
+            (None, '--router-run',       'script to run inside router template', dict(nargs='*', default=[])),
+            (None, '--router-share-mem', 'sets memory backing to shared', dict(action='store_false')),
             (None, '--backing-file',     'set backing file of disk', dict(required=True, type=str)),
             (None, '--backing-format',   'set backing file format', dict(default='raw', type=str)),
             (None, '--os-variant',       'set os variant parm', dict(default='debian11', type=str))
@@ -106,6 +128,48 @@ def create_img(name: str, size: str, bfile: str, bformat: str,
          name, size], check=True)
 
 
+def __create_template(img: str, user: str, ssh: str, lcpy: [str] = [],
+                    lrun: [str] = [], lboot: [str] = [], dirs: [str] = []):
+    cmd = ['virt-sysprep', '-a', img,
+           '--run-command', f'adduser {user}',
+           '--run-command', f'adduser {user} sudo',
+           '--append-line', f'/etc/sudoers:{user} ALL=(ALL) NOPASSWD:ALL',
+           '--ssh-inject', f'{user}:file:{ssh}',
+           '--network']
+
+    for d in dirs:
+        cmd += ['--mkdir', d]
+    for c in lcpy:
+        cmd += ['--copy-in', c]
+    for r in lrun:
+        cmd += ['--run', r]
+    for b in lboot:
+        cmd += ['--firstboot', b]
+
+    print(cmd)
+    run(cmd, check=True)
+
+
+def modify_template(img: str, host: str, lcpy: [str] = [], lrun: [str] = [],
+                    lboot: [str] = [], dirs: [str] = []):
+    """Customizes img. For further infos about params see
+    virt-customize man pages."""
+    cmd = ['virt-customize', '-a', img,
+           '--hostname', host,
+           '--run-command', 'ssh-keygen -A']
+
+    for d in dirs:
+        cmd += ['--mkdir', d]
+    for c in lcpy:
+        cmd += ['--copy-in', c]
+    for r in lrun:
+        cmd += ['--run', r]
+    for b in lboot:
+        cmd += ['--firstboot', b]
+
+    run(cmd, check=True)
+
+
 def modify_img(img: str, host: str, user: str, ssh: str, lcpy: [str] = [],
                lrun: [str] = [], lboot: [str] = [], dirs: [str] = []):
     """Customizes img. For further infos about params see
@@ -132,20 +196,25 @@ def modify_img(img: str, host: str, user: str, ssh: str, lcpy: [str] = [],
 
 def install_vm(name: str, cpus: int, mem: int, disk: str,
                format: str, nets: [str], boot: str = None,
+               share_mem: bool = True, start: bool = False,
                variant: str = "debian11"):
     """Creates vm for img"""
     cmd = ['virt-install',
            '--name', name,
            '--vcpus', str(cpus),
-           '--memory', str(mem),
+           '--memory', f'memory={mem},currentMemory={mem}',
            '--disk', f'path={disk},format={format}',
            '--os-variant', variant,
            '--import',
            '--noautoconsole']
     for net in nets:
-        cmd += ['--network', f'network={net}']
+        cmd += ['--network', f'network={net},target.dev={name}_{net}']
     if boot:
         cmd += ['--boot', boot]
+    if share_mem:
+        cmd += ['--memorybacking', 'source.type=memfd,access.mode=shared']
+    if start is False:
+        cmd += ['--noreboot']
 
     run(cmd, check=True)
 
@@ -157,7 +226,7 @@ def set_mgm_if(eths: dict, net: IPv4Interface, netid: int, id: int):
         'dhcp6': False,
         'addresses': [ifaddr],
         'routes': [{'to': 'default', 'via': str(net.ip)}],
-        'nameservers': {'addresses': [str(net.ip)]}
+        'nameservers': {'addresses': ['1.1.1.1']}
     }
 
 
@@ -173,9 +242,28 @@ class VM_CFG:
     cpy: [str]
     run: [str]
     boot: [str]
+    os_variant: str
+    shared_mem: bool
+    start: bool
     img_dir: str = IMG_DIR
     img_format: str = IMG_FORMAT
     kernel: str = None
+    kmodules: str = None
+
+
+def create_vm_template(name: str, vm_cfg: VM_CFG, dirs: [str] = []) -> str:
+    templ = path.join(vm_cfg.img_dir, f'{name}.{vm_cfg.bformat}')
+    # copy bc nested backing files don't work with libguestfs suite
+    shutil.copy(vm_cfg.bfile, templ)
+    cmd = f'qemu-img resize -f {vm_cfg.bformat} {templ} {vm_cfg.size}'.split()
+    run(cmd, check=True)
+
+    if vm_cfg.kmodules is not None and path.isdir(vm_cfg.kmodules):
+        vm_cfg.cpy.append(f'{vm_cfg.kmodules}:/lib/modules/')
+
+    __create_template(templ, vm_cfg.user, vm_cfg.ssh, vm_cfg.cpy,
+                      vm_cfg.run, [], dirs)
+    return templ
 
 
 class Stub:
@@ -195,14 +283,15 @@ class Stub:
     def set_net(self, prefix: IPv6Network) -> IPv6Network:
         """Creates network based on the following pattern:
            Prefix::self.id:0/self.mask"""
-        net_addr = IPv6Address(int(prefix.network_address) + (self.id << 16))
+        suffix = i2h_char(self.id) << 16
+        net_addr = IPv6Address(int(prefix.network_address) + suffix)
         return IPv6Network(f'{net_addr}/{self.mask}')
 
     def set_name(self) -> str:
         return Stub.PREF + str(self.id).zfill(2)
 
     def create_vms(self, outdir: str, mgm: IPv4Interface, routes: [str],
-                   vm_cfg: VM_CFG):
+                   vm_cfg: VM_CFG, vm_templ: str):
         """Creates netplan config, disk img, customizes img & creates vm"""
         tmp = path.join(outdir, NETPLAN_CFG)
 
@@ -211,7 +300,7 @@ class Stub:
             eths = cfg["network"]['ethernets']
             set_mgm_if(eths, mgm, self.id, i)
 
-            ifaddr = self.net.network_address + i
+            ifaddr = self.net.network_address + i2h_char(i)
             eths[STUB_IF] = {
                 'dhcp4': False,
                 'dhcp6': False,
@@ -228,17 +317,18 @@ class Stub:
             print(f'Written {out}')
 
             shutil.copy(out, tmp)
-            create_img(img, vm_cfg.size, vm_cfg.bfile, vm_cfg.bformat)
-            modify_img(img, name, vm_cfg.user, vm_cfg.ssh,
-                       vm_cfg.cpy + [f'{tmp}:{NETPLAN_DIR}'],
-                       vm_cfg.run, vm_cfg.boot)
-            install_vm(name, vm_cfg.cpus, vm_cfg.mem, img,
-                       vm_cfg.img_format, [MGM_NET, self.name])
+            create_img(img, vm_cfg.size, vm_templ, vm_cfg.bformat)
+            modify_template(img, name, [f'{tmp}:{NETPLAN_DIR}'])
+            install_vm(name, vm_cfg.cpus, vm_cfg.mem, img, vm_cfg.img_format,
+                       [MGM_NET, self.name], boot=[],
+                       share_mem=vm_cfg.shared_mem,
+                       start=vm_cfg.start,
+                       variant=vm_cfg.os_variant)
 
         os.remove(tmp)
 
     def create(stubs: List, routers: dict, outdir: str, template: str,
-               mgm: IPv4Interface, routes: [str], vm_cfg: VM_CFG):
+               mgm: IPv4Interface, routes: [str], vm_cfg: VM_CFG, vm_templ: str):
         """High-level wrapper, creates stub network & all its clients"""
         for stub in stubs:
             cfg = create_net_cfg(outdir, template, stub.name,
@@ -253,7 +343,7 @@ class Stub:
             else:
                 routers[stub.router] = Router(stub.router, [stub], [])
 
-            stub.create_vms(outdir, mgm, routes, vm_cfg)
+            stub.create_vms(outdir, mgm, routes, vm_cfg, vm_templ)
 
 
 class Tran:
@@ -270,7 +360,7 @@ class Tran:
     def set_net(self, prefix: IPv6Network) -> IPv6Network:
         """Creates network based on the following pattern:
            Prefix::self.r1self.r2:0/self.mask"""
-        id = ((self.r1 << 8) + self.r2) << 16
+        id = ((i2h_char(self.r1) << 8) + i2h_char(self.r2)) << 16
         net_addr = IPv6Address(int(prefix.network_address) + id)
         return IPv6Network(f'{net_addr}/{self.mask}')
 
@@ -310,7 +400,7 @@ class Router:
         return f'enp{i + Router.IFF_OFF}s0'
 
     def create(routers: dict, outdir: str, template: str, prefix: IPv6Network,
-               mgm: IPv4Interface, vm_cfg: VM_CFG):
+               mgm: IPv4Interface, vm_cfg: VM_CFG, vm_templ: str):
         """High-level function, creates netplan & frr config, img and vm"""
         np_tmp = path.join(outdir, NETPLAN_CFG)
         frr_tmp = path.join(outdir, FRR_CFG)
@@ -343,7 +433,7 @@ class Router:
                 i = add_net(i, FRR_STUB_CFG, addr, stub.name)
 
             for tran in r.trans:
-                addr = f'{tran.net.network_address + r.id}/{tran.mask}'
+                addr = f'{tran.net.network_address + i2h_char(r.id)}/{tran.mask}'
                 i = add_net(i, FRR_TRAN_CFG, addr, tran.name)
 
             np_cfg = path.join(outdir, r.name + '.yaml')
@@ -360,12 +450,12 @@ class Router:
             print(f'Written {frr_cfg}')
             shutil.copy(frr_cfg, frr_tmp)
 
-            cpy = vm_cfg.cpy + [f'{np_tmp}:{NETPLAN_DIR}'] + [f'{frr_tmp}:{FRR_DIR}']
-            create_img(img, vm_cfg.size, vm_cfg.bfile, vm_cfg.bformat)
-            modify_img(img, r.name, vm_cfg.user, vm_cfg.ssh, cpy,
-                       vm_cfg.run, vm_cfg.boot, [FRR_DIR])
-            install_vm(r.name, vm_cfg.cpus, vm_cfg.mem, img,
-                       vm_cfg.img_format, nets, vm_cfg.kernel)
+            cpy = [f'{np_tmp}:{NETPLAN_DIR}'] + [f'{frr_tmp}:{FRR_DIR}']
+            create_img(img, vm_cfg.size, vm_templ, vm_cfg.bformat)
+            modify_template(img, r.name, cpy)
+            install_vm(r.name, vm_cfg.cpus, vm_cfg.mem, img, vm_cfg.img_format,
+                       nets, vm_cfg.kernel, share_mem=vm_cfg.shared_mem,
+                       start=vm_cfg.start, variant=vm_cfg.os_variant)
 
         os.remove(np_tmp)
         os.remove(frr_tmp)
@@ -391,23 +481,36 @@ class Cfg:
 
 if __name__ == '__main__':
     args = init_argparse()
+    MGM_NET = args.mgm
+    Path(args.outdir).mkdir(parents=True, exist_ok=True)
+
     json = json.load(args.topo)
     cfg = Cfg.new(json)
+
     net_tmpl = args.net.read()
     frr_tmpl = args.frr.read()
+
     client_cfg = VM_CFG(args.user, args.ssh, args.client_disksize,
                         args.backing_file, args.backing_format,
-                        args.client_cpu, args.client_mem, [], [],
-                        args.client_firstboot)
+                        args.client_cpu, args.client_mem,
+                        [f'{args.chrony}:{CHRONY_DIR}'], args.client_run, [],
+                        args.os_variant, args.client_share_mem, args.start)
     router_cfg = VM_CFG(args.user, args.ssh, args.router_disksize,
                         args.backing_file, args.backing_format,
-                        args.router_cpu, args.router_mem, [], [],
-                        args.router_firstboot, kernel=args.kernel)
+                        args.router_cpu, args.router_mem,
+                        [f'{args.chrony}:{CHRONY_DIR}'], args.router_run, [],
+                        args.os_variant, args.router_share_mem, args.start,
+                        kernel=args.kernel, kmodules=args.modules)
 
     # Dict of all routers, will be filled during Stub and Tran create.
     routers: dict[Router] = {}
+
+    ctempl = create_vm_template('ctempl', client_cfg, [CHRONY_DIR])
     Stub.create(cfg.stubs, routers, args.outdir, net_tmpl, cfg.mgm_gw,
-                [str(cfg.stub_range)], client_cfg,)
+                [str(cfg.stub_range)], client_cfg, ctempl)
+
     Tran.create(cfg.trans, routers, args.outdir, net_tmpl)
+    rtempl = create_vm_template('rtempl', router_cfg,
+                                    [CHRONY_DIR, FRR_DIR])
     Router.create(routers, args.outdir, frr_tmpl, cfg.tran_range, cfg.mgm_gw,
-                  router_cfg)
+                  router_cfg, rtempl)
