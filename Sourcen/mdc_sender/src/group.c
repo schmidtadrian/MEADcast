@@ -107,6 +107,7 @@ int init_txg(void)
 
     r = rcvr;
     grp = malloc(sizeof(*grp) + nrcvr * sizeof(struct addr));
+    grp->mdc = NULL;
     grp->nuni = nrcvr;
 
     for (i = 0; r; r = r->next, i++)

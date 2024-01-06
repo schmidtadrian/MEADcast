@@ -4,6 +4,7 @@
 #include "list.h"
 #include "tx.h"
 #include "util.h"
+#include <Judy.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -79,6 +80,8 @@ struct router *create_router(struct sockaddr_in6 *addr, struct router *p)
 int free_router(struct router *r, struct child **childs, size_t *nchild,
                 struct child **leafs, size_t *nleaf)
 {
+    Pvoid_t *ht;
+    int ret;
     struct router *p;
     struct child *c;
 
@@ -93,6 +96,9 @@ int free_router(struct router *r, struct child **childs, size_t *nchild,
     *nchild = r->nchild;
     *leafs = r->leaf;
     *nleaf = r->nleaf;
+
+    ht = get_ht();
+    JHSD(ret, *ht, &r->sa.sin6_addr, sizeof(r->sa.sin6_addr));
 
     free(c);
     free(r);

@@ -236,7 +236,6 @@ void set_default_args(struct arguments *args)
 {
     struct arguments tmp = {
         // network
-        .tifname = "tun0",
         .bifname = NULL,
         .bport   = 9999,
         .pport   = 0,
@@ -257,6 +256,8 @@ void set_default_args(struct arguments *args)
         .merge_range =  0
     };
 
+    tmp.tifname = malloc(IFNAMSIZ);
+    strncpy(tmp.tifname, "tun1", IFNAMSIZ);
     inet_pton(AF_INET6, "fd15::1", &tmp.taddr);
     inet_pton(AF_INET6, "::", &tmp.baddr);
     memcpy(args, &tmp, sizeof(*args));

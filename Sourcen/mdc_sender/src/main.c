@@ -16,8 +16,8 @@ int main(int argc, char *argv[])
 {
     int ret;
 
-    // test(); // exit success
     init_args(&args, argc, argv);
+    // test(); // exit success
 
     ret = init_group(&args.baddr, args.bport);
     if (ret < 0)

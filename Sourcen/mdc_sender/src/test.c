@@ -18,6 +18,7 @@ void test()
     reduce_tree(root);
     print_tree(root);
     grp = greedy_grouping(root);
+    exit(EXIT_SUCCESS);
     print_txg(grp);
     rec_reset_tree(root, root);
     exit(EXIT_SUCCESS);
