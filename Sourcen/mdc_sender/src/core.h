@@ -27,9 +27,9 @@ struct ip6_mdc_hdr {
     struct in6_addr addr[];
 } __attribute__((packed));
 
-size_t get_mdc_pkt_size(size_t num_dst);
+size_t get_mdc_hdr_size(size_t num_dst);
 int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
-          uint16_t bport, size_t mtu, struct itimerspec *dcvr_int,
+          uint16_t bport, struct itimerspec *dcvr_int,
           struct itimerspec *dcvr_tout);
 
 #endif // !CORE_H

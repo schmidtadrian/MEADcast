@@ -39,7 +39,7 @@ uint8_t set_dcvr_hdr(struct ip6_mdc_hdr *hdr)
     hdr->rtm   = 0;
 
     // rthdr len equals number of octets minus first octet.
-    mdc_len = get_mdc_pkt_size(1);
+    mdc_len = get_mdc_hdr_size(1);
     rt_len = mdc_len / 8 - 1;
     set_rt_hdr((struct ip6_rthdr *) &hdr->rthdr, IPPROTO_NONE, rt_len,
                IPV6_MEADCAST, 0);
@@ -53,7 +53,7 @@ void set_data_hdr(void **buf, struct in6_addr *addrs, size_t len, uint32_t bm)
     size_t mdc_len;
     struct ip6_mdc_hdr *hdr;
 
-    mdc_len = get_mdc_pkt_size(len);
+    mdc_len = get_mdc_hdr_size(len);
     rt_len = mdc_len / 8 - 1;
 
     *buf = calloc(mdc_len, 1);
@@ -104,7 +104,7 @@ void init_tx(size_t mtu)
     txlen = mtu;
     txbuf = malloc(txlen);
 
-    hlen = get_mdc_pkt_size(args.max_addrs);
+    hlen = get_mdc_hdr_size(args.max_addrs);
     buflen = mtu - hlen;
     buf = txbuf + hlen;
 
@@ -138,7 +138,7 @@ int tx_mdc(int fd, struct tx_group *grp, uint8_t *l3pl, size_t plen)
 
         dst.sin6_addr = hdr->addr[1];
 
-        hlen = get_mdc_pkt_size(hdr->dsts);
+        hlen = get_mdc_hdr_size(hdr->dsts);
         mdc = (struct ip6_mdc_hdr *) (l3pl - hlen);
         memcpy(mdc, hdr, hlen);
 

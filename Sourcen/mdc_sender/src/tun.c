@@ -1,3 +1,4 @@
+#include "util.h"
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <linux/if.h>
@@ -41,7 +42,7 @@ int tun_alloc(char *dev)
     return fd;
 }
 
-int tun_up(char *dev)
+int tun_up(char *dev, int mtu)
 {
     int fd, ret;
     struct ifreq ifr;
@@ -54,12 +55,23 @@ int tun_up(char *dev)
 
     memset(&ifr, 0, sizeof(ifr));
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    ifr.ifr_mtu = mtu;
+
+    ret = ioctl(fd, SIOCSIFMTU, &ifr);
+    if (ret < 0) {
+        perror("ioctl(SIOCGIFMTU)");
+        goto error;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
     ifr.ifr_flags = IFF_UP | IFF_RUNNING;
 
     ret = ioctl(fd, SIOCSIFFLAGS, &ifr);
     if (ret < 0)
         perror("ioctl(SIOCSIFFLAGS)");
 
+error:
     close(fd);
     return ret;
 }
@@ -103,7 +115,7 @@ exit:
     return ret;
 }
 
-int init_tun(char *dev, struct in6_addr *ia)
+int init_tun(char *dev, struct in6_addr *ia, int mtu)
 {
     int fd, ret;
 
@@ -111,7 +123,7 @@ int init_tun(char *dev, struct in6_addr *ia)
     if (fd < 0)
         return fd;
 
-    ret = tun_up(dev);
+    ret = tun_up(dev, mtu);
     if (ret < 0) {
         close(fd);
         return ret;
@@ -123,7 +135,10 @@ int init_tun(char *dev, struct in6_addr *ia)
         return ret;
     }
 
-    printf("Created dev %s\n", dev);
+    printf("Created dev %s with MTU of %d\n", dev, mtu);
+    printf("Send your traffic to ");
+    print_ia(ia);
+    printf("\n");
     return fd;
 }
 

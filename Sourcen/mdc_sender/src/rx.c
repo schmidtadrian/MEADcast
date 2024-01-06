@@ -116,7 +116,7 @@ int rx_disc(int fd)
     }
 
     /* Sanity checks */
-    if (n != get_mdc_pkt_size(1))
+    if (nbytes != get_mdc_hdr_size(1))
         return -1;
 
     hdr = (struct ip6_mdc_hdr *) rxbuf;

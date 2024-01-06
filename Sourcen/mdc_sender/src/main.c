@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     }
 
     ret = start(args.tifname, args.bifname, &args.taddr, &args.baddr,
-                args.bport, 1600, &args.dcvr_int, &args.dcvr_tout);
+                args.bport, &args.dcvr_int, &args.dcvr_tout);
     if (ret < 0)
         return EXIT_FAILURE;
 

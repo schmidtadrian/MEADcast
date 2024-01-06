@@ -13,10 +13,11 @@
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-size_t get_mdc_pkt_size(size_t num_dst)
+size_t get_mdc_hdr_size(size_t num_dst)
 {
     size_t ip_pl, mdc_pl, pad;
 
@@ -28,16 +29,46 @@ size_t get_mdc_pkt_size(size_t num_dst)
     return mdc_pl + pad;
 }
 
-int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd,
-             char *tif, char *bif, struct in6_addr *taddr, struct addr *baddr)
+int get_mtu(char *dev)
+{
+    int fd, ret;
+    struct ifreq ifr;
+
+    fd = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        perror("socket (get_mtu)");
+        return fd;
+    }
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+
+    ret = ioctl(fd, SIOCGIFMTU, &ifr);
+    if (ret < 0) {
+        perror("ioctl(SIOCGIFMTU)");
+        return ret;
+    }
+
+    return ifr.ifr_mtu;
+}
+
+int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd, char *tif, char *bif,
+             struct in6_addr *taddr, struct addr *baddr, size_t *bif_mtu)
 {
     int ret;
+    size_t tif_mtu;
     const int on = 1;
     struct sockaddr_in6 l4sa;
     struct ifreq ifr;
 
-    // TODO set TUN MTU according to bind interface MTU & group size
-    *tun_fd = init_tun(tif, taddr);
+    ret = get_mtu(bif);
+    if (ret < 0)
+        return ret;
+
+    *bif_mtu = ret;
+    tif_mtu  = *bif_mtu - get_mdc_hdr_size(args.max_addrs);
+
+    *tun_fd = init_tun(tif, taddr, tif_mtu);
     if (*tun_fd < 1)
         return *tun_fd;
 
@@ -100,11 +131,12 @@ close_tun:
 }
 
 int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
-          uint16_t bport, size_t mtu, struct itimerspec *dcvr_int,
+          uint16_t bport, struct itimerspec *dcvr_int,
           struct itimerspec *dcvr_tout)
 {
     int ret;
     int tun_fd, mdc_fd, ip6_fd;
+    size_t mtu;
     struct addr ba;
     struct dx_targs *dxargs;
     pthread_t txid, dxid;
@@ -114,13 +146,13 @@ int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
     ba.sa.sin6_port = 0;
     ba.port = bport;
 
-    ret = init_fds(&tun_fd, &mdc_fd, &ip6_fd, tif, bif, taddr, &ba);
+    ret = init_fds(&tun_fd, &mdc_fd, &ip6_fd, tif, bif, taddr, &ba, &mtu);
     if (ret) {
         printf("ERR INIT FDS\n");
         return -1;
     }
 
-    init_rx(mtu - get_mdc_pkt_size(args.max_addrs));
+    init_rx(mtu);
 
     txid = start_tx(tun_fd, mdc_fd, ip6_fd, mtu);
     if (txid < 0)
