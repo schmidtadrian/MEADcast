@@ -113,7 +113,9 @@ int init_txg(void)
     for (i = 0; r; r = r->next, i++)
         grp->uni[i] = r->addr;
 
+    printf("Sending traffic to %zu endpoints\n", i);
     set_txg(&grp);
+
     return 0;
 }
 

@@ -25,7 +25,8 @@ void init_rx(size_t n)
     rxbuf = malloc(rxlen);
 }
 
-int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops)
+int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops,
+                size_t *n)
 {
     Pvoid_t *ht;
     Word_t *pv;
@@ -51,9 +52,6 @@ int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops)
 
     l = (struct leaf *) node;
     rcvr = &l->val;
-    // printf("Dst node type: %d\n", l->node.type);
-    // printf("Leaf port: %d\n", rcvr->addr.port);
-
     JHSI(pv, *ht, &rsa->sin6_addr, sizeof(rsa->sin6_addr));
 
     if (pv == PJERR) {
@@ -63,19 +61,20 @@ int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops)
 
     /* Insert router */
     if (*pv == 0) {
-        printf("Inserting router\n");
         c = get_path_pos(l, hops);
         r = insert(rsa, c);
         r->hops = hops;
         *pv = (Word_t) r;
+        (*n)++;
     }
     
     /* Update router */
     else {
-        printf("Updating router\n");
         r = (struct router *) *pv;
         if (r->node.type != ROUTER_NODE) {
-            printf("Address is already a peer\n");
+            printf("Address ");
+            print_ia(&rsa->sin6_addr);
+            printf(" is already a peer\n");
             return -1;
         }
 
@@ -87,20 +86,17 @@ int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops)
             cr =  malloc(sizeof(struct router));
             cr->v = r;
             add_router(get_router(node->parent), cr);
+            (*n)++;
         }
         adopt(r, c);
     }
 
-    while (r->node.parent)
-        r = get_router(r->node.parent);
-    print_tree(r);
-
     return 0;
 }
 
-int rx_disc(int fd)
+int rx_dcvr(int fd, size_t *n)
 {
-    int n;
+    int nbytes;
     struct sockaddr_in6 rt;
     struct ip6_mdc_hdr *hdr;
     socklen_t rtlen = sizeof(rt);
@@ -109,10 +105,10 @@ int rx_disc(int fd)
     char paddr[INET6_ADDRSTRLEN];
     char raddr[INET6_ADDRSTRLEN];
     
-    n = recvfrom(fd, rxbuf, rxlen, 0, (struct sockaddr *) &rt, &rtlen);
-    if (n < 1) {
+    nbytes = recvfrom(fd, rxbuf, rxlen, 0, (struct sockaddr *) &rt, &rtlen);
+    if (nbytes < 1) {
         perror("recvfrom (discover)");
-        return n;
+        return nbytes;
     }
 
     /* Sanity checks */
@@ -132,8 +128,8 @@ int rx_disc(int fd)
     if (inet_ntop(AF_INET6, &hdr->addr, paddr, sizeof(paddr)) <= 0)
         return -1;
 
-    printf("%s (%d hops) is router for %s\n", raddr, hdr->hops, paddr);
-    update_topo(&rt, hdr->addr, hdr->hops);
+    // printf("%s (%d hops) is router for %s\n", raddr, hdr->hops, paddr);
+    update_topo(&rt, hdr->addr, hdr->hops, n);
 
     return 0;
 }

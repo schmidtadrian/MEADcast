@@ -16,28 +16,32 @@ static char args_doc[] = "[PEER ADDRESSES] [PEER PORT]";
 
 static struct argp_option options[] = {
     { 0, 0, 0, 0, "Network:", OPT_GRP_NET},
-    { "tun",         OPT_TIFNAME,     "ifname",   0, "Specify name of the created TUN device.", OPT_GRP_NET },
-    { "interface",   OPT_BIFNAME,     "ifname",   0, "Specify interface to use.", OPT_GRP_NET },
-    { "tun-address", OPT_TADDR,       "ipv6",     0, "Specify host route to send traffic to.", OPT_GRP_NET },
-    { "address",     OPT_BADDR,       "ipv6",     0, "Specify source address.", OPT_GRP_NET },
-    { "port",        OPT_BPORT,       "port",     0, "Specify source port.", OPT_GRP_NET },
+    { "tun",          OPT_TIFNAME,     "ifname",   0, "Specify name of the created TUN device.", OPT_GRP_NET },
+    { "interface",    OPT_BIFNAME,     "ifname",   0, "Specify interface to use.", OPT_GRP_NET },
+    { "tun-address",  OPT_TADDR,       "ipv6",     0, "Specify host route to send traffic to.", OPT_GRP_NET },
+    { "address",      OPT_BADDR,       "ipv6",     0, "Specify source address.", OPT_GRP_NET },
+    { "port",         OPT_BPORT,       "port",     0, "Specify source port.", OPT_GRP_NET },
 
     { 0, 0, 0, 0, "Discovery:", OPT_GRP_DCVR },
-    { "interval",    OPT_DCVR_INT,    "secs",     0, "Specify discovery interval.", OPT_GRP_DCVR },
-    { "timeout",     OPT_DCVR_TOUT,   "secs",     0, "Specify discovery timeout.", OPT_GRP_DCVR },
-    { "delay",       OPT_DCVR_DELAY,  "secs",     0, "Specify delay until initial discovery phase.", OPT_GRP_DCVR },
+    { "interval",     OPT_DCVR_INT,    "secs",     0, "Specify discovery interval.", OPT_GRP_DCVR },
+    { "timeout",      OPT_DCVR_TOUT,   "secs",     0, "Specify discovery timeout.", OPT_GRP_DCVR },
+    { "delay",        OPT_DCVR_DELAY,  "secs",     0, "Specify delay until initial discovery phase.", OPT_GRP_DCVR },
 
     { 0, 0, 0, 0, "Grouping:", OPT_GRP_GRP},
-    { "max",         OPT_MAX_ADDRS,   "max",      0, "Specify the maximal number of addresses per MEADcast packet.", OPT_GRP_GRP },
-    { "ok",          OPT_OK_ADDRS,    "ok",       0, "Specify whether a packet can be finished prematurely if it contains "
-                                                     "an equal or greater number of addresses than `ok`. "
-                                                     "Assigning `ok` a value greater or equal than `max` disables this feature.", OPT_GRP_GRP },
-    { "min-leafs",   OPT_MIN_LEAFS,   "leafs",    0, "Routers with less leafs than `leafs` and less routers than `routers` get removed from tree.", OPT_GRP_GRP },
-    { "min-routers", OPT_MIN_ROUTERS, "routers",  0, "See `min-leafs`.", OPT_GRP_GRP },
-    { "split",       OPT_SPLIT_NODES, 0,          0, "Specify whether leafs of same parent can be split into multiple packets.", OPT_GRP_GRP},
-    { "merge",       OPT_MERGE_RANGE, "distance", 0, "Specify whether to merge leafs with distinct parent routers under an common ancestor. "
-                                                     "`distance` determines the range within which leafs will be merged. "
-                                                     "Assigning `distance` a value of 0 disables this feature.", OPT_GRP_GRP},
+    { "max",          OPT_MAX_ADDRS,   "max",      0, "Specify the maximal number of addresses per MEADcast packet.", OPT_GRP_GRP },
+    { "ok",           OPT_OK_ADDRS,    "ok",       0, "Specify whether a packet can be finished prematurely if it contains "
+                                                      "an equal or greater number of addresses than `ok`. "
+                                                      "Assigning `ok` a value greater or equal than `max` disables this feature.", OPT_GRP_GRP },
+    { "min-leafs",    OPT_MIN_LEAFS,   "leafs",    0, "Routers with less leafs than `leafs` and less routers than `routers` get removed from tree.", OPT_GRP_GRP },
+    { "min-routers",  OPT_MIN_ROUTERS, "routers",  0, "See `min-leafs`.", OPT_GRP_GRP },
+    { "split",        OPT_SPLIT_NODES, 0,          0, "Specify whether leafs of same parent can be split into multiple packets.", OPT_GRP_GRP },
+    { "merge",        OPT_MERGE_RANGE, "distance", 0, "Specify whether to merge leafs with distinct parent routers under an common ancestor. "
+                                                      "`distance` determines the range within which leafs will be merged. "
+                                                      "Assigning `distance` a value of 0 disables this feature.", OPT_GRP_GRP },
+
+    { 0, 0, 0, 0, "Verbosity"},
+    { "print-tree",   OPT_PRINT_TREE,   0,          0, "Prints topology tree to stdout", OPT_GRP_VERBOSE },
+    { "print-groups", OPT_PRINT_TXG,    0,          0, "Prints grouping to stdout", OPT_GRP_VERBOSE },
     { 0 }
 };
 
@@ -140,6 +144,8 @@ void empty_check(char *arg, struct argp_state *state, char *info)
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct arguments *arguments = state->input;
     switch (key) {
+
+        // network
         case OPT_TIFNAME:
             _parse_if((void *) &arguments->tifname, arg, state, "TUN");
             break;
@@ -155,6 +161,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case OPT_BPORT:
             _parse_port(&arguments->bport, arg, state, "bind");
             break;
+
+        // discovery
         case OPT_DCVR_INT:
             arguments->dcvr_int.it_interval.tv_sec = atoi(arg);
             break;
@@ -164,6 +172,8 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case OPT_DCVR_DELAY:
             arguments->dcvr_int.it_value.tv_sec = atoi(arg);
             break;
+
+        // grouping
         case OPT_MAX_ADDRS:
             _parse_int((int *)&arguments->max_addrs, arg, state, "MAX_ADDRS", 2);
             break;
@@ -182,12 +192,24 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case OPT_MERGE_RANGE:
             _parse_int((int *)&arguments->merge_range, arg, state, "MERGE_RANGE", 0);
             break;
+
+        // verbosity
+        case OPT_PRINT_TREE:
+            arguments->print_tree = true;
+            break;
+        case OPT_PRINT_TXG:
+            arguments->print_txg = true;
+            break;
+
+        // positional args
         case ARGP_KEY_ARG:
             if (state->argc != state->next)
                 _parse_peer(&arguments->paddr, arg, state);
             else
                 _parse_port(&arguments->pport, arg, state, "peer");
             break;
+
+        // verification
         case ARGP_KEY_END:
             empty_check(arguments->tifname, state, "TUN interface");
             empty_check(arguments->bifname, state, "Bind interface");
@@ -253,7 +275,11 @@ void set_default_args(struct arguments *args)
         .min_leafs   =  2,
         .min_routers =  1,
         .split_nodes =  0,
-        .merge_range =  0
+        .merge_range =  0,
+
+        // verbosity
+        .print_tree = false,
+        .print_txg  = false
     };
 
     tmp.tifname = malloc(IFNAMSIZ);

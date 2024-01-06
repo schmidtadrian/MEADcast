@@ -83,10 +83,6 @@ int send_dcvr(int fd)
         dst = &i->addr.sa;
         memcpy(&hdr->addr[0], &dst->sin6_addr, sizeof(*hdr->addr));
 
-        printf("Sending DRQ to ");
-        print_ia(&dst->sin6_addr);
-        printf("\n");
-
         ret = sendto(fd, hdr, len, 0, (struct sockaddr *) dst, sizeof(*dst));
         if (ret < 1) {
             perror("sendto (discover)");
@@ -107,9 +103,6 @@ void init_tx(size_t mtu)
     hlen = get_mdc_hdr_size(args.max_addrs);
     buflen = mtu - hlen;
     buf = txbuf + hlen;
-
-    printf("tx/buf  len: %zu/%zu\n", txlen, buflen);
-    printf("tx/buf addr: %p/%p\n", txbuf, buf);
 
     pi = (struct tun_pi *) buf;
     ip = (struct ipv6hdr *) (pi + 1);
@@ -149,10 +142,8 @@ int tx_mdc(int fd, struct tx_group *grp, uint8_t *l3pl, size_t plen)
             perror("sendto (mdc)");
             return n;
         }
-        printf("MDC: send %d bytes to ", n);
-        print_mdc_hdr(hdr);
-
     }
+
     return 0;
 }
 
@@ -168,7 +159,6 @@ int tx_uni(int fd, struct tx_group *grp, struct ipv6hdr *ip, size_t len)
     if (fd < 1 || !grp || !ip)
         return -1;
     
-    // printf("ip mem addr: %p\n", ip);
     for (addr = grp->uni, i = 0; addr && i < grp->nuni; addr++, i++) {
 
         dst.sin6_addr = addr->sa.sin6_addr;
@@ -177,7 +167,6 @@ int tx_uni(int fd, struct tx_group *grp, struct ipv6hdr *ip, size_t len)
         /* Best effort l4 header correction */
         if (ip->nexthdr == IPPROTO_UDP) {
             udp = (struct udphdr *) (ip + 1);
-            printf("udp mem addr: %p\n", udp);
             udp->dest = htons(addr->port);
             udp->check = 0;
             udp->check = htons(
@@ -199,9 +188,7 @@ int tx_uni(int fd, struct tx_group *grp, struct ipv6hdr *ip, size_t len)
             perror("sendto (uni)");
             return n;
         }
-        printf("UNI: send %d bytes to ", n);
-        print_ia(&dst.sin6_addr);
-        printf("/%d\n", addr->port);
+
     }
 
     return 0;
@@ -229,7 +216,6 @@ void tx_loop(struct tx_targs *args)
             perror("read");
             return;
         }
-        // printf("TUN: read %d bytes\n", n);
 
         if (ntohs(pi->proto) != ETH_P_IPV6)
             return;
@@ -238,8 +224,6 @@ void tx_loop(struct tx_targs *args)
         if (!grp)
             return;
 
-        // printf("L3 addr %p\n", ip);
-        // printf("L4 addr %p\n", (ip + 1));
         iplen = n - sizeof(*pi);
         /* Unicast needs to be delivered first,
          * hence `tx_mdc` overwrites ip header. */
@@ -256,7 +240,6 @@ pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu)
 
     if (init_txg())
         return -1;
-    print_txg(get_txg());
 
     args = malloc(sizeof(*args));
     args->tun_fd = tun_fd;
@@ -271,6 +254,5 @@ pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu)
         return -1;
     }
 
-    printf("Started tx thread\n");
     return tid;
 }

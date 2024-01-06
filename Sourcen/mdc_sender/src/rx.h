@@ -14,7 +14,7 @@ struct rx_targs {
 };
 
 void init_rx(size_t n);
-int rx_disc(int fd);
+int rx_dcvr(int fd, size_t *n);
 
 static uint8_t *rxbuf = NULL;
 static size_t rxlen = 0;

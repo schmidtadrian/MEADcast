@@ -104,9 +104,6 @@ int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd, char *tif, char *bif,
         perror("bind (mdc)");
         goto close_ip6;
     }
-    printf("MEADcast bound to ");
-    print_ia(&baddr->sa.sin6_addr);
-    printf("/%d\n", baddr->port);
 
     ret = bind(*ip6_fd, (struct sockaddr *) &baddr->sa, sizeof(baddr->sa));
     if (ret < 0) {
@@ -114,9 +111,9 @@ int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd, char *tif, char *bif,
         goto close_ip6;
     }
 
-    printf("Unicast bound to ");
+    printf("Bound to ");
     print_ia(&baddr->sa.sin6_addr);
-    printf("/%d\n", baddr->port);
+    printf("/%d on %s\n", baddr->port, bif);
 
     return 0;    
 

@@ -221,9 +221,9 @@ void reduce_tree(struct router *r)
         return;
 
     if (r->nchild < args.min_routers && r->nleaf < args.min_leafs) {
-        printf("Removing node ");
-        print_ia(&r->sa.sin6_addr);
-        printf("\n");
+        // printf("Removing router ");
+        // print_ia(&r->sa.sin6_addr);
+        // printf("\n");
         cut_router(r);
     }
 }
@@ -258,12 +258,13 @@ struct router *get_start(struct router *r)
         r = get_router(r->node.parent);
         if (r)
             return get_start(r);
-        printf("No start left!\n");
-    } else {
+        // printf("No start left!\n");
+    }
+    /* else {
         printf("Start Router: ");
         print_ia(&r->sa.sin6_addr);
         printf("\n");
-    }
+    } */
 
     return s;
 }

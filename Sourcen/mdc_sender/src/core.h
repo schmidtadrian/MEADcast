@@ -15,8 +15,8 @@ struct ip6_mdc_hdr {
         struct {
             uint32_t
                 dsts: 8,
-                dcv: 1,
-                rsp: 1,
+                dcv:  1,
+                rsp:  1,
                 hops: 6,
                 res: 16;
         };

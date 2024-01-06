@@ -1,4 +1,5 @@
 #include "discover.h"
+#include "argp.h"
 #include "group.h"
 #include "rx.h"
 #include "tree.h"
@@ -127,14 +128,16 @@ int tint_handler(int mdc_fd, int tint_fd, int tout_fd)
     return 0;
 }
 
-int tout_handler(int fd, int tint_fd)
+int tout_handler(int fd, int tint_fd, size_t *i)
 {
     int n;
     uint64_t buf;
     struct tx_group *grp;
     struct router *r;
 
-    printf("Ending discovery phase\n");
+    printf("Found %zu routers\n"
+           "Ending discovery phase\n", *i);
+    *i = 0;
 
     n = read(fd, &buf, sizeof(buf));
     if (n < 1) {
@@ -152,21 +155,26 @@ int tout_handler(int fd, int tint_fd)
     }
 
     set_txg(&grp);
+    if (args.print_tree)
+        print_tree(get_root());
     rec_reset_tree(r, r);
 
     n = flip_timers(fd, tint_fd, tint_ts);
     if (n < 0)
         return n;
 
+    if (args.print_txg)
+        print_txg(get_txg());
     return 0;    
 }
 
 int dx_loop(int epoll_fd, int mdc_fd, struct epoll_event *ev, size_t evlen)
 {
     int n, i, fd;
+    size_t r;
     uint64_t buf;
 
-    for (;;) {
+    for (r = 0;;) {
 
         n = epoll_wait(epoll_fd, ev, evlen, -1);
         if (n < 0) {
@@ -181,18 +189,26 @@ int dx_loop(int epoll_fd, int mdc_fd, struct epoll_event *ev, size_t evlen)
                 /* TODO skip as long as we are not in discovery phase,
                  * and keep data in kernel buffer till next discovery phase.
                  * This can be done by setting EPOLLET. */
-                rx_disc(mdc_fd);
+                rx_dcvr(mdc_fd, &r);
             }
-            else if (fd == tout_fd) {
-                tout_handler(tout_fd, tint_fd);
-                print_txg(get_txg());
-                // exit(EXIT_SUCCESS);
-            }
-            else if (fd == tint_fd) {
+
+            else if (fd == tout_fd)
+                tout_handler(tout_fd, tint_fd, &r);
+
+            else if (fd == tint_fd)
                 tint_handler(mdc_fd, tint_fd, tout_fd);
-            }
         }
     }
+}
+
+void print_timers(struct dx_targs *args)
+{
+    printf("Discovery interval: %lds\n"
+           "Discovery timeout:  %lds\n"
+           "Inital discovery starts in %lds\n",
+        args->tint->it_interval.tv_sec,
+        args->tout->it_interval.tv_sec,
+        args->tint->it_value.tv_sec);
 }
 
 int start_dx(struct dx_targs *args)
@@ -213,6 +229,7 @@ int start_dx(struct dx_targs *args)
     if (epoll_fd < 1)
         return epoll_fd;
 
+    print_timers(args);
     ret = dx_loop(epoll_fd, args->fd, ev, args->evlen);
     if (ret < 0)
         return ret;
