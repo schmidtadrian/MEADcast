@@ -272,8 +272,8 @@ The advantages of multicast become particularly evident in bandwidth-intense
     communication volume is most pronounced.
 Real-time multimedia services, therefore, emerge as a particularly well-suited
     domain for the application of multicast.
-In the following, we present our formulated application domains supported by 
-    exemplary applications.
+In the following, we introduce the formulated application domains, illustrating
+    them with specific examples as detailed in \autoref{tab:mcappdom}.
 The characteristics distinguishing these domains are discussed in the
     following section.
 
@@ -426,7 +426,8 @@ The last domain is \textit{Distributed Simulation}, with exemplary applications
 \subsection{Application Characteristics} % (fold)
 \label{sub:Application Characteristics}
 This section delineates various characteristics derived from the application
-    domains, categorized into three groups:
+    domains, categorized into three groups, as detailed in
+    \autoref{tab:appscenarios}.
 \paragraph{Group} % (fold)
 \label{par:Group}
 % - size
@@ -571,8 +572,8 @@ Conceivable scenarios are, that a major streaming provider wants to lower their
 Since, multimedia streams produce a high traffic volume on the sender it is
     of particular interest, how much MEADcast can reduce the occupied
     bandwidth.
-Moreover, it is examined if this comes with tradeoffs like, increased
-    latency/jitter or an increased CPU utilization of the sender
+Moreover, it is examined if this comes with trade-offs like, increased
+    latency/jitter or an increased CPU utilization of the sender.
 % How much reduce the traffic volume on the sender
 % paragraph EX1: Live Stream (end)
 
@@ -651,6 +652,67 @@ By adjusting parameters such as packet size and communication interval, this
 \end{table}
 % subsection Application Scenarios (end)
 
+\subsection{Testing parameters} % (fold)
+\label{sub:Testing parameters}
+% - number of clients
+% - distribution & clustering of clients
+% - number & location of MEADcast routers
+% - group size (per packet)
+% - discovery interval
+The series of experiments introduced earlier shares several testing parameters.
+Consequently, these experiments incorporate diverse parameter configurations
+    intended to assess their influence on measurements, specifically addressing
+    \textit{RQ2} and \textit{RQ4}.
+
+The first parameter is the \textit{number and distribution of receivers}.
+Generally, with a larger number of receivers, a multicast protocol tends to
+    achieve proportionally higher bandwidth savings compared to unicast.
+However, we anticipate that the distribution of receivers significantly impacts
+    MEADcast's performance.
+Therefore, the experiments encompass various distributions, ranging from highly
+    clustered receivers with minimal internal distances to uniformly spread
+    distributions.
+This parameter aims to illuminate how spatial receiver arrangement influences
+    the protocol's efficiency.
+
+The second testing parameter is the \textit{degree of MEADcast support}.
+Analogous to the first parameter, we hypothesize that the number and placement
+    of MEADcast-capable routers have a significant impact on the protocol's
+    performance.
+To investigate this, the experiments are conducted ranging from a minimal
+    degree of MEADcast routers to complete protocol support within the testbed.
+By varying this parameter, we aim to assess MEADcast's efficiency under
+    conditions of limited network control, offering valuable insights
+    directly addressing \textit{RQ4}.
+
+The third, parameter resolves around \textit{grouping receivers} into MEADcast
+    packets.
+Evaluating the balance between the number of recipients per packet and the
+    available \gls{sdu} size is crucial.
+A larger number of recipients per packet potentially reduces traffic volume by
+    consolidating identical packet streams.
+However, this also enlarges the MEADcast header, consequently diminishing the
+    available \gls{sdu} size.
+This trade-off might inadvertently increase traffic volume since more packets
+    are required to transmit the total payload.
+Furthermore, the grouping algorithm itself is considered.
+For instance, recipients sharing the same parent router could be distributed
+    across different packets to achieve an optimal balance between the MEADcast
+    header and payload size.
+Moreover, receivers with distinct parents might be merged under a common
+    ancestor to accommodate them within a single packet.
+
+Lastly, the effect of different values for the \textit{discovery interval} is
+    also examined.
+Shorter intervals facilitate quicker adaption to topology changes,
+    potentially leading to enhanced receiver grouping and faster error
+    recovery.
+However, shorter intervals also result in higher traffic volume, which may
+    impede data delivery.
+
+
+% subsection Testing parameters (end)
+
 % \paragraph{Application Scenarios} % (fold)
 % \label{par:Application Scenarios}
 % Deploy service in cloud and minimize the egress costs
@@ -681,12 +743,23 @@ By adjusting parameters such as packet size and communication interval, this
 \label{sec:Testbed_Design}
 
 \subsection{Requirements} % (fold)
+% Unwanted characteristics:
+% - trivial (e.g. bus, simple ring)
+% - unconnected
+
+% wanted characteristics:
+% - fully connected
+% - power law degree distribution (access routers low connectivity,
+%                                  some routers high connectivity)
+% - small-world characteristics in access areas (high clustering, low distance)
+% - Existence of alternative paths (routing change & failure)
 \label{sub:Requirements}
 \begin{itemize}
     \item Realistic topology
     \item Medium sized (up to 200 nodes)
     \item Adjustable number of MEADcast routers
-    \item Alternative routes (routing change/failure)
+    \item Existence of alternative paths, Alternative routes (routing change/failure)
+    \item Local clustering as well as spread
 \end{itemize}
 % subsection Requirements (end)
 
