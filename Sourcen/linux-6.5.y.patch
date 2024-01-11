@@ -1,9 +1,9 @@
 diff --git a/include/linux/mdcast.h b/include/linux/mdcast.h
 new file mode 100644
-index 000000000000..c80a93756c64
+index 000000000000..f8b88b0c41f0
 --- /dev/null
 +++ b/include/linux/mdcast.h
-@@ -0,0 +1,64 @@
+@@ -0,0 +1,47 @@
 +#ifndef _LINUX_MDCAST_H
 +#define _LINUX_MDCAST_H
 +
@@ -15,6 +15,7 @@ index 000000000000..c80a93756c64
 +
 +int md_rcv(struct sk_buff *skb);
 +int md_dcv_rcv(struct sk_buff *skb);
++int md_data_rcv(struct sk_buff *skb);
 +int dcv_rsp(struct sk_buff *skb);
 +
 +/*
@@ -32,32 +33,14 @@ index 000000000000..c80a93756c64
 + * 30 bit reserved
 + */
 +
-+// struct rtmd_hdr {
-+// 	struct ipv6_rt_hdr	rt_hdr;
-+//     __u8    num_dst;
-+//     int dicover: 1;
-+//     int response: 1;
-+//     int reserved: 30;
-+//     __u32 dlvmap;
-+//     __u32 rtmap;
-+//     union {
-+//         __DECLARE_FLEX_ARRAY(struct in6_addr, addr);
-+//         __DECLARE_FLEX_ARRAY(__u16, ports);
-+//     } addresses;
-+//
-+// #define rtmd_dstaddr addresses.addr
-+// #define rtmd_dstrtmap addresses.ports
-+// #define rtmd_type		rt_hdr.type
-+// };
-+
 +struct ipv6_rt_md_hdr {
 +    struct ipv6_rt_hdr rt_hdr;
-+    __u8 num_dst;
 +    __u32
++        num_dst:    8,
 +        discovery:  1,
 +        response:   1,
 +        hopcount:   6,
-+        reserved:  24;
++        reserved:  16;
 +    __u32 dlvmap;
 +    __u32 rtmap;
 +    struct in6_addr dst[];
@@ -69,16 +52,14 @@ index 000000000000..c80a93756c64
 +
 +#endif // !_LINUX_MDCAST_H
 diff --git a/include/uapi/linux/ipv6.h b/include/uapi/linux/ipv6.h
-index ac56605fe9bc..55d0fe29f445 100644
+index ac56605fe9bc..8a1d66a979b7 100644
 --- a/include/uapi/linux/ipv6.h
 +++ b/include/uapi/linux/ipv6.h
-@@ -43,6 +43,9 @@ struct in6_ifreq {
+@@ -43,6 +43,7 @@ struct in6_ifreq {
  #define IPV6_SRCRT_TYPE_2	2	/* IPv6 type 2 Routing Header	*/
  #define IPV6_SRCRT_TYPE_3	3	/* RPL Segment Routing with IPv6 */
  #define IPV6_SRCRT_TYPE_4	4	/* Segment Routing with IPv6 */
-+#ifdef CONFIG_IPV6_MEADCAST
 +#define IPV6_MEADCAST 253   /* Using experimental header for MEADcast */
-+#endif
  
  /*
   *	routing header
@@ -139,7 +120,7 @@ index 202fc3aaa83c..dd0338174908 100644
  		break;
  	}
 diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 1e8c90e97608..ddcdad1c740c 100644
+index 1e8c90e97608..f0ce82d33e6b 100644
 --- a/net/ipv6/ip6_output.c
 +++ b/net/ipv6/ip6_output.c
 @@ -22,6 +22,7 @@
@@ -155,7 +136,7 @@ index 1e8c90e97608..ddcdad1c740c 100644
  	hdr->hop_limit--;
  
 +    if (hdr->nexthdr == IPPROTO_ROUTING) {
-+        md_dcv_rcv(skb);
++        md_rcv(skb);
 +    }
 +
  	return NF_HOOK(NFPROTO_IPV6, NF_INET_FORWARD,
@@ -163,14 +144,23 @@ index 1e8c90e97608..ddcdad1c740c 100644
  		       ip6_forward_finish);
 diff --git a/net/ipv6/mdcast.c b/net/ipv6/mdcast.c
 new file mode 100644
-index 000000000000..c2908abedf96
+index 000000000000..aa61b7d09df6
 --- /dev/null
 +++ b/net/ipv6/mdcast.c
-@@ -0,0 +1,147 @@
+@@ -0,0 +1,440 @@
++#include "asm/checksum_64.h"
++#include "linux/gfp_types.h"
++#include "linux/in.h"
 +#include "linux/ipv6.h"
++#include "linux/netdevice.h"
 +#include "linux/skbuff.h"
++#include "linux/types.h"
++#include "linux/udp.h"
++#include "net/addrconf.h"
 +#include "net/dst.h"
++#include "net/ip6_checksum.h"
 +#include "net/ip6_route.h"
++#include "net/udp.h"
 +#include <linux/printk.h>
 +#include <linux/mdcast.h>
 +#include <linux/in.h>
@@ -180,9 +170,31 @@ index 000000000000..c2908abedf96
 +#define INET6_ADDRSTRLEN 46
 +#endif
 +
-+#ifndef MEADCAST_DEBUG
-+#define MEADCAST_DEBUG
-+#endif /* ifndef MEADCAST_DEBUG */
++#ifndef MIN_DSTS
++#define MIN_DSTS 1
++#endif
++
++// #ifndef MEADCAST_DEBUG
++// #define MEADCAST_DEBUG
++// #endif /* ifndef MEADCAST_DEBUG */
++
++#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
++
++/* Mapping from lowest index on highest, to ease traversing bitmap backwards.
++ * E.g. GET_I(0) -> 31, GET_I(1) -> 30, ..., GET_I(31) -> 0 */
++#define GET_I(i) (sizeof(((struct ipv6_rt_md_hdr *)0)->rtmap) * 8 - 1 - i)
++
++size_t get_mdc_pkt_size(size_t num_dst)
++{
++    size_t mdc_pl, pad;
++
++    mdc_pl = sizeof(struct ipv6_rt_md_hdr) + num_dst * sizeof(struct in6_addr);
++
++    // num of padding bytes to get a multiple of 8 bytes
++    pad = (8 - (mdc_pl & 7)) & 7;
++
++    return mdc_pl + pad;
++}
 +
 +int md_rcv(struct sk_buff *skb)
 +{
@@ -191,8 +203,6 @@ index 000000000000..c2908abedf96
 +
 +    iphdr = ipv6_hdr(skb);
 +
-+    printk("MEADcast: Got a packet from %pI6c\n", &iphdr->saddr);
-+
 +    hdr = (struct ipv6_rt_md_hdr *)skb_transport_header(skb);
 +
 +    if (hdr->rt_md_type != IPV6_MEADCAST) {
@@ -200,22 +210,21 @@ index 000000000000..c2908abedf96
 +        return -1;
 +    }
 +
++    // #ifdef MEADCAST_DEBUG
++    // print_debug(iphdr, hdr);
++    // #endif /* ifdef MEADCAST_DEBUG */
++
 +    // TODO: handle wrong num_dst
++    if (hdr->discovery) {
++        md_dcv_rcv(skb);
++    } else {
++        // printk("MEADcast: Its a data packet on %d\n", skb->skb_iif);
++        md_data_rcv(skb);
++    }
 +
-+    // if (hdr->discovery) {
-+    //     printk("MEADcast: Its a discovery packet\n");
-+    //     // forward packet
-+    //     // respond sender
-+    // } else {
-+    //     printk("MEADcast: Its a data packet\n");
-+    // }
 +
-+    #ifdef MEADCAST_DEBUG
-+    print_debug(iphdr, hdr);
-+    #endif /* ifdef MEADCAST_DEBUG */
-+
-+    for (int i = 0; i < hdr->num_dst; i++)
-+        printk("MEADcast: Dst[%d] is %pI6c\n", i, &hdr->dst[i]);
++    // for (int i = 0; i < hdr->num_dst; i++)
++    //     printk("MEADcast: Dst[%d] is %pI6c\n", i, &hdr->dst[i]);
 +
 +    return 0;
 +}
@@ -228,18 +237,341 @@ index 000000000000..c2908abedf96
 +    iphdr = ipv6_hdr(skb);
 +    hdr = (struct ipv6_rt_md_hdr *)skb_transport_header(skb);
 +
-+    if (hdr->rt_md_type != IPV6_MEADCAST) {
-+        printk("MEADcast: early exit\n");
++    if (hdr->rt_md_type != IPV6_MEADCAST ||
++        hdr->rt_hdr.nexthdr != IPPROTO_NONE ||
++        !hdr->discovery || hdr->response ||
++        hdr->num_dst != 1
++    ) {
++        // printk("MEADcast: invalid discovery request!\n");
 +        return -1;
 +    }
 +
-+    printk("MEADcast: Got a packet from %pI6c to %pI6c\n", &iphdr->saddr, &iphdr->daddr);
++    printk("MEADcast: Got a packet from %pI6c to %pI6c for %pI6c on %d\n",
++           &iphdr->saddr, &iphdr->daddr, &hdr->dst, skb->skb_iif);
 +    #ifdef MEADCAST_DEBUG
 +    print_debug(iphdr, hdr);
 +    #endif /* ifdef MEADCAST_DEBUG */
 +
 +    hdr->hopcount++;
 +    dcv_rsp(skb);
++
++    return 0;
++}
++
++static void udp6_csum(struct sock *sk, struct sk_buff *skb,
++				 const struct in6_addr *saddr,
++				 const struct in6_addr *daddr, int len)
++{
++	unsigned int offset;
++	struct udphdr *uh = udp_hdr(skb);
++	struct sk_buff *frags = skb_shinfo(skb)->frag_list;
++	__wsum csum = 0;
++
++	if (!frags) {
++		/* Only one fragment on the socket.  */
++		skb->csum_start = skb_transport_header(skb) - skb->head;
++		skb->csum_offset = offsetof(struct udphdr, check);
++		uh->check = ~csum_ipv6_magic(saddr, daddr, len, IPPROTO_UDP, 0);
++	} else {
++		/*
++		 * HW-checksum won't work as there are two or more
++		 * fragments on the socket so that all csums of sk_buffs
++		 * should be together
++		 */
++		offset = skb_transport_offset(skb);
++		skb->csum = skb_checksum(skb, offset, skb->len - offset, 0);
++		csum = skb->csum;
++
++		skb->ip_summed = CHECKSUM_NONE;
++
++		do {
++			csum = csum_add(csum, frags->csum);
++		} while ((frags = frags->next));
++
++		uh->check = csum_ipv6_magic(saddr, daddr, len, IPPROTO_UDP,
++					    csum);
++		if (uh->check == 0)
++			uh->check = CSUM_MANGLED_0;
++	}
++}
++
++int set_dst(struct sk_buff *skb, struct in6_addr *daddr)
++{
++    struct flowi6 fl6;
++    struct dst_entry *dst;
++
++    memset(&fl6, 0, sizeof(fl6));
++    fl6.daddr = *daddr;
++    dst = ip6_route_output(dev_net(skb->dev), skb->sk, &fl6);
++
++    if (dst->error) {
++        printk("Error during route lookup of %pI6c", daddr);
++        dst_release(dst);
++        return 1;
++    }
++
++	skb_dst_set(skb, dst);
++    return 0;
++}
++
++int m2u(struct sk_buff *skb, struct in6_addr *dst)
++{
++    struct ipv6hdr ip, *pull;
++    struct ipv6_rt_md_hdr *hdr;
++    struct udphdr *uh;
++    size_t rthdr_len, ip_plen;
++
++    // printk("MEADcast M2U of %pI6c", dst);
++    ip  = *(struct ipv6hdr *) skb_network_header(skb);
++    hdr =  (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
++
++    if (!dst)
++        return -1;
++
++    // printk("SK DATA: %p\n"
++    //        "L3 HDR:  %p\n"
++    //        "L4 HDR:  %p",
++    //        skb->data, &ip, hdr);
++
++    rthdr_len = (hdr->rt_hdr.hdrlen + 1) * 8;
++    ip_plen = ntohs(ip.payload_len) - rthdr_len;
++    uh = (void *) hdr + rthdr_len;
++
++    ip.payload_len = htons(ip_plen);
++    ip.nexthdr = hdr->rt_hdr.nexthdr;
++    ip.daddr = *dst;
++
++    pull = skb_pull(skb, rthdr_len);
++    *pull = ip;
++    skb_reset_network_header(skb);
++
++    // printk("SK PULL: %p\n"
++    //        "SK DATA: %p\n"
++    //        "L3 HDR:  %p\n"
++    //        "L4 HDR:  %p",
++    //        pull, skb->data, skb_network_header(skb), skb_transport_header(skb));
++    //
++    // printk("IP SRC: %pI6c\n"
++    //        "IP DST: %pI6c\n"
++    //        "IP PAY: %d\n"
++    //        "SK LEN: %u",
++    //        &ip.saddr, &ip.daddr, ntohs(ip.payload_len), skb->len);
++
++    uh->check = 0;
++    // uh->check = csum_ipv6_magic(&ip.saddr, &ip.daddr, ip_plen, IPPROTO_UDP, 
++    //                             csum_partial(uh, ip_plen, 0));
++    // udp6_csum(skb->sk, skb, &ip.saddr, &ip.daddr, ntohs(ip.payload_len));
++    __wsum csum = csum_partial(uh, ip_plen, 0);
++
++	/* add protocol-dependent pseudo-header */
++	uh->check = csum_ipv6_magic(&ip.saddr, &ip.daddr,
++				    ip_plen, IPPROTO_UDP, csum);
++	if (uh->check == 0)
++		uh->check = CSUM_MANGLED_0;
++
++
++    // printk("UH SRC: %d\n"
++    //        "UH DST: %d\n"
++    //        "UH LEN: %d\n"
++    //        "UH CHK: %d",
++    //        ntohs(uh->source), ntohs(uh->dest), ntohs(uh->len), ntohs(uh->check));
++
++    return set_dst(skb, &ip.daddr);
++}
++
++int md_data_fwd(struct sk_buff *skb, struct net *net, int i, int j)
++{
++    int len, k;
++    struct sk_buff *cpy;
++    struct net *cnet;
++    struct ipv6hdr *ip;
++    struct ipv6_rt_md_hdr *hdr;
++    struct flowi6 fl6;
++    // struct dst_entry *dst;
++
++    ip = (struct ipv6hdr *) skb_network_header(skb);
++    hdr = (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
++
++    len = j - i - 1;
++    // n = sizeof(hdr->rtmap) * 8;
++    // memset(&fl6, 0, sizeof(fl6));
++
++    if (len < MIN_DSTS || ipv6_chk_addr(net, &hdr->dst[i], skb->dev, 0)) {
++        for (k = i + 1; k < j - 1; k++) {
++            cpy = pskb_copy(skb, GFP_ATOMIC);
++            cnet = dev_net(cpy->dev);
++            fl6.daddr = hdr->dst[k];
++            // printk("M2U for k=%d ip=%pI6c", k, &hdr->dst[k]);
++            m2u(cpy, &fl6.daddr);
++
++            if (dst_output(cnet, cpy->sk, cpy)) {
++                printk("Error during m2u!\n");
++                return 1;
++            }
++        }
++
++        // printk("M2U if last k=%d ip=%pI6c", k, &hdr->dst[k]);
++        return m2u(skb, &hdr->dst[k]);
++    }
++
++    hdr->dlvmap = 0 | 1 << GET_I(i);
++    ip->daddr = hdr->dst[i + 1];
++    // printk("M2U last i+1=%d ip=%pI6c", i + 1, &ip->daddr);
++    return set_dst(skb, &ip->daddr);
++
++ //    fl6.daddr = ip->daddr;
++	//
++ //    // get route back to sender
++ //    dst = ip6_route_output(net, skb->sk, &fl6);
++ //    if (dst->error) {
++ //        printk("Error during route lookup\n!");
++ //        dst_release(dst);
++ //        return 1;
++ //    }
++	//
++	// skb_dst_set(skb, dst);
++ //    return 0;
++}
++
++/* Bitmaps:
++ *   Router:     1 = router, 0 = ep
++ *   Delivery:   1 = not delivered, 0 = delivered 
++ *
++ * Iterating Bitmaps:
++ * If EP without router skip (safety)
++ * If bit i is a router do a route lookup for bit i+1 (verify its an EP)
++ * Go on til next router bit. Mark all other routers as delivered.
++ */
++int md_data_rcv(struct sk_buff *skb)
++{
++    int i, j, n, len, rt, dlv, r1, r2;
++    bool start;
++    struct ipv6_rt_md_hdr *hdr;
++    struct sk_buff *cpy;
++    struct net *net;
++
++    hdr = (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
++    if (hdr->discovery || hdr->response) {
++        printk("MEADcast: invalid data packet!\n");
++        return -1;
++    }
++
++    hdr->hopcount++;
++
++    start = false;
++    r1 = 0;
++    r2 = 0;
++    n = sizeof(hdr->rtmap) * 8;
++
++    for (i = 0; i < hdr->num_dst; i++) {
++
++        j = GET_I(i);
++        rt  = CHECK_BIT(hdr->rtmap, j);
++        dlv = CHECK_BIT(hdr->dlvmap, j);
++
++        if (!rt)
++            continue;
++
++        if (start) {
++
++            if (dlv) {
++                // if next router hasn't been delivered yet
++                if (!r2)
++                    r2 = i;
++
++                len = r2 - r1 - 1;
++                printk("Deliver %d eps via rt at %d (copy)\n", len, r1);
++
++                cpy = pskb_copy(skb, GFP_ATOMIC);
++                net = dev_net(cpy->dev);
++                md_data_fwd(cpy, net, r1, r2);
++
++                if (dst_output(net, cpy->sk, cpy)) {
++                    printk("Error during md data fwd!\n");
++                    return 1;
++                }
++
++                r1 = i;
++                r2 = 0;
++            }
++            // if next router already has been delivered
++            else if (!r2)
++                r2 = i;
++
++            continue;
++        }
++
++        if (!start && dlv) {
++            start = true;
++            r1 = i;
++            continue;
++        }
++    }
++
++    if (!r2)
++        r2 = i;
++
++    len = r2 - r1 - 1;
++    printk("Deliver %d eps via rt at %d\n", len, r1);
++    md_data_fwd(skb, dev_net(skb->dev), r1, r2);
++
++    // printk("FIN: %s\n", le);
++    return 0;
++}
++
++int dcv_rsp(struct sk_buff *skb)
++{
++    struct sk_buff *rsp;
++    struct net *rnet;
++    struct ipv6hdr *rip;
++    struct ipv6_rt_md_hdr *rhdr;
++    struct flowi6 fl6;
++    struct dst_entry *dst;
++
++    // clone input packet for discovery response
++    rsp = pskb_copy(skb, GFP_ATOMIC); 
++
++    if (!rsp || !skb->dev)
++        return 1;
++
++    rnet = dev_net(rsp->dev);
++
++    rip = ipv6_hdr(rsp);
++    rip->daddr = rip->saddr;
++    rip->hop_limit = 255;
++
++    rhdr = (struct ipv6_rt_md_hdr *)skb_transport_header(rsp);
++    rhdr->response = 1;
++
++    memset(&fl6, 0, sizeof(fl6));
++    fl6.daddr = rip->daddr;
++
++    // get route back to sender
++    dst = ip6_route_output(rnet, rsp->sk, &fl6);
++    if (dst->error) {
++        printk("Error during route lookup\n!");
++        dst_release(dst);
++        return 1;
++    }
++
++	// skb_dst_drop(rsp);
++	skb_dst_set(rsp, dst);
++
++    // get ip of net_device
++    if (ipv6_dev_get_saddr(rnet, dst->dev, &fl6.daddr,
++                rsp->sk ? inet6_sk(rsp->sk)->srcprefs : 0,
++                &fl6.saddr)) {
++        printk("Error during if saddr lookup!\n");
++        dev_put(dst->dev);
++        return 1;
++    }
++    dev_put(dst->dev);
++    rip->saddr = fl6.saddr;
++
++    if (dst_output(rnet, rsp->sk, rsp)) {
++        printk("Error during md response!\n");
++        return 1;
++    }
 +
 +    return 0;
 +}
@@ -255,62 +587,4 @@ index 000000000000..c2908abedf96
 +           "  rtmap:\t%u\n",
 +           hdr->num_dst, hdr->discovery ? 1 : 0, hdr->response ? 1 : 0,
 +           hdr->hopcount, ntohl(hdr->dlvmap), ntohl(hdr->rtmap));
-+}
-+
-+int dcv_rsp(struct sk_buff *skb)
-+{
-+    struct sk_buff *rsp;
-+    struct sock *sk;
-+    struct ipv6hdr *oip, *rsp_iphdr;
-+    struct ipv6_rt_md_hdr *rsp_hdr;
-+    struct net *net;
-+    struct net_device *in_netdev;
-+    struct dst_entry *dst;
-+    struct flowi6 fl6;
-+
-+    // clone input packet for discovery response
-+    rsp = skb_copy(skb, GFP_ATOMIC);
-+
-+    if (!rsp)
-+        return 1;
-+
-+    rsp_iphdr = ipv6_hdr(rsp);
-+    rsp_hdr = (struct ipv6_rt_md_hdr *)skb_transport_header(rsp);
-+
-+    rsp_iphdr->daddr = rsp_iphdr->saddr;
-+    rsp_iphdr->hop_limit = 255;
-+
-+    if (!skb->dev)
-+        return 1;
-+    net = dev_net(rsp->dev);
-+    sk = rsp->sk;
-+
-+    memset(&fl6, 0, sizeof(fl6));
-+    fl6.daddr = rsp_iphdr->daddr;
-+    fl6.flowi6_oif = skb->dev->ifindex;
-+
-+    // get ip of interface
-+    in_netdev = dev_get_by_index(net, IP6CB(skb)->iif);
-+    if (!in_netdev) {
-+        printk("Couldn't get input interface\n");
-+        return 1;
-+    }
-+
-+    ipv6_dev_get_saddr(net, in_netdev, &fl6.daddr,
-+                sk ? inet6_sk(sk)->srcprefs : 0,
-+                &fl6.saddr);
-+    dev_put(in_netdev);
-+    rsp_iphdr->saddr = fl6.saddr;
-+
-+    oip = ipv6_hdr(skb);
-+    printk("(old) src: %pI6c, dst: %pI6c\n", &oip->saddr, &oip->daddr);
-+    printk("(new) src: %pI6c, dst: %pI6c\n", &rsp_iphdr->saddr, &rsp_iphdr->daddr);
-+
-+    dst = ip6_route_output(net, sk, &fl6);
-+    if (IS_ERR(dst)) {
-+        printk("Error during route lookup!\n");
-+        return 1;
-+    }
-+
-+    return dst_output(net, rsp->sk, rsp);
 +}
