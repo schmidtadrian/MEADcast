@@ -743,31 +743,189 @@ However, shorter intervals also result in higher traffic volume, which may
 \label{sec:Testbed_Design}
 
 \subsection{Requirements} % (fold)
-% Unwanted characteristics:
-% - trivial (e.g. bus, simple ring)
-% - unconnected
-
 % wanted characteristics:
-% - fully connected
 % - power law degree distribution (access routers low connectivity,
 %                                  some routers high connectivity)
 % - small-world characteristics in access areas (high clustering, low distance)
-% - Existence of alternative paths (routing change & failure)
+
+
+
+% - Topology
+%   - connected non trivial graph (no bus or simple ring)
+%   - "realistic" layout
+%   - medium size (200 nodes)
+%   - alternative paths (routing changes & failures)
+%   - sufficient depth
+
+% - Flexibility
+%   - facilitate diff experiments (generic, modular)
+%   - depict various receiver distributions (clustering & even distribution)
+%   - Adjustable degree of MEADcast support
+%   - divers sender, receiver and router placement
+
+% - Connectivity
+%   - Multiple subnets to facilitate routing
+%   - Ability to deploy firewall mechanism
+%   - Ability to use IP-Multicast and MEADcast
+
+% - Non functional
+%   - Measure network traffic volume
+%   - Measure Latency
+%   - Software based routing (no hardware circuites)
 \label{sub:Requirements}
-\begin{itemize}
-    \item Realistic topology
-    \item Medium sized (up to 200 nodes)
-    \item Adjustable number of MEADcast routers
-    \item Existence of alternative paths, Alternative routes (routing change/failure)
-    \item Local clustering as well as spread
-\end{itemize}
+Based on the previously introduced experiments this section elaborates on 
+    requirements for the testbed.
+We structure the requirements into 3 categories:
+
+% Topology
+% - non trivial connected
+% - medium sized 200 nodes
+% - proportional mix of clients and routers
+% - realistic
+% - alternative paths
+% - sufficient depth (multiple hops)
+% - flexible & modular
+%   - various sender, receiver and router placements
+%   - local clustering and uniformly spread
+%   - Adjustable number of routers
+% - Connectivity
+%   - multiple subnets
+%   - IP routing
+%   - IP multicast routing
+%   - Adjustable firewall mechanism
+\paragraph{Topology} % (fold)
+\label{par:Topology}
+% graph
+First, the topology must transcend basic structures like plain bus or simple
+    ring setups, ensuring a \textit{non-trivial connected graph}.
+A graph is termed connected when there exists a path between every pair of
+    vertices, which in this context represents clients and routers.
+In order to thoroughly evaluate a multicast protocol, the topology needs to
+    encompass a substantial number of nodes.
+Therefore, a \textit{medium-sized topology} comprising around 200 nodes,
+    featuring a proportional mix of clients and routers, is pivotal.
+In line with \textit{RQ1}, the graph should reflect a \textit{realistic
+    network topology} of this size.
+The following section discusses characteristics of a realistic topology.
+Moreover, assessing the resilience of MEADcast in dynamic network environments
+    necessitates the inclusion of \textit{alternative paths} to simulate
+    routing alterations and network disruptions.
+Additionally, a thorough evaluation of MEADcast's performance across 
+    diverse levels of network support and various grouping strategies, requires
+    the topology to incorporate paths of \textit{sufficient length}.
+This allows packets to traverse multiple MEADcast routers, ensuring a
+    comprehensive assessment.
+
+% flexibility
+Another important requirement is the flexibility of the testbed.
+Diverse experiments and network conditions demand a modular and adaptable
+    topology.
+Various placements of senders, receivers, and routers are necessary.
+Moreover, the testbed should encompass receiver distributions ranging from
+    highly clustered to uniformly spread.
+Additionally, the ability to adjust the quantity of MEADcast-capable routers is
+    crucial for evaluating various levels of MEADcast support.
+
+% connectivity
+Finally, several prerequisites pertain to the connectivity of our testbed.
+Given the evaluation of a Layer 3 IPv6-based protocol, the presence of multiple
+    subnets and IP routing is mandatory.
+Beyond that, IP multicast routing is indispensable for a comparison of MEADcast
+    and IP multicast.
+Moreover, to pursue \textit{RQ1} the capability to deploy firewall mechanisms
+    is required.
+% paragraph Topology (end)
+
+% Sender
+% - Send discovery requests, receive discovery responses
+% - Adjustable discovery interval
+% - Adjustable discovery timeout
+% - Adjustable grouping of receivers into MEADcast packets
+% - Transimtting data both via MEADcast as well as unicast (fallback mechanism)
+\paragraph{Sender} % (fold)
+\label{par:Sender}
+To ensure a comprehensive assessment of MEADcast, the sender should include the
+    following features:
+
+First, the sender must periodically dispatch discovery requests to the
+    receivers.
+Additionally, the sender needs to receive discovery responses and process them.
+After, the discovery timeout is exceeded the sender should start grouping the
+    endpoints.
+Therefore, the sender is required to efficiently organize and group receivers
+    into MEADcast packets, facilitating streamlined data transmission.
+Whenever possible, the software should support MEADcast data transmission.
+However, unicast is used as a fallback mechanism, if MEADcast is not available
+    on certain paths.
+The discovery interval, discovery timeout, and grouping functionalities should
+    be configurable, allowing flexibility for experimentation and optimization
+    based on various network conditions and scenarios.
+Lastly, it is preferable, if MEADcast can be turned on and off, to ease the
+    deployment of various level of network support.
+Considering our evaluation of MEADcast is based on metrics such as latency and
+    jitter, the sender should possess the capability to either measure these
+    metrics directly or act as a proxy for traffic received from network
+    measurement tools.
+% paragraph Sender (end)
+
+% Router
+% - Receive discovery requests, send discovery responses, forward discovery
+%   requests
+% - Forward and replicate MEADcast packets
+% - MEADcast to unicast transformation
+% - L4 Checksum correction
+% - Turn MEADcast support on and off
+\paragraph{Router} % (fold)
+\label{par:Router}
+To enable the usage of MEADcast the router should encompass the following
+    features:
+
+The router should receive discovery requests, reply to them with a discovery
+    response, and forward the request according to the destination address.
+Additionally, the router needs to receive, process, modify, replicate, and
+    forward MEADcast data packets accordingly.
+For each receiver in the MEADcast header which is assigned to the router
+    itself, the data should be transmitted to the recipient via IP unicast.
+For each receiver listed in the MEADcast header assigned to the router itself,
+    transmit the data to the respective recipient using IP unicast.
+In case of a MEADcast to unicast transformation Layer 4 checksum correction is
+    may required.
+In this case, a Layer 4 checksum correction may be required.
+% paragraph Router (end)
+
+\paragraph{Non-functional} % (fold)
+\label{par:Non-functional}
+Given that the performance evaluation of MEADcast encompasses time-sensitive
+    metrics such as latency and jitter, it is imperative that the clocks of
+    each node are synchronized.
+This synchronization is crucial for ensuring comparable measurements.
+Additionally, similar routing procedures must be employed for IP unicast, IP
+    multicast, and MEADcast to maintain consistency in the evaluation.
+For instance, comparing software-based MEADcast routing with hardware-based IP
+    routing would not yield meaningful results.
+% paragraph Non-functional (end)
+% Further
+% - Latency measurement (Time sync, one way)
+% - Software routing (Comparabale)
 % subsection Requirements (end)
 
-\subsection{Architecture} % (fold)
-\label{sub:Architecture}
-
-% subsection Architecture (end)
-% section Testbed (end)
+\subsection{Topology} % (fold)
+\label{sub:03_Topology}
+\begin{itemize}
+    \item shortly introduce characteristics of a realistic topology
+    \item topology based on Barabási–Albert
+    \item clustering of clients
+    \item network core/backbone
+\end{itemize}
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.8\textwidth]{topo_clients.pdf}
+    \end{center}
+    \caption{Topology}
+    \label{fig:topology}
+\end{figure}
+% subsection Topology (end)
+% section T (end)
 
 
 % chapter Design (end)
