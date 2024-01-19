@@ -13,7 +13,7 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install texlive-latex-extra texlive-bibtex-extra biber latexmk
+          sudo apt-get install texlive-latex-extra texlive-bibtex-extra biber latexmk inkscape
       - uses: actions/checkout@v3
       - name: Build
         working-directory: Dokumentation/Latex
