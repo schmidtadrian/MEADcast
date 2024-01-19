@@ -802,7 +802,8 @@ A graph is termed connected when there exists a path between every pair of
     vertices, which in this context represents clients and routers.
 In order to thoroughly evaluate a multicast protocol, the topology needs to
     encompass a substantial number of nodes.
-Therefore, a \textit{medium-sized topology} comprising around 200 nodes,
+Therefore, a \textit{medium-sized topology} comprising around 200 nodes
+    \cite{cisco_net_size},
     featuring a proportional mix of clients and routers, is pivotal.
 In line with \textit{RQ1}, the graph should reflect a \textit{realistic
     network topology} of this size.
@@ -904,117 +905,181 @@ Additionally, similar routing procedures must be employed for IP unicast, IP
 For instance, comparing software-based MEADcast routing with hardware-based IP
     routing would not yield meaningful results.
 % paragraph Non-functional (end)
-% Further
-% - Latency measurement (Time sync, one way)
-% - Software routing (Comparabale)
 % subsection Requirements (end)
 
 \subsection{Topology} % (fold)
 \label{sub:03_Topology}
-\begin{itemize}
-    \item shortly introduce characteristics of a realistic topology
-    \item topology based on Barabási–Albert
-    \item clustering of clients
-    \item network core/backbone
-\end{itemize}
+First, this section introduces state-of-the-art characteristics of medium to
+    large-sized network architectures.
+Subsequently, we delve into the network topology of our testbed.
+
+Several fundamental design principles must be met by any network, irrespective
+    of its size \cite{cisco_net_size}.
+These principles are mutually interdependent and also tightly coupled to the
+    overall design \cite{cisco_campus_net}.
+
+\textit{Hierarchy}: A hierarchical network model serves as a crucial high-level
+    tool for crafting a reliable network topology \cite{cisco_net_size}.
+This abstraction dissects the complex challenge of network design into smaller
+    and more manageable areas.
+A significant advantage of a hierarchical topology is that local traffic
+    is confined to the local network \cite{cisco_campus_net}.
+Only traffic destined for other networks is transferred to a higher layer.
+
+\textit{Modularity}:
+Dividing the network into components provides numerous benefits.
+First, each component or module can be designed with a level of independence
+    from the overall structure.
+All modules can operate as semi-independent elements, contributing to higher
+    overall system availability and facilitating simpler management and
+    operations.
+Furthermore, network changes and upgrades can be applied in a controlled and
+    staged manner, enhancing flexibility in maintaining and operating the
+    network.
+This principle has also been leveraged in software architecture for many years,
+    by separating the application into presentation, logic, and data layers
+    \cite{sw_arch}.
+Another benefit is a higher degree of isolation, confining problems and
+    failures to their component, leaving the overall network unaffected.
+In summary, dividing a network into a set of assembled building blocks
+    facilitates increased stability, flexibility, and manageability for both
+    the individual components and the network as a whole.
+    \cite{cisco_campus_net}
+
+\textit{Resiliency}: The network is expected to sustain availability for both
+    regular and irregular scenarios.
+Typical scenarios encompass anticipated traffic flows, expected traffic
+    patterns, and scheduled events like maintenance windows
+    \cite{cisco_net_size}.
+Abnormal scenarios involve hardware or software failures, high traffic loads,
+    anomalous traffic patterns, \gls{dos} events, and other unforeseen
+    circumstances \cite{cisco_campus_net}.
+
+\textit{Flexibility}:
+As the operational lifespan of networks extends, it becomes imperative for
+    their design to facilitate enhanced adaptability and flexibility
+    \cite{cisco_campus_net}.
+Adapting to evolving business environments and their associated communication
+    requirements is a practical business and operational necessity.
+Flexibility is the capacity to modify specific sections of the network,
+    introduce new services, or enhance capacity without necessitating a
+    substantial overhaul or replacement of major hardware devices
+    \cite{cisco_net_size}.
+
+To meet these ubiquitous network requirements, \citeauthor{cisco_3_tier}
+    \cite{cisco_3_tier} first proposed the \textit{hierarchical three-layer
+    internetworking model} in \citeyear{cisco_3_tier}.
+This model has evolved into an industry-wide standard for designing reliable,
+    scalable, and cost-efficient networks \cite{cisco_net_size}.
+Leading networking and telecommunication providers like Cisco and Huawei
+    recommend the implementation of the hierarchical three-layer
+    internetworking model.
+    \cite{cisco_campus_net,huawei_campus_net}.
+The model divides networks into three layers: core, distribution, and access
+    as illustrated in \autoref{fig:three-layer} \cite{cisco_3_tier}.
+
+\textit{Access Layer}:
+The access layer facilitates network access for end devices, encompassing PCs,
+    smartphones, printers, and IP cameras \cite{cisco_net_size}.
+Operating commonly at layer 2, it establishes connectivity between end devices.
+Given the diverse range of end devices, this layer incorporates an array of
+    network devices such as switches, access points, and routers
+    \cite{cisco_campus_net}.
+Serving as the demarcation point between the network infrastructure and
+    computing devices \cite{cisco_campus_net}, the access layer acts as the
+    initial security boundary, safeguarding other users, application resources,
+    and the network itself \cite{cisco_design_guide}.
+
+\textit{Distribution Layer}:
+The distribution layer aggregates traffic from multiple access layer devices
+    and provides connectivity to the rest of the network by transmitting
+    packets to other access layer devices or the core layer
+    \cite{cisco_campus_net}.
+In a typical scenario, connected routers at the distribution layer aggregate
+    data originating from a building or a floor and establish connections to
+    the core layer.
+For instance, in \autoref{fig:three-layer}, the two interconnected routers on
+    the left and the two on the right could each symbolize a distinct building.
+This layer often serves as the demarcation between layer 2 domains and the
+    layer 3 routed network \cite{cisco_net_size}, creating fault domains
+    containing failures and network changes to the directly affected areas
+    \cite{cisco_design_guide}.
+The distribution layer performs essential network functions such as routing,
+    traffic filtering, and policy enforcement \cite{cisco_campus_net}.
+
+
+\textit{Core Layer}:
+The core layer functions as the backbone interconnecting the numerous modules
+    of the network \cite{cisco_campus_net}.
+It facilitates connectivity among end devices, servers, data storage, different
+    locations, and the internet.
+This layer represents the most critical component of the network, characterized
+    by a relatively simple design \cite{cisco_design_guide}.
+Given that a significant portion of network traffic passes through the
+    backbone, it is responsible for high-speed and high-volume data
+    transmission \cite{cisco_campus_net}.
+Additionally, this layer should offer high availability and redundancy.
+CPU-intensive packet manipulations resulting from security measures,
+    inspections, and \gls{qos} should be avoided \cite{cisco_campus_net}.
+
+
 \begin{figure}
     \begin{center}
-        \includegraphics[width=0.8\textwidth]{topo_clients.pdf}
+        \includesvg[inkscapelatex=false,width=.6\textwidth]{three_layer_model.svg}
     \end{center}
-    \caption{Topology}
+    \caption{Hierarchical three-layer internetworking model (based on
+    \cite{cisco_3_tier})}
+    \label{fig:three-layer}
+\end{figure}
+
+
+The architecture of our testbed aligns with the previously design goals,
+    achieved through the implementation of the hierarchical three-layer model.
+
+The testbed comprises 205 nodes consisting of 39 routers and 165 end devices.
+The network is divided into 4 domains, each potentially representing distinct
+    buildings on a university campus.
+All 4 domains encompass 7-9 client networks, accommodating 5 end devices each.
+The access layer of each domain comprises up to 7 routers (3-digit router IDs
+    in \autoref{fig:topology}).
+Since this thesis evaluates a transport protocol, we waive the application of
+    switches on the access layer, deploying solely  layer 3 devices.
+The distribution layer of each domain encompasses 2-3 interconnected routers
+    (2-digit router IDs), aggregating the access layers within its respective
+    domain and facilitating the connection to the core layer.
+The testbed's core consists of 4 routers (1-digit router IDs) interconnecting
+    the 4 network domains.
+Additionally, the backbone possesses a high connectivity, ensuring both high
+    availability and redundancy.
+To reduce management and operational overhead, the testbed incorporates fewer
+    redundant links from the access to the distribution layer and from the
+    distribution to the core layer compared to the recommendations provided by
+    Cisco and Huawei \cite{cisco_design_guide,huawei_campus_net}.
+This trade-off is considered acceptable, as this thesis does not delve into the
+    details of the availability and fault tolerance of the network
+    architecture.
+Additionally, router and link failures are artificially induced in any case.
+
+The chosen architecture represents a realistic medium-sized network topology.
+The application of the hierarchical three-layer model ensures the required
+    flexibility of the testbed.
+Various placements of senders, receivers, and routers are possible, allowing
+    experiments with a receiver distribution ranging from high clustering
+    within a single domain to a uniform spread across all four network domains.
+Moreover, the availability of alternative routes facilitates the representation
+    of dynamic network environments, encompassing scenarios such as deliberate
+    routing changes or router and link outages.
+
+\begin{figure}
+    \begin{center}
+        \includesvg[inkscapelatex=false,width=.9\textwidth]{testbed_topology.svg}
+    \end{center}
+    \caption{Testbed Topology}
     \label{fig:topology}
 \end{figure}
+
 % subsection Topology (end)
 % section T (end)
 
 
 % chapter Design (end)
-
-\newpage\phantom{blabla}
-\newpage\phantom{blabla}
-Based on the goal, formulated in \autoref{sec:Contribution} we derived the
-    following questions:
-
-\begin{itemize}
-    \item How does MEADcast perform compared to unicast and multicast?
-    \item Under which conditions is the usage of MEADcast sensible?
-    \item Which applications and characteristics are well served by MEADcast?
-    \item How robust is the current MEADcast specification?
-    \item Is MEADcast usable in ``real'' networks?
-    \item Are there any issues or opportunities for improvement with the
-        current protocol specification?
-\end{itemize}
-
-\paragraph{Robustness} % (fold)
-\label{par:Robustness}
-\begin{itemize}
-    \item How does MEADcast handle routing changes?
-    \item How does MEADcast handle router failure?
-    \item How does MEADcast handle malicious packets?
-        \textit{(e.g. invalid discovery response)}
-    \item Does the fallback mechanism work properly?
-        \textit{(e.g. turn on a firewall)}
-    \item How does the sender/router handle high MEADcast load?
-\end{itemize}
-% paragraph Robustness (end)
-
-\paragraph{Discovery Phase} % (fold)
-\label{par:Discovery Phase}
-\begin{itemize}
-    \item Impact/Overhead of the discovery phase?
-    \begin{itemize}
-        \item Is there a drop in total transferred bytes/packets after the
-            initial discovery phase?
-        \item How does the recurring discovery phase influence the measured
-            performance metrics?
-    \end{itemize}
-    \item Sensible discovery interval?
-\end{itemize}
-% paragraph Discovery Phase (end)
-
-\paragraph{Characteristics (testing parameters)} % (fold)
-\label{par:Characteristics}
-\begin{itemize}
-    \item Endpoint distribution \textit{(avg. distance \& EPs per route)}
-    \item Group size \textit{(small vs. big)}
-    \item Session duration \textit{(short vs. long)}
-    \item Membership \textit{(static vs. dynamic)}
-    \item Available bandwidth \textit{(low vs. high)}
-    \item Latency or bandwidth sensitivity
-        \textit{(many small packets vs. few big ones)}
-\end{itemize}
-% paragraph Characteristics (testing parameters) (end)
-
-\paragraph{Availability} % (fold)
-\label{par:Availability}
-\begin{itemize}
-    \item Is MEADcast usable with intermediate notes like firewalls \& routers?
-        \textit{(Does it work at all? Does the fallback mechanism work?)}
-    \item Is MEADcast usable on the internet?
-\end{itemize}
-% paragraph Availability (end)
-
-\paragraph{KPIs} % (fold)
-\label{par:KPIs}
-\begin{itemize}
-    \item Total transferred bytes/packets
-    \item Latency \& Jitter
-    \item Packet loss
-    \item Resource utilization \textit{(CPU, Memory, Link)}
-    \item Hop count \& header size \textit{(mainly for internet availability)}
-\end{itemize}
-% paragraph KPIs (end)
-
-\paragraph{Scenarios} % (fold)
-\label{par:Scenarios}
-\begin{itemize}
-    \item Simulate typical application
-    \begin{itemize}
-        \item Video conference \textit{(may server vs. P2P)}
-        \item Live stream
-    \end{itemize}
-    \item Test these in different topologies with varying parameterization
-        \textit{(see Characteristics)}
-\end{itemize}
-% paragraph Scenarios (end)
-% section Measurements (end)
