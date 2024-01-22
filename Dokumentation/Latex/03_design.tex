@@ -861,8 +861,6 @@ However, unicast is used as a fallback mechanism, if MEADcast is not available
 The discovery interval, discovery timeout, and grouping functionalities should
     be configurable, allowing flexibility for experimentation and optimization
     based on various network conditions and scenarios.
-Lastly, it is preferable, if MEADcast can be turned on and off, to ease the
-    deployment of various level of network support.
 Considering our evaluation of MEADcast is based on metrics such as latency and
     jitter, the sender should possess the capability to either measure these
     metrics directly or act as a proxy for traffic received from network
@@ -885,13 +883,13 @@ The router should receive discovery requests, reply to them with a discovery
     response, and forward the request according to the destination address.
 Additionally, the router needs to receive, process, modify, replicate, and
     forward MEADcast data packets accordingly.
-For each receiver in the MEADcast header which is assigned to the router
-    itself, the data should be transmitted to the recipient via IP unicast.
 For each receiver listed in the MEADcast header assigned to the router itself,
-    transmit the data to the respective recipient using IP unicast.
+    the data should be transmitted the data to the respective recipient using
+    IP unicast.
 In case of a MEADcast to unicast transformation Layer 4 checksum correction is
     may required.
-In this case, a Layer 4 checksum correction may be required.
+Lastly, it is preferable, if MEADcast can be turned on and off, to ease the
+    deployment of various level of network support.
 % paragraph Router (end)
 
 \paragraph{Non-functional} % (fold)
@@ -929,18 +927,19 @@ Only traffic destined for other networks is transferred to a higher layer.
 \textit{Modularity}:
 Dividing the network into components provides numerous benefits.
 First, each component or module can be designed with a level of independence
-    from the overall structure.
+    from the overall structure \cite{cisco_net_size}.
 All modules can operate as semi-independent elements, contributing to higher
     overall system availability and facilitating simpler management and
-    operations.
+    operations \cite{cisco_campus_net}.
 Furthermore, network changes and upgrades can be applied in a controlled and
     staged manner, enhancing flexibility in maintaining and operating the
-    network.
+    network \cite{cisco_net_size}.
 This principle has also been leveraged in software architecture for many years,
     by separating the application into presentation, logic, and data layers
     \cite{sw_arch}.
 Another benefit is a higher degree of isolation, confining problems and
-    failures to their component, leaving the overall network unaffected.
+    failures to their component, leaving the overall network unaffected
+    \cite{cisco_design_guide}.
 In summary, dividing a network into a set of assembled building blocks
     facilitates increased stability, flexibility, and manageability for both
     the individual components and the network as a whole.
@@ -1036,7 +1035,8 @@ CPU-intensive packet manipulations resulting from security measures,
 The architecture of our testbed aligns with the previously design goals,
     achieved through the implementation of the hierarchical three-layer model.
 
-The testbed comprises 205 nodes consisting of 39 routers and 165 end devices.
+% less clinical / more variety so sometimes two routers on access layer
+The testbed comprises 205 nodes consisting of 40 routers and 165 end devices.
 The network is divided into 4 domains, each potentially representing distinct
     buildings on a university campus.
 All 4 domains encompass 7-9 client networks, accommodating 5 end devices each.
