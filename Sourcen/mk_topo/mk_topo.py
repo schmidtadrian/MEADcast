@@ -33,6 +33,7 @@ FRR_STUB_CFG = """!
 interface {IFNAME}
  ipv6 mld
  ipv6 pim passive
+ ipv6 ospf area {AREA}
 exit
 """
 
@@ -40,10 +41,12 @@ exit
 # frr template provided via cli args
 FRR_TRAN_CFG = """!
 interface {IFNAME}
- ipv6 ospf6 area 0
+ ipv6 ospf6 area {AREA}
  ipv6 pim
 exit
 """
+
+FRR_ABR_CFG = " area {AREA} range {RANGE}\n"
 
 
 def i2h_char(v: int) -> int:
@@ -270,11 +273,12 @@ class Stub:
 
     PREF = 'stub'
 
-    def __init__(self, id: int, prefix: IPv6Network, router: int,
+    def __init__(self, id: int, prefix: IPv6Network, router: int, area: int,
                  mask: int = 112, clients: int = 0):
         self.id = id
         self.router = router
         self.mask = mask
+        self.area = area
         self.clients = clients
         self.net = self.set_net(prefix)
         self.name = self.set_name()
@@ -283,7 +287,7 @@ class Stub:
     def set_net(self, prefix: IPv6Network) -> IPv6Network:
         """Creates network based on the following pattern:
            Prefix::self.id:0/self.mask"""
-        suffix = i2h_char(self.id) << 16
+        suffix = (self.area << 32) + (i2h_char(self.id) << 16)
         net_addr = IPv6Address(int(prefix.network_address) + suffix)
         return IPv6Network(f'{net_addr}/{self.mask}')
 
@@ -348,12 +352,12 @@ class Stub:
 
 class Tran:
 
-    PREF = "tran_"
-
-    def __init__(self, r1: int, r2: int, prefix: IPv6Network, mask: int = 126):
+    def __init__(self, r1: int, r2: int, prefix: IPv6Network, area: int,
+                 mask: int = 126):
         self.r1 = r1
         self.r2 = r2
         self.mask = mask
+        self.area = area
         self.net = self.set_net(prefix)
         self.name = self.set_name()
 
@@ -365,7 +369,7 @@ class Tran:
         return IPv6Network(f'{net_addr}/{self.mask}')
 
     def set_name(self) -> str:
-        return f'{Tran.PREF}r{self.r1:02d}r{self.r2:02d}'
+        return f'r{self.r1:02d}r{self.r2:02d}'
 
     def create(trans, routers: dict, outdir: str, template: str):
         """High-level wrapper, creates transit network"""
@@ -384,6 +388,13 @@ class Tran:
                     routers[id] = Router(id, [], [tran])
 
 
+@dataclass
+class Abr:
+    id: int
+    area: int
+    mask: int
+
+
 class Router:
     """Holds a list of stub and transit networks it is connected to."""
 
@@ -395,9 +406,26 @@ class Router:
         self.name = f'r{self.id:02d}'
         self.stubs = stubs
         self.trans = trans
+        self.abr = None
 
     def get_ifname(i: int):
         return f'enp{i + Router.IFF_OFF}s0'
+
+    def set_abrs(routers: dict, abrs: List[Abr]):
+        for abr in abrs:
+            if r := routers.get(abr.id):
+                r.abr = abr
+            else:
+                print(f'No router for {abr} found')
+
+    def get_abr_str(self, prefix: IPv6Network):
+        if self.abr is None:
+            return ""
+
+        net_addr = IPv6Address(int(prefix.network_address) + (self.id << 32))
+        net = IPv6Network(f'{net_addr}/{self.abr.mask}')
+
+        return FRR_ABR_CFG.format(AREA=self.abr.area, RANGE=str(net))
 
     def create(routers: dict, outdir: str, template: str, prefix: IPv6Network,
                mgm: IPv4Interface, vm_cfg: VM_CFG, vm_templ: str):
@@ -406,7 +434,7 @@ class Router:
         frr_tmp = path.join(outdir, FRR_CFG)
 
         for _, r in routers.items():
-            frr_buf = template.format(NETWORK=str(prefix))
+            frr_buf = template.format(ABR=r.get_abr_str(prefix))
             np_buf = {'network': {'version': 2, 'ethernets': {}}}
             eths = np_buf["network"]['ethernets']
             set_mgm_if(eths, mgm, Router.NET_ID, r.id)
@@ -414,27 +442,30 @@ class Router:
             i = 0
             nets: [str] = [MGM_NET]
 
-            def add_net(i: int, template: str, addr: str, name: str):
+            def add_net(i: int, area: int, template: str, name: str,
+                        addr: str = None):
                 nonlocal frr_buf
                 nonlocal eths
                 nonlocal nets
 
                 ifname = Router.get_ifname(i)
-                frr_buf += template.format(IFNAME=ifname)
-                eths[ifname] = {
-                    'dhcp4': False,
-                    'dhcp6': False,
-                    'addresses': [addr]}
+                frr_buf += template.format(IFNAME=ifname, AREA=area)
+
+                eths[ifname] = {'dhcp4': False, 'dhcp6': False}
                 nets.append(name)
+
+                if addr:
+                    eths[ifname]['addresses'] = [addr]
+
                 return i + 1
 
             for stub in r.stubs:
                 addr = f'{stub.gwaddr}/{stub.mask}'
-                i = add_net(i, FRR_STUB_CFG, addr, stub.name)
+                i = add_net(i, stub.area, FRR_STUB_CFG, stub.name, addr)
 
             for tran in r.trans:
                 addr = f'{tran.net.network_address + i2h_char(r.id)}/{tran.mask}'
-                i = add_net(i, FRR_TRAN_CFG, addr, tran.name)
+                i = add_net(i, tran.area, FRR_TRAN_CFG, tran.name)
 
             np_cfg = path.join(outdir, r.name + '.yaml')
             frr_cfg = path.join(outdir, r.name + '.conf')
@@ -468,6 +499,7 @@ class Cfg:
     mgm_gw: IPv4Interface
     stubs: List[Stub]
     trans: List[Tran]
+    abrs: List[Abr]
 
     def new(json: dict):
         srange = IPv6Network(json['stub_range'])
@@ -476,7 +508,8 @@ class Cfg:
         return Cfg(srange, trange,
                    IPv4Interface(json['mgm_gw']),
                    [Stub(prefix=srange, **v) for v in json['stubs']],
-                   [Tran(prefix=trange, *v) for v in json['trans']])
+                   [Tran(prefix=trange, area=v[1], *v[0]) for v in json['trans']],
+                   [Abr(**v) for v in json["area_boundary"]])
 
 
 if __name__ == '__main__':
@@ -511,6 +544,8 @@ if __name__ == '__main__':
 
     Tran.create(cfg.trans, routers, args.outdir, net_tmpl)
     rtempl = create_vm_template('rtempl', router_cfg,
-                                    [CHRONY_DIR, FRR_DIR])
+                                [CHRONY_DIR, FRR_DIR])
+
+    Router.set_abrs(routers, cfg.abrs)
     Router.create(routers, args.outdir, frr_tmpl, cfg.tran_range, cfg.mgm_gw,
                   router_cfg, rtempl)

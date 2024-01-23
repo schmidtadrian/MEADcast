@@ -6,29 +6,80 @@
         {
             "id": 1,
             "mask": 112,
-            "router": 1,
-            "clients": 2
+            "area": 1,
+            "router": 10,
+            "clients": 1
         },
         {
             "id": 2,
             "mask": 112,
-            "router": 1,
-            "clients": 2
+            "area": 1,
+            "router": 11,
+            "clients": 1
         },
         {
             "id": 3,
             "mask": 112,
-            "router": 2,
-            "clients": 2
+            "area": 2,
+            "router": 20,
+            "clients": 1
         },
         {
             "id": 4,
             "mask": 112,
-            "router": 2,
-            "clients": 2
+            "area": 2,
+            "router": 21,
+            "clients": 1
+        },
+        {
+            "id": 5,
+            "mask": 112,
+            "area": 3,
+            "router": 30,
+            "clients": 1
+        },
+        {
+            "id": 6,
+            "mask": 112,
+            "area": 3,
+            "router": 31,
+            "clients": 1
+        },
+        {
+            "id": 7,
+            "mask": 112,
+            "area": 4,
+            "router": 40,
+            "clients": 1
+        },
+        {
+            "id": 8,
+            "mask": 112,
+            "area": 4,
+            "router": 41,
+            "clients": 1
         }
     ],
     "trans": [
-        [1, 2]
+        [[1,  2], 0],
+        [[1,  3], 0],
+        [[1,  4], 0],
+        [[1, 10], 1],
+        [[1, 11], 1],
+        [[2,  4], 0],
+        [[2, 20], 2],
+        [[2, 21], 2],
+        [[3,  4], 0],
+        [[3, 30], 3],
+        [[3, 31], 3],
+        [[4, 40], 4],
+        [[4, 41], 4]
+    ],
+    "area_boundary": [
+        { "id": 1, "area": 1, "mask": 96 },
+        { "id": 2, "area": 2, "mask": 96 },
+        { "id": 3, "area": 3, "mask": 96 },
+        { "id": 4, "area": 4, "mask": 96 }
     ]
 }
+
