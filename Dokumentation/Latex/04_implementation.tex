@@ -134,46 +134,104 @@ Address List  & Variable length list of IPv6 addresses. \\
 
 \section{Router} % (fold)
 \label{sec:Router}
+This section briefly introduces the fundamentals of the MEADcast router
+    implementation in the Linux Kernel.
+The MEADcast routing software is developed and tested with the latest stable
+    Kernel release version 6.5.2 at the time.
+MEADcast routing capabilities are tightly coupled to the flow of IPv6 packets
+    through the Kernel network stack, making it infeasible to create a separate
+    Kernel module loadable at runtime.
+Therefore, we decided to extend the IPv6 module with MEADcast capability.
+This feature can be enabled or disabled at compile-time using the
+    \texttt{CONFIG\_IPV6\_MEADCAST} flag.
 
+As illustrated in \autoref{sub:Network Stack}, packets not designated to the
+    router itself follow the ``forwarding'' packet flow in the Kernel.
+IPv6 extension headers of these packets are normally ignored by the Kernel
+    (except for the Router Alert extension).
+Consequently, we embedded the entry point for MEADcast processing at the end of
+    the \texttt{ip6\_forward} method located in
+    \texttt{net/ipv6/ipv6\_output.c}.
+If a packet contains the routing header extension the \texttt{mdc\_rcv} method 
+    located in \texttt{net/ipv6/mdcast.c} gets invoked.
+This method performs basic sanity checks on the MEADcast header and then
+    invokes \texttt{mdc\_dcv\_rcv} for discovery and \texttt{mdc\_data\_rcv}
+    for data packets.
+
+% discovery
+% - validation
+% - increment hop counter
+% - clone socket buffer of incomming packet (discovery response)
+% - update dst and src ip of discovery response
+\textit{Discovery}: First, discovery packets get validated and the hop counter
+    in the MEADcast header is incremented.
+To create a discovery response the socket buffer struct of the incoming
+    discovery request is cloned.
+By this, we solely have to update the IP source and destination field of the
+    cloned packet, set the response flag, and perform a routing table lookup
+    for the sender's address.
+The source IP address of the discovery response is set to the IP address
+    associated with the interface returned from the routing lookup.
+Lastly, the \texttt{dst\_output} method is invoked, dispatching the packet to
+    the corresponding layer 2 handler.
+The processing of the original packet does not need further handling, as it is
+    already correctly done by the default forwarding flow.
+
+\textit{Data}: Data packets undergo several steps upon arrival at the MEADcast
+    router.
+Firstly, they are validated, and the hop counter in the MEADcast header is
+    incremented.
+Subsequently, the router iterates over the Delivery and Router Bitmap to
+    identify undelivered routers (indices set in both bitmaps).
+During this iteration, if the router is not the last undelivered router in the
+    sequence, the socket buffer of the original packet is cloned and forwarded
+    accordingly.
+However, if the router is the last undelivered router, the original packet can
+    be forwarded without the need for costly replication.
+To determine whether to clone the packet, the routers monitors whether an 
+    undelivered router at index $r1$ has a successor (another undelivered
+    router) at index $r2$, with $r1 < r2$.
+The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
+
+% Search for first router
+%
+% - validation
+% - increment hop count
+% - iterate bitmaps
+%   - check which routers aren't delivered yet
+%   - if router is not last undelivered router create a copy of socket buffer struct
+%   - else use incoming one
+\begin{figure}
+    \begin{center}
+        \includegraphics[scale=1]{router_hdr_parsing.pdf}
+    \end{center}
+    \caption{Router header parsing}
+    \label{fig:router_hdr_parsing}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=\textwidth]{router_procedure.pdf}
+    \end{center}
+    \caption{MEADcast router procedure}
+    \label{fig:router_procedure}
+\end{figure}
 % section Router (end)
+
+
+\section{Sender} % (fold)
+\label{sec:Sender}
+% - TUN
+% - Judy Array to quickly find IPs
+% - Tree for grouping
+% - grouping algorithm
+% section Sender (end)
 
 
 \section{Testbed} % (fold)
 \label{sec:Testbed_Implementation}
-\subsection{Topology} % (fold)
-\label{sub:Topology}
-
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=0.95\textwidth]{Bilder/net_topo_as_100.png}
-    \end{center}
-    \caption{AS 100}
-    \label{fig:as100}
-\end{figure}
-
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=0.7\textwidth]{Bilder/net_topo_ba_25_1.png}
-    \end{center}
-    \caption{Barabasi Albert 25/1 v1}
-    \label{fig:ba_25_1_1}
-\end{figure}
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=0.7\textwidth]{Bilder/net_topo_ba_25_1_1.png}
-    \end{center}
-    \caption{Barabasi Albert 25/1 v2}
-    \label{fig:ba_25_1_2}
-\end{figure}
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=0.7\textwidth]{Bilder/net_topo_ba_25_1_2.png}
-    \end{center}
-    \caption{Barabasi Albert 25/1 v3}
-    \label{fig:ba_25_1_3}
-\end{figure}
-
-% subsection Topology (end)
+% - python script reading json
+% - kvm, direct kernel boot, debian nocloud image
 % section Testbed (end)
 
 
