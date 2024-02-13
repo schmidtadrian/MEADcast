@@ -134,29 +134,39 @@ Address List  & Variable length list of IPv6 addresses. \\
 
 \section{Router} % (fold)
 \label{sec:Router}
-This section briefly introduces the fundamentals of the MEADcast router
-    implementation in the Linux Kernel.
-The MEADcast routing software is developed and tested with the latest stable
-    Kernel release version 6.5.2 at the time.
+This section provides an overview of the MEADcast router implementation in the
+    Linux Kernel.
+The MEADcast routing software is developed and tested using the latest stable
+    Kernel release, version 6.5.3, at the time of development.
 MEADcast routing capabilities are tightly coupled to the flow of IPv6 packets
     through the Kernel network stack, making it infeasible to create a separate
     Kernel module loadable at runtime.
 Therefore, we decided to extend the IPv6 module with MEADcast capability.
 This feature can be enabled or disabled at compile-time using the
-    \texttt{CONFIG\_IPV6\_MEADCAST} flag.
+    \inlinelst{CONFIG\_IPV6\_MEADCAST} flag.
+To avoid the burden of recompiling or switching the kernel to enable or disable
+    MEADcast support, we introduce a runtime configuration flag.
+This flag is managed through Sysctl, providing the virtual file
+    \inlinelst{/proc/sys/net/ipv6/meadcast/enable}, which contains either 0 for
+    disabled and 1 for enabled.
+For instance, the root user can enable MEADcast support by running the command
+    \inlinelst{"echo 1 > /proc/sys/net/ipv6/meadcast/enable"}.
+However, it is crucial to ensure that this additional check does not adversely
+    impact performance compared to a plain kernel, as it could potentially
+    affect the reliability of experimental results.
 
 As illustrated in \autoref{sub:Network Stack}, packets not designated to the
     router itself follow the ``forwarding'' packet flow in the Kernel.
 IPv6 extension headers of these packets are normally ignored by the Kernel
     (except for the Router Alert extension).
 Consequently, we embedded the entry point for MEADcast processing at the end of
-    the \texttt{ip6\_forward} method located in
-    \texttt{net/ipv6/ipv6\_output.c}.
-If a packet contains the routing header extension the \texttt{mdc\_rcv} method 
-    located in \texttt{net/ipv6/mdcast.c} gets invoked.
+    the \inlinelst{ip6\_forward} method located in
+    \inlinelst{net/ipv6/ipv6\_output.c}.
+If a packet contains the routing header extension the \inlinelst{mdc\_rcv}
+    method located in \inlinelst{net/ipv6/mdcast.c} gets invoked.
 This method performs basic sanity checks on the MEADcast header and then
-    invokes \texttt{mdc\_dcv\_rcv} for discovery and \texttt{mdc\_data\_rcv}
-    for data packets.
+    invokes \inlinelst{mdc\_dcv\_rcv} for discovery and
+    \inlinelst{mdc\_data\_rcv} for data packets.
 
 % discovery
 % - validation
@@ -172,7 +182,7 @@ By this, we solely have to update the IP source and destination field of the
     for the sender's address.
 The source IP address of the discovery response is set to the IP address
     associated with the interface returned from the routing lookup.
-Lastly, the \texttt{dst\_output} method is invoked, dispatching the packet to
+Lastly, the \inlinelst{dst\_output} method is invoked, dispatching the packet to
     the corresponding layer 2 handler.
 The processing of the original packet does not need further handling, as it is
     already correctly done by the default forwarding flow.
@@ -193,6 +203,17 @@ To determine whether to clone the packet, the routers monitors whether an
     router) at index $r2$, with $r1 < r2$.
 The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
 
+For each undelivered router $R_u$ in the MEADcast header the processing router
+    $R_p$ decides whether to deliver the data via MEADcast or IP unicast.
+If the IP address of $R_u$ in the MEADcast header is owned by the processing
+    router $R_p$, all designated endpoints will be delivered via IP unicast.
+If the number of endpoints of the considered router $R_u$ from the MEADcast
+    header is below a certain threshold, the processing router $R_p$ performs a
+    premature MEADcast to IP unicast transformation.
+For example, if $R_u$ has one designated endpoint $R_p$ could perform a
+    premature MEADcast to IP unicast transformation which possibly may
+    improve the performance.
+
 % Search for first router
 %
 % - validation
@@ -201,6 +222,13 @@ The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
 %   - check which routers aren't delivered yet
 %   - if router is not last undelivered router create a copy of socket buffer struct
 %   - else use incoming one
+% - forwarding
+%   - if router addr in bitmap is of router or less than min_dsts eps -> m2u
+%   - else: update bitmap (set all others to delivered), update ip dst field
+% - m2u
+%   - copy IP hdr in front of l3 header
+%   - update skb pointers
+%   - recalc checksum
 \begin{figure}
     \begin{center}
         \includegraphics[scale=1]{router_hdr_parsing.pdf}
@@ -232,6 +260,7 @@ The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
 \label{sec:Testbed_Implementation}
 % - python script reading json
 % - kvm, direct kernel boot, debian nocloud image
+% - chrony time sync (had to change boot param on host system)
 % section Testbed (end)
 
 

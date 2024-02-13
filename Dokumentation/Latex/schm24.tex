@@ -36,6 +36,7 @@
 \usepackage{booktabs}
 \usepackage{threeparttable}
 \usepackage{tabularx}
+\usepackage{xcolor}
 \usepackage{listings}
 \usepackage{textcomp}
 \usepackage[style=alphabetic,natbib=true]{biblatex}
@@ -53,7 +54,7 @@
 \addbibresource{Bib/main.bib}
 
 \lstdefinestyle{mystyle}{
-    % backgroundcolor=\color{backcolour},   
+    % backgroundcolor=\color{lightgray},
     % commentstyle=\color{codegreen},
     % keywordstyle=\color{magenta},
     % numberstyle=\tiny\color{codegray},
@@ -72,6 +73,7 @@
 }
 \lstset{style=mystyle}
 
+\newcommand{\inlinelst}[1]{\lstinline[basicstyle=\ttfamily\normalsize]{#1}}
 \begin{document}
 
 % ---------------------------------------------------------------
