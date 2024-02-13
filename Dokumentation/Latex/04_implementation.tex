@@ -1,31 +1,66 @@
 \chapter{Implementation} % (fold)
 \label{chap:Implementation}
+This chapter introduces the employed protocol specification, the implementation
+    of the MEADcast router and sender, as well as the testbed.
+
+\section{Protocol Specification} % (fold)
+Since the existing literature on MEADcast lacks specific details regarding the
+    header, such as the size of each field, we introduce the
+    specifications utilized for our experiments.
+
+Firstly, we omit the usage of an empty Hop-by-Hop IPv6 extension header as
+    introduced by \citeauthor{meadcast1} \cite{meadcast1, meadcast2}.
+We do this for several reasons:
+1) To reduce the overhead of MEADcast.
+2) If a non-MEADcast router attempts to process Hop-by-Hop extension headers
+    the packet probably end up in the router's slow path \cite{rfc7045}, potentially
+    harming the protocol's performance.
+3) Since the MEADcast header is intended to be processed exclusively by
+    MEADcast routers, over which we maintain control, the Hop-by-Hop extension
+    header serves no purpose.
+4) According to various research studies, packets containing a Hop-by-Hop
+    extension header experience an increased drop rate of up to 40\% compared
+    to packets without an extension header \cite{rfc7872_ext_hdrs_drop_rate},
+    especially across multiple \glspl{as} \cite{rfc9098_ext_hdrs_op_impl, rfc9288}.
+
+
+% No exact definition (size of each field, bit for bit)
+% Removed IPv6 Hop-by-Hop header
+%   - Reduce Size
+%   - Often dropped (cite)
+%   - If processed end up in slow path
+%   - Only MEADcast router have to process the packet anyway
+% Adjusted Routing Header
+%   - Invalid routing header in BA (better use valid header)
+%   - reduced size
+%   - Omitted optional Port List for testing
+\label{sec:Protocol Specification}
 % python protocol "Next Header:8,Hdr Ext Len:8,Routing Type:8,Num. Dst:8,Flags:2,Hops:6,Reserved:24,Delivery Map:32,Router Map:32,Address List:128"
 % python protocol "Next Header:8,Hdr Ext Len:8,Routing Type:8,Segments Left:8,Num. Dst:8,Flags:2,Hops:6,Reserved:16,Delivery Map:32,Router Map:32,Address List:128"
 
-\begin{figure}[h!]
-\centering
-\begin{lstlisting}[xleftmargin=.07\textwidth]
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Next Header  |  Hdr Ext Len  |  Routing Type |    Num. Dst   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|Fl.|    Hops   |                    Reserved                   |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                          Delivery Map                         |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Router Map                          |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                                                               |
-.                                                               .
-.                          Address List                         .
-.                                                               .
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-\end{lstlisting}
-\caption{Python: MEADcast Header}
-\end{figure}
+% \begin{figure}[h!]
+% \centering
+% \begin{lstlisting}[xleftmargin=.07\textwidth]
+%  0                   1                   2                   3
+%  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |  Next Header  |  Hdr Ext Len  |  Routing Type |    Num. Dst   |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |Fl.|    Hops   |                    Reserved                   |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |                          Delivery Map                         |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |                           Router Map                          |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |                                                               |
+% .                                                               .
+% .                          Address List                         .
+% .                                                               .
+% |                                                               |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% \end{lstlisting}
+% \caption{Python: MEADcast Header}
+% \end{figure}
 
 \begin{figure}[h!]
 \centering
@@ -108,6 +143,8 @@
 % \toprule
 % \textbf{Field}& \textbf{Desciption} \\
 % \midrule
+Next Header   & 8-bit selector, identifying the type of the immediately
+                following header.
 Routing Type  & Since there is no existing Routing Type for MEADcast we use the
                 experimental values of 253 and 254 according to RFC3692
                 \cite{rfc3692_ipv6_rt_type}.\\
@@ -131,6 +168,8 @@ Address List  & Variable length list of IPv6 addresses. \\
 \label{tab:my-table}
 \end{table}
 \egroup
+
+% section Protocol Specification (end)
 
 \section{Router} % (fold)
 \label{sec:Router}
@@ -203,16 +242,37 @@ To determine whether to clone the packet, the routers monitors whether an
     router) at index $r2$, with $r1 < r2$.
 The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
 
-For each undelivered router $R_u$ in the MEADcast header the processing router
-    $R_p$ decides whether to deliver the data via MEADcast or IP unicast.
-If the IP address of $R_u$ in the MEADcast header is owned by the processing
-    router $R_p$, all designated endpoints will be delivered via IP unicast.
-If the number of endpoints of the considered router $R_u$ from the MEADcast
-    header is below a certain threshold, the processing router $R_p$ performs a
-    premature MEADcast to IP unicast transformation.
-For example, if $R_u$ has one designated endpoint $R_p$ could perform a
-    premature MEADcast to IP unicast transformation which possibly may
-    improve the performance.
+For each undelivered router $R_u$ specified in the MEADcast header, the
+    processing router $R_p$ decides whether to transmit the data via MEADcast
+    or IP unicast.
+If the IP address of $R_u$ in the MEADcast header belongs to the processing
+    router $R_p$ itself, all designated endpoints will be delivered via IP
+    unicast.
+Additionally, if the number of endpoints assigned to the considered router
+    $R_u$ from the MEADcast header is below a certain threshold, the processing
+    router $R_p$ performs a premature MEADcast to IP unicast transformation.
+For example, if $R_u$ has one designated endpoint, $R_p$ could execute a
+    premature MEADcast to IP unicast transformation, potentially enhancing
+    performance.
+The threshold can also be configured during runtime by setting the parameter
+    \inlinelst{/proc/sys/net/ipv6/meadcast/min_dsts}.
+Setting \inlinelst{min_dsts} to 0 disables premature MEADcast to IP unicast
+    transformation.
+
+If the packet is forwarded via MEADcast, the router updates both the delivery
+    bitmap and the destination field of the IPv6 header.
+In the delivery bitmap, all bits are set to zero except for the index
+    corresponding to the considered router.
+Additionally, the IP destination field is set to the address of the first
+    receiver following the router in the address list.
+Lastly, the router performs a routing table lookup for the new destination
+    address and forwards the packet accordingly.
+
+In case of IP unicast transmission, the router converts the MEADcast packet
+    into an IPv6 packet by copying the IPv6 header in front of the Layer 4
+    header and adjusting the socket buffer pointers accordingly.
+Additionally, the L4 checksum is corrected due to the modified destination IP
+    address.
 
 % Search for first router
 %
