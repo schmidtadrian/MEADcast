@@ -51,6 +51,45 @@ index 000000000000..f8b88b0c41f0
 +void print_debug(struct ipv6hdr *iphdr, struct ipv6_rt_md_hdr *hdr);
 +
 +#endif // !_LINUX_MDCAST_H
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 2acc4c808d45..7d08915496d0 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -1271,6 +1271,9 @@ static inline int snmp6_unregister_dev(struct inet6_dev *idev) { return 0; }
+ #ifdef CONFIG_SYSCTL
+ struct ctl_table *ipv6_icmp_sysctl_init(struct net *net);
+ struct ctl_table *ipv6_route_sysctl_init(struct net *net);
++#ifdef CONFIG_IPV6_MEADCAST
++struct ctl_table *ipv6_mdcast_sysctl_init(struct net *net);
++#endif
+ int ipv6_sysctl_register(void);
+ void ipv6_sysctl_unregister(void);
+ #endif
+diff --git a/include/net/netns/ipv6.h b/include/net/netns/ipv6.h
+index 5f2cfd84570a..95d0a894655e 100644
+--- a/include/net/netns/ipv6.h
++++ b/include/net/netns/ipv6.h
+@@ -19,6 +19,9 @@ struct netns_sysctl_ipv6 {
+ 	struct ctl_table_header *icmp_hdr;
+ 	struct ctl_table_header *frags_hdr;
+ 	struct ctl_table_header *xfrm6_hdr;
++#ifdef CONFIG_IPV6_MEADCAST
++	struct ctl_table_header *mdcast_hdr;
++#endif
+ #endif
+ 	int flush_delay;
+ 	int ip6_rt_max_size;
+@@ -56,6 +59,10 @@ struct netns_sysctl_ipv6 {
+ 	u8 skip_notify_on_dev_down;
+ 	u8 fib_notify_on_flag_change;
+ 	u8 icmpv6_error_anycast_as_unicast;
++#ifdef CONFIG_IPV6_MEADCAST
++    u8 ip6_mdcast_enable;
++    u8 ip6_mdcast_min_dsts;
++#endif
+ };
+ 
+ struct netns_ipv6 {
 diff --git a/include/uapi/linux/ipv6.h b/include/uapi/linux/ipv6.h
 index ac56605fe9bc..8a1d66a979b7 100644
 --- a/include/uapi/linux/ipv6.h
@@ -63,6 +102,31 @@ index ac56605fe9bc..8a1d66a979b7 100644
  
  /*
   *	routing header
+diff --git a/include/uapi/linux/sysctl.h b/include/uapi/linux/sysctl.h
+index 8981f00204db..9775a5d84ae6 100644
+--- a/include/uapi/linux/sysctl.h
++++ b/include/uapi/linux/sysctl.h
+@@ -530,6 +530,7 @@ enum {
+ 	NET_IPV6_IP6FRAG_TIME=23,
+ 	NET_IPV6_IP6FRAG_SECRET_INTERVAL=24,
+ 	NET_IPV6_MLD_MAX_MSF=25,
++    NET_IPV6_MEADCAST=26,
+ };
+ 
+ enum {
+@@ -582,6 +583,12 @@ enum {
+ 	NET_IPV6_ICMP_ECHO_IGNORE_ALL = 2
+ };
+ 
++/* /proc/sys/net/ipv6/meadcast */
++enum {
++    NET_IPV6_MEADCAST_ENABLE = 1,
++    NET_IPV6_MEADCAST_MIN_DSTS = 2
++};
++
+ /* /proc/sys/net/<protocol>/neigh/<dev> */
+ enum {
+ 	NET_NEIGH_MCAST_SOLICIT = 1,
 diff --git a/net/ipv6/Kconfig b/net/ipv6/Kconfig
 index 08d4b7132d4c..809bd04a3476 100644
 --- a/net/ipv6/Kconfig
@@ -93,6 +157,22 @@ index 3036a45e8a1e..9a45c28b69ec 100644
  
  obj-$(CONFIG_INET6_AH) += ah6.o
  obj-$(CONFIG_INET6_ESP) += esp6.o
+diff --git a/net/ipv6/af_inet6.c b/net/ipv6/af_inet6.c
+index 9f9c4b838664..7d34cf6be9d8 100644
+--- a/net/ipv6/af_inet6.c
++++ b/net/ipv6/af_inet6.c
+@@ -975,6 +975,11 @@ static int __net_init inet6_net_init(struct net *net)
+ 	net->ipv6.sysctl.ioam6_id = IOAM6_DEFAULT_ID;
+ 	net->ipv6.sysctl.ioam6_id_wide = IOAM6_DEFAULT_ID_WIDE;
+ 
++#ifdef CONFIG_IPV6_MEADCAST
++    net->ipv6.sysctl.ip6_mdcast_enable = 1;
++    net->ipv6.sysctl.ip6_mdcast_min_dsts = 1;
++#endif
++
+ 	err = ipv6_init_mibs(net);
+ 	if (err)
+ 		return err;
 diff --git a/net/ipv6/exthdrs.c b/net/ipv6/exthdrs.c
 index 202fc3aaa83c..dd0338174908 100644
 --- a/net/ipv6/exthdrs.c
@@ -144,10 +224,10 @@ index 1e8c90e97608..f0ce82d33e6b 100644
  		       ip6_forward_finish);
 diff --git a/net/ipv6/mdcast.c b/net/ipv6/mdcast.c
 new file mode 100644
-index 000000000000..aa61b7d09df6
+index 000000000000..ac434dd243fa
 --- /dev/null
 +++ b/net/ipv6/mdcast.c
-@@ -0,0 +1,440 @@
+@@ -0,0 +1,513 @@
 +#include "asm/checksum_64.h"
 +#include "linux/gfp_types.h"
 +#include "linux/in.h"
@@ -168,10 +248,6 @@ index 000000000000..aa61b7d09df6
 +
 +#ifndef INET6_ADDRSTRLEN
 +#define INET6_ADDRSTRLEN 46
-+#endif
-+
-+#ifndef MIN_DSTS
-+#define MIN_DSTS 1
 +#endif
 +
 +// #ifndef MEADCAST_DEBUG
@@ -198,12 +274,18 @@ index 000000000000..aa61b7d09df6
 +
 +int md_rcv(struct sk_buff *skb)
 +{
++    struct net *net;
 +    struct ipv6hdr *iphdr;
 +    struct ipv6_rt_md_hdr *hdr;
 +
++    net = dev_net(skb->dev);
 +    iphdr = ipv6_hdr(skb);
-+
 +    hdr = (struct ipv6_rt_md_hdr *)skb_transport_header(skb);
++
++    if (!net->ipv6.sysctl.ip6_mdcast_enable) {
++        printk("MEADcast: disabled!\n");
++        return 0;
++    }
 +
 +    if (hdr->rt_md_type != IPV6_MEADCAST) {
 +        printk("MEADcast: early exit\n");
@@ -218,7 +300,6 @@ index 000000000000..aa61b7d09df6
 +    if (hdr->discovery) {
 +        md_dcv_rcv(skb);
 +    } else {
-+        // printk("MEADcast: Its a data packet on %d\n", skb->skb_iif);
 +        md_data_rcv(skb);
 +    }
 +
@@ -256,43 +337,6 @@ index 000000000000..aa61b7d09df6
 +    dcv_rsp(skb);
 +
 +    return 0;
-+}
-+
-+static void udp6_csum(struct sock *sk, struct sk_buff *skb,
-+				 const struct in6_addr *saddr,
-+				 const struct in6_addr *daddr, int len)
-+{
-+	unsigned int offset;
-+	struct udphdr *uh = udp_hdr(skb);
-+	struct sk_buff *frags = skb_shinfo(skb)->frag_list;
-+	__wsum csum = 0;
-+
-+	if (!frags) {
-+		/* Only one fragment on the socket.  */
-+		skb->csum_start = skb_transport_header(skb) - skb->head;
-+		skb->csum_offset = offsetof(struct udphdr, check);
-+		uh->check = ~csum_ipv6_magic(saddr, daddr, len, IPPROTO_UDP, 0);
-+	} else {
-+		/*
-+		 * HW-checksum won't work as there are two or more
-+		 * fragments on the socket so that all csums of sk_buffs
-+		 * should be together
-+		 */
-+		offset = skb_transport_offset(skb);
-+		skb->csum = skb_checksum(skb, offset, skb->len - offset, 0);
-+		csum = skb->csum;
-+
-+		skb->ip_summed = CHECKSUM_NONE;
-+
-+		do {
-+			csum = csum_add(csum, frags->csum);
-+		} while ((frags = frags->next));
-+
-+		uh->check = csum_ipv6_magic(saddr, daddr, len, IPPROTO_UDP,
-+					    csum);
-+		if (uh->check == 0)
-+			uh->check = CSUM_MANGLED_0;
-+	}
 +}
 +
 +int set_dst(struct sk_buff *skb, struct in6_addr *daddr)
@@ -396,7 +440,9 @@ index 000000000000..aa61b7d09df6
 +    // n = sizeof(hdr->rtmap) * 8;
 +    // memset(&fl6, 0, sizeof(fl6));
 +
-+    if (len < MIN_DSTS || ipv6_chk_addr(net, &hdr->dst[i], skb->dev, 0)) {
++    if (len < net->ipv6.sysctl.ip6_mdcast_min_dsts ||
++        ipv6_chk_addr(net, &hdr->dst[i], skb->dev, 0)
++    ) {
 +        for (k = i + 1; k < j - 1; k++) {
 +            cpy = pskb_copy(skb, GFP_ATOMIC);
 +            cnet = dev_net(cpy->dev);
@@ -442,7 +488,7 @@ index 000000000000..aa61b7d09df6
 + * If bit i is a router do a route lookup for bit i+1 (verify its an EP)
 + * Go on til next router bit. Mark all other routers as delivered.
 + */
-+int md_data_rcv(struct sk_buff *skb)
++int md_data_rcv2(struct sk_buff *skb)
 +{
 +    int i, j, n, len, rt, dlv, r1, r2;
 +    bool start;
@@ -508,6 +554,77 @@ index 000000000000..aa61b7d09df6
 +        }
 +    }
 +
++    if (!r2)
++        r2 = i;
++
++    len = r2 - r1 - 1;
++    printk("Deliver %d eps via rt at %d\n", len, r1);
++    md_data_fwd(skb, dev_net(skb->dev), r1, r2);
++
++    // printk("FIN: %s\n", le);
++    return 0;
++}
++
++int md_data_rcv(struct sk_buff *skb)
++{
++    int i, j, n, len, rt, dlv, r1, r2;
++    struct ipv6_rt_md_hdr *hdr;
++    struct sk_buff *cpy;
++    struct net *net;
++
++    hdr = (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
++    if (hdr->discovery || hdr->response) {
++        printk("MEADcast: invalid data packet!\n");
++        return -1;
++    }
++
++    hdr->hopcount++;
++
++    r1 = -1;
++    r2 =  0;
++    n = sizeof(hdr->rtmap) * 8;
++
++    for (i = 0; i < hdr->num_dst; i++) {
++
++        j = GET_I(i);
++        rt  = CHECK_BIT(hdr->rtmap, j);
++        dlv = CHECK_BIT(hdr->dlvmap, j);
++
++        if (!rt)
++            continue;
++
++        if (r1 >= 0) {
++
++            if (!r2)
++                r2 = i;
++
++            /* If r2 has to be delivered we have to create a replica. */
++            if (dlv) {
++
++                len = r2 - r1 - 1;
++                printk("Deliver %d eps via rt at %d (copy)\n", len, r1);
++
++                cpy = pskb_copy(skb, GFP_ATOMIC);
++                net = dev_net(cpy->dev);
++                md_data_fwd(cpy, net, r1, r2);
++
++                if (dst_output(net, cpy->sk, cpy)) {
++                    printk("Error during md data fwd!\n");
++                    return 1;
++                }
++
++                r1 = i;
++                r2 = 0;
++            }
++
++            continue;
++        }
++
++        if (dlv)
++            r1 = i;
++    }
++
++    /* If r1 is the last router set r2 to the last index. */
 +    if (!r2)
 +        r2 = i;
 +
@@ -588,3 +705,94 @@ index 000000000000..aa61b7d09df6
 +           hdr->num_dst, hdr->discovery ? 1 : 0, hdr->response ? 1 : 0,
 +           hdr->hopcount, ntohl(hdr->dlvmap), ntohl(hdr->rtmap));
 +}
++
++#ifdef CONFIG_SYSCTL
++static struct ctl_table ipv6_mdcast_table_template[] = {
++    {
++		.procname	= "enable",
++		.data		= &init_net.ipv6.sysctl.ip6_mdcast_enable,
++		.maxlen		= sizeof(u8),
++		.mode		= 0644,
++		.proc_handler	= proc_dou8vec_minmax,
++    },
++    {
++		.procname	= "min_dsts",
++		.data		= &init_net.ipv6.sysctl.ip6_mdcast_min_dsts,
++		.maxlen		= sizeof(u8),
++		.mode		= 0644,
++		.proc_handler	= proc_dou8vec_minmax,
++    },
++    { },
++};
++
++struct ctl_table * __net_init ipv6_mdcast_sysctl_init(struct net *net)
++{
++    struct ctl_table *table;
++
++    table = kmemdup(ipv6_mdcast_table_template,
++                    sizeof(ipv6_mdcast_table_template),
++                    GFP_KERNEL);
++
++    if (table) {
++        table[0].data = &net->ipv6.sysctl.ip6_mdcast_enable;
++        table[1].data = &net->ipv6.sysctl.ip6_mdcast_min_dsts;
++    }
++
++    return table;
++}
++#endif
+diff --git a/net/ipv6/sysctl_net_ipv6.c b/net/ipv6/sysctl_net_ipv6.c
+index 94a0a294c6a1..146c02985b93 100644
+--- a/net/ipv6/sysctl_net_ipv6.c
++++ b/net/ipv6/sysctl_net_ipv6.c
+@@ -6,6 +6,7 @@
+  * YOSHIFUJI Hideaki @USAGI:	added icmp sysctl table.
+  */
+ 
++#include "net/net_namespace.h"
+ #include <linux/mm.h>
+ #include <linux/sysctl.h>
+ #include <linux/in6.h>
+@@ -289,9 +290,28 @@ static int __net_init ipv6_sysctl_net_init(struct net *net)
+ 	if (!net->ipv6.sysctl.icmp_hdr)
+ 		goto out_unregister_route_table;
+ 
++#ifdef CONFIG_IPV6_MEADCAST
++	struct ctl_table *ipv6_mdcast_table;
++
++    ipv6_mdcast_table = ipv6_mdcast_sysctl_init(net);
++	if (!ipv6_mdcast_table)
++        goto out_ipv6_mdcast_table;
++
++    net->ipv6.sysctl.mdcast_hdr =
++        register_net_sysctl(net, "net/ipv6/meadcast", ipv6_mdcast_table);
++    if (!net->ipv6.sysctl.mdcast_hdr)
++        goto out_unregister_mdcast_table;
++#endif
++
+ 	err = 0;
+ out:
+ 	return err;
++#ifdef CONFIG_IPV6_MEADCAST
++out_unregister_mdcast_table:
++    unregister_net_sysctl_table(net->ipv6.sysctl.mdcast_hdr);
++out_ipv6_mdcast_table:
++    kfree(ipv6_mdcast_table);
++#endif
+ out_unregister_route_table:
+ 	unregister_net_sysctl_table(net->ipv6.sysctl.route_hdr);
+ out_unregister_ipv6_table:
+@@ -322,6 +342,13 @@ static void __net_exit ipv6_sysctl_net_exit(struct net *net)
+ 	kfree(ipv6_table);
+ 	kfree(ipv6_route_table);
+ 	kfree(ipv6_icmp_table);
++
++#ifdef CONFIG_IPV6_MEADCAST
++	struct ctl_table *ipv6_mdcast_table;
++	ipv6_mdcast_table = net->ipv6.sysctl.mdcast_hdr->ctl_table_arg;
++	unregister_net_sysctl_table(net->ipv6.sysctl.hdr);
++	kfree(ipv6_icmp_table);
++#endif
+ }
+ 
+ static struct pernet_operations ipv6_sysctl_net_ops = {
