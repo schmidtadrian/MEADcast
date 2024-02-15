@@ -11,18 +11,39 @@ Since the existing literature on MEADcast lacks specific details regarding the
 Firstly, we omit the usage of an empty Hop-by-Hop IPv6 extension header as
     introduced by \citeauthor{meadcast1} \cite{meadcast1, meadcast2}.
 We do this for several reasons:
-1) To reduce the overhead of MEADcast.
-2) If a non-MEADcast router attempts to process Hop-by-Hop extension headers
+First, to reduce the overhead of MEADcast.
+Second, if a non-MEADcast router attempts to process Hop-by-Hop extension headers
     the packet probably end up in the router's slow path \cite{rfc7045}, potentially
     harming the protocol's performance.
-3) Since the MEADcast header is intended to be processed exclusively by
+Third, since the MEADcast header is intended to be processed exclusively by
     MEADcast routers, over which we maintain control, the Hop-by-Hop extension
     header serves no purpose.
-4) According to various research studies, packets containing a Hop-by-Hop
+Lastly, according to various research studies, packets containing a Hop-by-Hop
     extension header experience an increased drop rate of up to 40\% compared
     to packets without an extension header \cite{rfc7872_ext_hdrs_drop_rate},
     especially across multiple \glspl{as} \cite{rfc9098_ext_hdrs_op_impl, rfc9288}.
 
+Next, we introduce the detailed characteristics of the MEADcast header in our
+    implementation.
+The first four octets of the MEADcast header constitute the static Routing
+    extension header, which is shared by all routing variants.
+This differs from previous implementations of MEADcast, which omitted the
+    Segments Left field \cite{sdn_ba}.
+We decided to include this field to comply with RFC 8200
+    \cite{rfc8200_ipv6_hdr}, reducing the likelihood that intermediate nodes
+    drop MEADcast packets due to a malformed Routing header.
+Since there is no existing Routing Type designated for MEADcast, we utilize the
+    experimental values of 253 and 254 in accordance with RFC3692
+    \cite{rfc3692_ipv6_rt_type}.
+The Segments Left field remains fixed to zero and is never altered because,
+    according to RFC 8200 \cite{rfc8200_ipv6_hdr}, intermediate nodes that do
+    not recognize the employed Routing type value must ignore the Routing
+    header and proceed to process the next header.
+An illustration of the MEADcast header layout can be found in
+    \autoref{lst:meadcast_header}, along with an in-depth description of each
+    field in \autoref{tab:meadcast_header}.
+Due to the time frame of this thesis, we omit the usage of the optional port
+    list as it does not affect the core MEADcast processing.
 
 % No exact definition (size of each field, bit for bit)
 % Removed IPv6 Hop-by-Hop header
@@ -62,7 +83,7 @@ We do this for several reasons:
 % \caption{Python: MEADcast Header}
 % \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}[!htbp]
 \centering
 \begin{lstlisting}[xleftmargin=.07\textwidth]
  0                   1                   2                   3
@@ -84,88 +105,75 @@ We do this for several reasons:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
 \end{lstlisting}
-\caption{Current: MEADcast Header}
+\caption{MEADcast header specification}
+\label{lst:meadcast_header}
 \end{figure}
 
-% \paragraph{Routing Type} % (fold)
-% \label{par:Routing Type}
-% Since there is no existing Routing Type for MEADcast we use the experimental
-%     values of 253 and 254 according to RFC3692 \cite{rfc3692_ipv6_rt_type}.
-% % paragraph Routing Type (end)
-%
-% \paragraph{Segments Left} % (fold)
-% \label{par:Segments Left}
-% Fixed to zero and is not altered by MEADcast routers.
-% Thereby intermediate nodes, which does not recognize the used Routing type
-%     value must ignore the MEADcast header and process the next header
-%     \cite{rfc8200_ipv6_hdr}.
-% % paragraph Segments Left (end)
-%
-% \paragraph{Number of Destinations} % (fold)
-% \label{par:Number of Destinations}
-% Indicates the length of the address list.
-% % paragraph Number of Destinations (end)
-%
-% \paragraph{Flags} % (fold)
-% \label{par:Flags}
-% 1 bit discovery and 1 bit response.
-% % paragraph Flags (end)
-%
-% \paragraph{Hops} % (fold)
-% \label{par:Hops}
-% This field is used during the discovery phase.
-% The sender initializes the field with zero and gets incremented by each
-%     MEADcast router.
-% % paragraph Hops (end)
-%
-% \paragraph{Delivery Map} % (fold)
-% \label{par:Delivery Map}
-% Bitmap indicating, whether an address in the address list needs to be
-%     delivered.
-% % paragraph Delivery Map (end)
-%
-% \paragraph{Router Map} % (fold)
-% \label{par:Router Map}
-% Immutable bitmap indicating, whether an address in the address list is a router.
-% % paragraph Router Map (end)
-%
-% \paragraph{Address List} % (fold)
-% \label{par:Address List}
-% List of length ``\texttt{Number of Destinations}'' containing IPv6 addresses.
-% % paragraph Address List (end)
 
 \bgroup
-\begin{table}[h!]
+\begin{table}[!htbp]
 \centering
-\def\arraystretch{1.5}%  1 is the default
+\def\arraystretch{1.35}%  1 is the default
 \setlength{\tabcolsep}{1.2em}
 \begin{tabularx}{\textwidth}{lX}
-% \toprule
-% \textbf{Field}& \textbf{Desciption} \\
-% \midrule
-Next Header   & 8-bit selector, identifying the type of the immediately
-                following header.\\
-Routing Type  & Since there is no existing Routing Type for MEADcast we use the
-                experimental values of 253 and 254 according to RFC3692
-                \cite{rfc3692_ipv6_rt_type}.\\
-Segments Left & Fixed to zero and is not altered by MEADcast routers. Thereby
-                intermediate nodes, which does not recognize the used Routing
-                type value must ignore the MEADcast header and process the next
-                header \cite{rfc8200_ipv6_hdr}.\\
-Num. Dst.     & Indicates the length of the address list. \\
-Flags         & 1 bit discovery, 1 bit response        \\
-Hops          & This field is used during the discovery phase. The sender
-                initializes the field with zero and gets incremented by each
-                MEADcast router. \\
-Delivery Map  & Bitmap indicating, whether an address in the address list needs
-                to be delivered.\\
-Router Map    & Bitmap indicating, whether an address in the address list is a
-                router.\\
-Address List  & Variable length list of IPv6 addresses. \\
-% \bottomrule
+\toprule
+\textbf{Field}& \textbf{Desciption} \\
+\midrule
+Next Header   & A 8-bit selector, identifying the type of the immediately
+                following header \cite{rfc8200_ipv6_hdr}.
+                Employs identical values as the IPv4 Protocol field (e.g. 17 =
+                UDP, 59 = No Next Header for IPv6)
+                \cite{iana_prot_nums}.\\
+Hdr Ext Len   & An 8-bit unsigned integer representing the length of the
+                Routing header in 8-octet units, excluding the initial 8
+                octets \cite{rfc8200_ipv6_hdr}. \\
+Routing Type  & An 8-bit identifier denoting a specific Routing header variant
+                \cite{rfc8200_ipv6_hdr}.
+                Given the absence of an existing Routing Type for MEADcast, we
+                utilize the experimental values of 253 and 254 in accordance
+                with RFC3692 \cite{rfc3692_ipv6_rt_type}.\\
+Segments Left & An 8-bit unsigned integer representing the number of remaining
+                route segments, indicating the number of explicitly listed
+                intermediate nodes yet to be traversed before reaching the
+                final destination \cite{rfc8200_ipv6_hdr}.
+                Remains fixed to zero and is not modified by MEADcast routers.
+                Consequently, intermediate nodes that do not recognize the
+                employed Routing type value are required to disregard the
+                MEADcast header and proceed to process the subsequent header
+                \cite{rfc8200_ipv6_hdr}.\\
+Num. Dst.     & An 8-bit unsigned integer denoting the number of IPv6
+                addresses encoded in the address list.
+                The field size sets a theoretical limit of 255 destinations.\\
+Flags         & A 2-bit Bitmap. The highest-order bit classifies the packet
+                either as a data (0) or discovery  (1) packet.
+                The lowest-order bit indicates whether the packet is a
+                discovery request (0) or response (1) \cite{meadcast2}.
+                Valid combinations comprise \inlinelst{00}, \inlinelst{10}, and
+                \inlinelst{11}\\
+Hops          & An 6-bit unsigned integer, specifying the distance between the
+                sender and a router, denoted in the number of MEADcast hops.
+                This field is utilized during the discovery phase. The sender
+                initializes the field with zero, and it is incremented by each
+                intermediate MEADcast router encountered.
+                The field size sets a theoretical limit of 63 hops.\\
+Reserved      & A 16-bit reserved field.
+                Should be initialized to zero during transmission and
+                disregarded upon reception.\\
+Delivery Map  & A 32-bit Bitmap, where each bit at position $i$ indicates
+                whether a router at index $i$ in the address list has already
+                been delivered (0 = delivered, 1 = not yet delivered)
+                \cite{meadcast2}. \\
+Router Map    & A 32-bit Bitmap, where each bit at position $i$ indicates
+                whether an address at index $i$ in the address list is a
+                router (0 = receiver, 1 = router) \cite{meadcast2}.\\
+Address List  & A variable-length list comprising the IPv6 addresses of
+                receivers and MEADcast routers.
+                The field size of the Delivery and Router Bitmap imposes a
+                practical limit of 32 addresses.\\
+\bottomrule
 \end{tabularx}
-\caption{MEADcast Header field description}
-\label{tab:my-table}
+\caption{MEADcast header field description}
+\label{tab:meadcast_header}
 \end{table}
 \egroup
 
@@ -309,7 +317,55 @@ Additionally, the L4 checksum is corrected due to the modified destination IP
 
 \section{Sender} % (fold)
 \label{sec:Sender}
+This section provides an overview of our MEADcast sender implementation.
+To ensure an efficient implementation that is comparable to existing network
+    protocol implementations, we chose to implement the sender in the C
+    language.
+The main tasks of the sender include sending periodical discovery requests to
+    all group members, receiving discovery responses, constructing a topology
+    tree based on the received discovery responses, heuristically grouping
+    receivers into MEADcast packets, and transmitting data to all group members
+    either via MEADcast or IP unicast.
+
+\paragraph{Startup} % (fold)
+\label{par:Startup}
+All receivers must be known at startup, dynamic runtime memberships are not
+    supported.
+We regard this decision as justifiable, given that MEADcast does not define any
+    mechanism for joining or leaving a group, and the primary objective of this
+    thesis is to compare the protocol with existing alternatives.
+On startup the sender initializes a topology tree with itself as the root and
+    all receivers as direct attached leafs.
+Moreover, a TUN interface is created, which is used as a common interface to
+    other applications.
+Any data, which is send to the TUN interface will be transmitted to the
+    MEADcast group.
+The \gls{mtu} of the TUN interface will be set to the MTU of the bind interface
+    minus the maximum allowed MEADcast header size.
+This ensures, that all packets read from the TUN interface can be transmitted
+    via MEADcast.
+Additionally, a host route to the TUN interface gets created (default:
+    \inlinelst{fd15::1}).
+Next, a discovery and transmission thread is created.
+This is required to simultaneously transmit data and discovery requests and
+    responses.
+
+% Discovery
+% - Send and receive discovery
+% - Perform grouping
+% - Timers
+
+% Transmit
+% - Init txg struct (atomic pointer)
+% - Read data from TUN & send it to groups
+
+% paragraph Startup (end)
+% Startup
+% - Create TUN dev (set MTU, set Route)
+% - txg only struct shared between threads
+% - Implemented in C (efficiency & comparable to other protocols)
 % - TUN
+% - Automatically set route & MTU
 % - Judy Array to quickly find IPs
 % - Tree for grouping
 % - grouping algorithm
