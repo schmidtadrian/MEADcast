@@ -83,32 +83,55 @@ Due to the time frame of this thesis, we omit the usage of the optional port
 % \caption{Python: MEADcast Header}
 % \end{figure}
 
+% \begin{figure}[!htbp]
+% \centering
+% \begin{lstlisting}[xleftmargin=.07\textwidth]
+%  0                   1                   2                   3
+%  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |  Next Header  |  Hdr Ext Len  |  Routing Type | Segments Left |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |    Num. Dst   |Fl.|    Hops   |            Reserved           |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |                          Delivery Map                         |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |                           Router Map                          |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+% |                                                               |
+% .                                                               .
+% .                          Address List                         .
+% .                                                               .
+% |                                                               |
+% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+%
+% \end{lstlisting}
+% \caption{MEADcast header specification}
+% \label{lst:meadcast_header}
+% \end{figure}
+
 \begin{figure}[!htbp]
 \centering
-\begin{lstlisting}[xleftmargin=.07\textwidth]
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|  Next Header  |  Hdr Ext Len  |  Routing Type | Segments Left |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|    Num. Dst   |Fl.|    Hops   |            Reserved           |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                          Delivery Map                         |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                           Router Map                          |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                                                               |
-.                                                               .
-.                          Address List                         .
-.                                                               .
-|                                                               |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-
-\end{lstlisting}
+\begin{bytefield}[bitformatting=\tiny,bitwidth=1.1em,boxformatting=\centering\small]{32}
+\bitheader{0-31} \\
+    \begin{rightwordgroup}{\small RT Hdr \\ \small Preamble}
+    \bitbox{8}{Next Header} &
+    \bitbox{8}{Hdr Ext Len} &
+    \bitbox{8}{Routing Type \\ \tiny (Experimental: 253/254)} &
+    \bitbox{8}{Segments Left \\ \tiny (0)}
+    \end{rightwordgroup} \\
+    \bitbox{8}{Num. Dst} &
+    \bitbox{2}{Fl.} &
+    \bitbox{6}{Hops} &
+    \bitbox{16}{Reserved} \\
+    \bitbox{32}{Delivery Bitmap} \\
+    \bitbox{32}{Router Bitmap} \\
+    \wordbox[lrt]{2}{Address List \\ \scriptsize (variable length)} \\
+    \skippedwords \\
+    \wordbox[lrb]{1}{} \\
+\end{bytefield}
 \caption{MEADcast header specification}
 \label{lst:meadcast_header}
 \end{figure}
-
 
 \bgroup
 \begin{table}[!htbp]
@@ -318,14 +341,14 @@ Additionally, the L4 checksum is corrected due to the modified destination IP
 \section{Sender} % (fold)
 \label{sec:Sender}
 This section provides an overview of our MEADcast sender implementation.
-To ensure an efficient implementation that is comparable to existing network
+To ensure efficient processing that is comparable to existing network
     protocol implementations, we chose to implement the sender in the C
     language.
 The main tasks of the sender include sending periodical discovery requests to
     all group members, receiving discovery responses, constructing a topology
-    tree based on the received discovery responses, heuristically grouping
-    receivers into MEADcast packets, and transmitting data to all group members
-    either via MEADcast or IP unicast.
+    tree based on the received discovery responses, grouping receivers into
+    MEADcast packets, and transmitting data to all group members either via
+    MEADcast or IP unicast.
 
 \paragraph{Startup} % (fold)
 \label{par:Startup}
@@ -336,24 +359,89 @@ We regard this decision as justifiable, given that MEADcast does not define any
     thesis is to compare the protocol with existing alternatives.
 On startup the sender initializes a topology tree with itself as the root and
     all receivers as direct attached leafs.
-Moreover, a TUN interface is created, which is used as a common interface to
-    other applications.
+Moreover, a TUN interface is created representing the common interface to other
+    applications.
 Any data, which is send to the TUN interface will be transmitted to the
-    MEADcast group.
+    MEADcast group (see \autoref{fig:tun_dev}.
+However, since MEADcast is a \textit{1:n} multicast protocol, the sender does not
+    handle traffic directed from the MEADcast receivers towards the sender.
 The \gls{mtu} of the TUN interface will be set to the MTU of the bind interface
     minus the maximum allowed MEADcast header size.
 This ensures, that all packets read from the TUN interface can be transmitted
     via MEADcast.
-Additionally, a host route to the TUN interface gets created (default:
-    \inlinelst{fd15::1}).
+Additionally, for convenience a host route to the TUN interface gets created 
+    automatically (default: \inlinelst{fd15::1}).
 Next, a discovery and transmission thread is created.
-This is required to simultaneously transmit data and discovery requests and
-    responses.
+This is necessary to facilitate simultaneous data transmission and periodic
+    MEADcast discovery.
 
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=\textwidth]{tun_dev.pdf}
+    \end{center}
+    \caption{TUN interface}
+    \label{fig:tun_dev}
+\end{figure}
+
+\paragraph{TX thread} % (fold)
+\label{par:TX thread}
+The transmission thread operates on a straightforward pattern.
+It reads data from the TUN device and transmits it to the MEADcast group either
+    via MEADcast or IPv6 unicast.
+The key element for data transmission is the \inlinelst{tx_group} structure,
+    which includes three members: \inlinelst{*mdc}, \inlinelst{nuni}, and
+    \inlinelst{uni} (as detailed in \autoref{lst:txg_struct}).
+These members encompass all the necessary information for data transmission,
+    rendering \inlinelst{tx_group} as the only data structure required by the
+    transmission thread.
+\inlinelst{*mdc} is a reference to a linked list of receivers grouped into
+    MEADcast headers ready for transmission.
+\inlinelst{nuni} contains the count of unicast addresses stored in
+    \inlinelst{uni[]}.
+Lastly, \inlinelst{uni[]} is an array of receivers served via IPv6 unicast.
+
+The \inlinelst{tx_group} structure is the only data accessed by both threads.
+Upon initialization of the transmission thread, a \inlinelst{tx_group}
+    structure is instantiated with all receivers added to the \inlinelst{uni[]}
+    list and an empty \inlinelst{*mdc} list.
+Subsequently, the \inlinelst{tx_group} is exclusively modified by the discovery
+    thread.
+To prevent race conditions on the \inlinelst{tx_group}, the threads share an
+    atomic reference pointing to the current group.
+
+Next, the transmission thread enters an infinite loop executing the following
+    steps.
+Initially, it blockingly reads data from the TUN device.
+Second, the sender atomically reads the current \inlinelst{tx_group}.
+This step is substantial because the \inlinelst{tx_group} can be updated by
+    the discovery thread at any time.
+Finally, the data read from the TUN device is transmitted to the MEADcast group
+    by first transmitting it via IPv6 unicast to all addresses listed in
+    \inlinelst{uni[]} and subsequently transmitting it via MEADcast by copying
+    the MEADcast headers stored in \inlinelst{*mdc} in front of the Layer 4
+    header.
+The copying of the MEADcast header overwrites the IPv6 header, necessitating
+    the unicast transmission to occur before the MEADcast transmission.
+
+\begin{lstlisting}[language=C, caption=TX\_group structure, label={lst:txg_struct}]
+struct tx_group {
+    struct child  *mdc;
+    size_t nuni;
+    struct addr uni[];
+};
+\end{lstlisting}
+% paragraph Tx thread (end)
+
+
+\paragraph{Discovery Thread} % (fold)
+\label{par:Discovery Thread}
 % Discovery
+% - Keep track of timers
 % - Send and receive discovery
 % - Perform grouping
-% - Timers
+
+% paragraph Discovery Thread (end)
+
 
 % Transmit
 % - Init txg struct (atomic pointer)
