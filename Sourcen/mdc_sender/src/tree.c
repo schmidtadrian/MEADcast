@@ -359,7 +359,7 @@ size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
                       size_t n, size_t m)
 {
     size_t i;
-    struct router *pr;
+    struct router *pr, *tmp;
 
     i = 0;
 
@@ -383,9 +383,9 @@ bitmap:
     /* set bitmap starting from msb. */
     (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - ic);
 copy:
-    if ((pr = should_use_parent_as_closest(r, m)))
-        closest = pr;
-    memcpy(&l[ic], &closest->sa.sin6_addr, sizeof(closest->sa.sin6_addr));
+    pr  = should_use_parent_as_closest(r, m);
+    tmp = pr ? pr : r;
+    memcpy(&l[ic], &tmp->sa.sin6_addr, sizeof(tmp->sa.sin6_addr));
 
     return i;
 }
@@ -442,7 +442,7 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
     // print_grp(&addrs[0], *len, *bm);
     *len = 0;
     *bm  = 0;
-    set_merging_stats(NULL, -1, 0);
+    set_merging_stats(NULL, 0, 0);
 }
 
 struct tx_group *greedy_grouping(struct router *s)
@@ -475,7 +475,7 @@ start:
          * Otherwise, include the router address for the space calculation
          * (p = 1), and reset leaf merging parameters. */
         if ((p = !is_mergeable(r)))
-            set_merging_stats(NULL, -1, 0);
+            set_merging_stats(NULL, 0, 0);
 
         while (r->fleaf > 0) {
 
