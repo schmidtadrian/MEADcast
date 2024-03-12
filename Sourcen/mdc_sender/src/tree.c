@@ -10,6 +10,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+/*
+ * Required for node merging
+ */
+
+/* Points to closest router in current group. */
+static struct router *closest = NULL;
+/* Stores the index of the closest router in the address list. */
+static size_t ic = -1;
+/* Stores distance of first router in current group. */
+static int init_hops = 0;
+
+
 struct child *get_child(void *n, struct child *l)
 {
     if (!n || !l)
@@ -345,8 +358,7 @@ static inline struct router *should_use_parent_as_closest(struct router *r,
 size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
                       size_t n, size_t m)
 {
-    size_t i, off;
-    struct child *c;
+    size_t i;
     struct router *pr;
 
     i = 0;

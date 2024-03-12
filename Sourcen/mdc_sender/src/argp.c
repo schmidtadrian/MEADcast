@@ -39,7 +39,7 @@ static struct argp_option options[] = {
                                                       "`distance` determines the range within which leafs will be merged. "
                                                       "Assigning `distance` a value of 0 disables this feature.", OPT_GRP_GRP },
 
-    { 0, 0, 0, 0, "Verbosity"},
+    { 0, 0, 0, 0, "Verbosity", 0},
     { "print-tree",   OPT_PRINT_TREE,   0,          0, "Prints topology tree to stdout", OPT_GRP_VERBOSE },
     { "print-groups", OPT_PRINT_TXG,    0,          0, "Prints grouping to stdout", OPT_GRP_VERBOSE },
     { 0 }
@@ -222,35 +222,6 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 
-void print_args(struct arguments *args)
-{
-    char addr[INET6_ADDRSTRLEN];
-    struct paddr *peer;
-
-    if (!inet_ntop(AF_INET6, &args->baddr, addr, sizeof(addr))) {
-        char *msg = "(Invalid bind addr)";
-        strncpy(addr, msg, strlen(msg));
-    }
-
-    printf("TUN name is %s\n"
-           "Bind to interface %s\n"
-           "Bind addr: %s\n"
-           "Bind port: %d\n"
-           "Peer port: %d\n",
-           args->tifname,
-           args->bifname,
-           addr,
-           args->bport,
-           args->pport);
-
-    printf("Peers: [");
-    for (peer = args->paddr; peer; peer = peer->n) {
-        inet_ntop(AF_INET6, &peer->v, addr, sizeof(addr));
-        printf("%s,", addr);
-    }
-    printf("]\n");
-}
-
 void print_grouping_args(struct arguments *args)
 {
     printf("Grouping params:\n"
@@ -266,7 +237,8 @@ void print_grouping_args(struct arguments *args)
 }
 
 
-static struct argp argp = { options, parse_opt, args_doc, doc };
+static struct argp argp = { .options = options, .parser = parse_opt,
+                            .args_doc = args_doc, .doc = doc };
 
 void set_default_args(struct arguments *args)
 {
@@ -307,6 +279,5 @@ void init_args(struct arguments *args, int argc, char *argv[])
 {
     set_default_args(args);
     argp_parse(&argp, argc, argv, 0, 0, args);
-    // print_args(args);
     print_grouping_args(args);
 }

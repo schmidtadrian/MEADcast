@@ -2,6 +2,8 @@
 #define UTIL_H
 
 #include "core.h"
+#include "group.h"
+#include "tree.h"
 #include <netinet/in.h>
 #include <stdint.h>
 

@@ -19,6 +19,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+static uint8_t *rxbuf = NULL;
+static size_t rxlen = 0;
+
 void init_rx(size_t n)
 {
     rxlen = n;
@@ -33,8 +36,7 @@ int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops,
     struct node *node;
     struct child *c, *cr;
     struct leaf *l;
-    struct rcvr *rcvr;
-    struct router *r, *gp;
+    struct router *r;
 
     ht = get_ht();
     JHSG(pv, *ht, paddr, (sizeof(*paddr)));
@@ -51,7 +53,6 @@ int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops,
     }
 
     l = (struct leaf *) node;
-    rcvr = &l->val;
     JHSI(pv, *ht, &rsa->sin6_addr, sizeof(rsa->sin6_addr));
 
     if (pv == PJERR) {
@@ -96,7 +97,7 @@ int update_topo(struct sockaddr_in6 *rsa, struct in6_addr *paddr, uint8_t hops,
 
 int rx_dcvr(int fd, size_t *n)
 {
-    int nbytes;
+    size_t nbytes;
     struct sockaddr_in6 rt;
     struct ip6_mdc_hdr *hdr;
     socklen_t rtlen = sizeof(rt);
@@ -122,10 +123,10 @@ int rx_dcvr(int fd, size_t *n)
         !hdr->dcv || !hdr->rsp || hdr->hops < 1 || hdr->dsts != 1)
         return -1;
 
-    if (inet_ntop(AF_INET6, &rt.sin6_addr, raddr, sizeof(raddr)) <= 0)
+    if (!inet_ntop(AF_INET6, &rt.sin6_addr, raddr, sizeof(raddr)))
         return -1;
 
-    if (inet_ntop(AF_INET6, &hdr->addr, paddr, sizeof(paddr)) <= 0)
+    if (!inet_ntop(AF_INET6, &hdr->addr, paddr, sizeof(paddr)))
         return -1;
 
     // printf("%s (%d hops) is router for %s\n", raddr, hdr->hops, paddr);

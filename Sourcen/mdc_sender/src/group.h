@@ -42,11 +42,4 @@ struct rcvr *get_rcvr(void);
 Pvoid_t *get_ht(void);
 int init_txg(void);
 
-
-static Pvoid_t ht = NULL;
-static struct router *root = NULL;
-static struct rcvr *rcvr = NULL;
-static size_t nrcvr = 0;
-static struct tx_group *_Atomic txg = NULL;
-
 #endif // !GROUP_H

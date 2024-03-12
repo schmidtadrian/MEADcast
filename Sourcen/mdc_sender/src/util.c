@@ -85,7 +85,7 @@ void print_txg(struct tx_group *txg)
 
 static inline void print_lvl(size_t lvl)
 {
-    for (int i = 0; i < lvl; i++)
+    for (size_t i = 0; i < lvl; i++)
         printf("    ");
 }
 

@@ -20,12 +20,4 @@ pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu);
 int send_dcvr(int fd);
 void set_data_hdr(void **buf, struct in6_addr *addrs, size_t len, uint32_t bm);
 
-
-static uint8_t *txbuf = NULL;
-static uint8_t *buf = NULL;
-static size_t txlen = 0;
-static size_t buflen = 0;
-static struct tun_pi *pi;
-static struct ipv6hdr *ip;
-
 #endif // !TX_H

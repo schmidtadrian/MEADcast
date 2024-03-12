@@ -19,7 +19,7 @@
 
 size_t get_mdc_hdr_size(size_t num_dst)
 {
-    size_t ip_pl, mdc_pl, pad;
+    size_t mdc_pl, pad;
 
     mdc_pl = sizeof(struct ip6_mdc_hdr) + num_dst * sizeof(struct in6_addr);
 
@@ -57,8 +57,6 @@ int init_fds(int *tun_fd, int *mdc_fd, int *ip6_fd, char *tif, char *bif,
 {
     int ret;
     size_t tif_mtu;
-    const int on = 1;
-    struct sockaddr_in6 l4sa;
     struct ifreq ifr;
 
     ret = get_mtu(bif);
@@ -152,7 +150,7 @@ int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
     init_rx(mtu);
 
     txid = start_tx(tun_fd, mdc_fd, ip6_fd, mtu);
-    if (txid < 0)
+    if (!txid)
         return -1;
 
     dxargs = malloc(sizeof(*dxargs));

@@ -15,6 +15,11 @@
 #include <time.h>
 #include <unistd.h>
 
+static int tout_fd;
+static int tint_fd;
+static struct timespec *tout_ts = NULL;
+static struct timespec *tint_ts = NULL;
+
 int init_epoll(int mdc_fd, int tout_fd, int tint_fd)
 {
     int fd, ret;
@@ -35,7 +40,7 @@ int init_epoll(int mdc_fd, int tout_fd, int tint_fd)
         return fd;
     }
 
-    for (int i = 0; i < n; i++) {
+    for (size_t i = 0; i < n; i++) {
         ev.data.fd = fds[i];
         ret = epoll_ctl(fd, EPOLL_CTL_ADD, fds[i], &ev);
 
@@ -172,7 +177,6 @@ int dx_loop(int epoll_fd, int mdc_fd, struct epoll_event *ev, size_t evlen)
 {
     int n, i, fd;
     size_t r;
-    uint64_t buf;
 
     for (r = 0;;) {
 

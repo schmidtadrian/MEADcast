@@ -10,8 +10,7 @@
 
 void test()
 {
-    struct router *root, *r;
-    struct child *c;
+    struct router *root;
     struct tx_group *grp;
     // create_topo(&root);
     create_testbed(&root);
@@ -27,7 +26,6 @@ void test()
 void create_topo(struct router **root)
 {
     int i, nr, ne;
-    uint16_t *t;
     struct router *p;
 
     char n[INET6_ADDRSTRLEN];
@@ -40,9 +38,7 @@ void create_topo(struct router **root)
     struct sockaddr_in6 ssa;
     struct sockaddr_in6 rsa[nr + 1];
     struct sockaddr_in6 lsa[ne + 1];
-
     struct router *r[nr + 1];
-    struct leaf *e[ne + 1];
 
     ssa.sin6_family = AF_INET6;
     ssa.sin6_port = 0;
@@ -80,81 +76,81 @@ void create_topo(struct router **root)
     r[3] = create_router(&rsa[3], r[1]);
     r[4] = create_router(&rsa[4], r[1]);
 
-    e[1] = create_leaf(&lsa[1], 0, r[1]);
-    e[2] = create_leaf(&lsa[2], 0, r[1]);
-    e[3] = create_leaf(&lsa[3], 0, r[1]);
+    create_leaf(&lsa[1], 0, r[1]);
+    create_leaf(&lsa[2], 0, r[1]);
+    create_leaf(&lsa[3], 0, r[1]);
 
     
     // r2
     r[5] = create_router(&rsa[5], r[2]);
     r[6] = create_router(&rsa[6], r[2]);
 
-    e[4] = create_leaf(&lsa[4], 0, r[2]);
-    e[5] = create_leaf(&lsa[5], 0, r[2]);
+    create_leaf(&lsa[4], 0, r[2]);
+    create_leaf(&lsa[5], 0, r[2]);
 
 
     // r3
     r[7] = create_router(&rsa[7], r[3]);
 
-    e[6] = create_leaf(&lsa[6], 0, r[3]);
-    e[7] = create_leaf(&lsa[7], 0, r[3]);
+    create_leaf(&lsa[6], 0, r[3]);
+    create_leaf(&lsa[7], 0, r[3]);
     
 
     // r4
     r[8] = create_router(&rsa[8], r[4]);
     r[9] = create_router(&rsa[9], r[4]);
 
-    e[8] = create_leaf(&lsa[8], 0, r[4]);
-    e[9] = create_leaf(&lsa[9], 0, r[4]);
-    e[10] = create_leaf(&lsa[10], 0, r[4]);
-    e[11] = create_leaf(&lsa[11], 0, r[4]);
+    create_leaf(&lsa[8], 0, r[4]);
+    create_leaf(&lsa[9], 0, r[4]);
+    create_leaf(&lsa[10], 0, r[4]);
+    create_leaf(&lsa[11], 0, r[4]);
 
 
     // r5
-    e[12] = create_leaf(&lsa[12], 0, r[5]);
-    e[13] = create_leaf(&lsa[13], 0, r[5]);
+    create_leaf(&lsa[12], 0, r[5]);
+    create_leaf(&lsa[13], 0, r[5]);
 
 
     // r6
     r[10] = create_router(&rsa[10], r[6]);
 
-    e[14] = create_leaf(&lsa[14], 0, r[6]);
+    create_leaf(&lsa[14], 0, r[6]);
 
 
     // r7
-    e[15] = create_leaf(&lsa[15], 0, r[7]);
+    create_leaf(&lsa[15], 0, r[7]);
 
 
     // r8
     r[11] = create_router(&rsa[11], r[8]);
 
-    e[16] = create_leaf(&lsa[16], 0, r[8]);
-    e[17] = create_leaf(&lsa[17], 0, r[8]);
+    create_leaf(&lsa[16], 0, r[8]);
+    create_leaf(&lsa[17], 0, r[8]);
 
 
     // r9
     r[12] = create_router(&rsa[12], r[9]);
 
-    e[18] = create_leaf(&lsa[18], 0, r[9]);
-    e[19] = create_leaf(&lsa[19], 0, r[9]);
+    create_leaf(&lsa[18], 0, r[9]);
+    create_leaf(&lsa[19], 0, r[9]);
 
 
     // r10
-    e[20] = create_leaf(&lsa[20], 0, r[10]);
-    e[21] = create_leaf(&lsa[21], 0, r[10]);
-    e[22] = create_leaf(&lsa[22], 0, r[10]);
+    create_leaf(&lsa[20], 0, r[10]);
+    create_leaf(&lsa[21], 0, r[10]);
+    create_leaf(&lsa[22], 0, r[10]);
 
 
     // r11
-    e[23] = create_leaf(&lsa[23], 0, r[11]);
-    e[24] = create_leaf(&lsa[24], 0, r[11]);
-    e[25] = create_leaf(&lsa[25], 0, r[11]);
-    e[26] = create_leaf(&lsa[26], 0, r[11]);
+    create_leaf(&lsa[23], 0, r[11]);
+    create_leaf(&lsa[24], 0, r[11]);
+    create_leaf(&lsa[25], 0, r[11]);
+    create_leaf(&lsa[26], 0, r[11]);
 
 
     // r12
-    e[27] = create_leaf(&lsa[27], 0, r[12]);
-    e[28] = create_leaf(&lsa[28], 0, r[12]);
+    create_leaf(&lsa[27], 0, r[12]);
+    create_leaf(&lsa[28], 0, r[12]);
 
     for (i = 1; i <= nr; i++) {
         p = get_router(r[i]->node.parent);
@@ -166,7 +162,6 @@ void create_topo(struct router **root)
 void create_testbed(struct router **root)
 {
     int i, nr, ne;
-    uint16_t *t;
     struct router *p;
 
     char n[INET6_ADDRSTRLEN];
@@ -179,9 +174,7 @@ void create_testbed(struct router **root)
     struct sockaddr_in6 ssa;
     struct sockaddr_in6 rsa[nr + 1];
     struct sockaddr_in6 lsa[ne + 1];
-
     struct router *r[nr + 1];
-    struct leaf *e[ne + 1];
 
     ssa.sin6_family = AF_INET6;
     ssa.sin6_port = 0;
@@ -234,25 +227,25 @@ void create_testbed(struct router **root)
     r[13] = create_router(&rsa[13], r[7]);    // r321
 
     // r300
-    e[1] = create_leaf(&lsa[1], 0, r[8]);   // c3001
-    e[2] = create_leaf(&lsa[2], 0, r[8]);   // c3101
+    create_leaf(&lsa[1], 0, r[8]);   // c3001
+    create_leaf(&lsa[2], 0, r[8]);   // c3101
 
     // r301
-    e[3] = create_leaf(&lsa[3], 0, r[9]);   // c3201
+    create_leaf(&lsa[3], 0, r[9]);   // c3201
 
     // r310
-    e[4] = create_leaf(&lsa[4], 0, r[10]);   // c3301
-    e[5] = create_leaf(&lsa[5], 0, r[10]);   // c3401
+    create_leaf(&lsa[4], 0, r[10]);   // c3301
+    create_leaf(&lsa[5], 0, r[10]);   // c3401
 
     // r311
-    e[6] = create_leaf(&lsa[6], 0, r[11]);   // c3501
-    e[7] = create_leaf(&lsa[7], 0, r[11]);   // c3601
+    create_leaf(&lsa[6], 0, r[11]);   // c3501
+    create_leaf(&lsa[7], 0, r[11]);   // c3601
 
     // r320
-    e[8] = create_leaf(&lsa[8], 0, r[12]);   // c3701
+    create_leaf(&lsa[8], 0, r[12]);   // c3701
 
     // r321
-    e[9] = create_leaf(&lsa[9], 0, r[13]);   // c3801
+    create_leaf(&lsa[9], 0, r[13]);   // c3801
 
     for (i = 1; i <= nr; i++) {
         p = get_router(r[i]->node.parent);

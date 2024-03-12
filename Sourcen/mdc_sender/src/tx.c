@@ -19,6 +19,14 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+
+static uint8_t *txbuf = NULL;
+static uint8_t *buf = NULL;
+static size_t txlen = 0;
+static size_t buflen = 0;
+static struct tun_pi *pi;
+static struct ipv6hdr *ip;
+
 void set_rt_hdr(struct ip6_rthdr *hdr, uint8_t nh, uint8_t len, uint8_t type,
                 uint8_t segleft)
 {
@@ -118,7 +126,8 @@ int tx_mdc(int fd, struct tx_group *grp, uint8_t *l3pl, size_t plen)
     size_t hlen;
     struct child *i;
     struct ip6_mdc_hdr *hdr, *mdc;
-    static struct sockaddr_in6 dst = { AF_INET6, 0 };
+    static struct sockaddr_in6 dst = { .sin6_family = AF_INET6,
+                                       .sin6_port = 0 };
 
     if (fd < 1 || !grp || !l3pl)
         return -1;
@@ -151,9 +160,10 @@ int tx_uni(int fd, struct tx_group *grp, struct ipv6hdr *ip, size_t len)
 {
     int n;
     size_t i;
-    static struct sockaddr_in6 dst = { AF_INET6, 0 };
+    static struct sockaddr_in6 dst = { .sin6_family = AF_INET6,
+                                       .sin6_port = 0 };
     static struct udphdr *udp;
-    static struct tcphdr *tcp;
+    // static struct tcphdr *tcp;
     struct addr *addr;
 
     if (fd < 1 || !grp || !ip)
@@ -199,14 +209,9 @@ void tx_loop(struct tx_targs *args)
     int n;
     size_t iplen;
     struct tx_group *grp;
-    struct sockaddr_in6 dst;
-    size_t pilen = sizeof(struct tun_pi);
 
     if (args->tun_fd < 1 || args->ip6_fd < 1)
         return;
-
-    dst.sin6_family = AF_INET6;
-    dst.sin6_port = 0;
 
     for (;;) {
 
@@ -238,8 +243,10 @@ pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu)
     pthread_t tid;
     struct tx_targs *args;
 
-    if (init_txg())
-        return -1;
+    if (init_txg()) {
+        printf("init txg failed!\n");
+        return 0;
+    }
 
     args = malloc(sizeof(*args));
     args->tun_fd = tun_fd;
@@ -251,7 +258,7 @@ pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu)
 
     if (ret) {
         perror("pthread_create (tx)");
-        return -1;
+        return 0;
     }
 
     return tid;

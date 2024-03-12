@@ -10,6 +10,12 @@
 #include <stdlib.h>
 
 
+static Pvoid_t ht = NULL;
+static struct router *root = NULL;
+static struct rcvr *rcvr = NULL;
+static size_t nrcvr = 0;
+static struct tx_group *_Atomic txg = NULL;
+
 Word_t *_join(struct sockaddr_in6 *sa)
 {
     Word_t *pv;
@@ -33,7 +39,6 @@ Word_t *_join(struct sockaddr_in6 *sa)
 /* Create MEADcast group. */
 int init_group(struct in6_addr *addr, uint16_t port)
 {
-    int ret;
     Word_t *pv;
     struct sockaddr_in6 sa;
 

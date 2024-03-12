@@ -19,13 +19,13 @@ struct ip6_mdc_hdr {
                 rsp:  1,
                 hops: 6,
                 res: 16;
-        };
+        } __attribute__((packed));
         uint32_t flags;
     };
     uint32_t dlvm;
     uint32_t rtm;
     struct in6_addr addr[];
-} __attribute__((packed));
+};// __attribute__((packed));
 
 size_t get_mdc_hdr_size(size_t num_dst);
 int start(char *tif, char *bif, struct in6_addr *taddr, struct in6_addr *baddr,
