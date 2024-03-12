@@ -222,8 +222,18 @@ def install_vm(name: str, cpus: int, mem: int, disk: str,
     run(cmd, check=True)
 
 
-def set_mgm_if(eths: dict, net: IPv4Interface, netid: int, id: int):
-    ifaddr = re.sub(r'\.\d\.\d\/', f'.{netid}.{id}/', str(net))
+def set_mgm_if(eths: dict, net: IPv4Interface, netid: int, id: int,
+               router: bool = False):
+
+    if router:
+        # e.g. id = 4   --> 10.11.0.4
+        #      id = 432 --> 10.11.43.2
+        str_id = f'{id:03d}'
+        ifaddr = re.sub(r'\.\d{1,3}\.\d{1,3}\.\d{1,3}\/',
+                        f'.{netid}.{int(str_id[:2])}.{str_id[2]}/', str(net))
+    else:
+        ifaddr = re.sub(r'\.\d{1,3}\.\d{1,3}\/', f'.{netid}.{id}/', str(net))
+
     eths[MGM_IF] = {
         'dhcp4': False,
         'dhcp6': False,
@@ -363,8 +373,8 @@ class Tran:
 
     def set_net(self, prefix: IPv6Network) -> IPv6Network:
         """Creates network based on the following pattern:
-           Prefix::self.r1self.r2:0/self.mask"""
-        id = ((i2h_char(self.r1) << 8) + i2h_char(self.r2)) << 16
+           Prefix::area:self.r1self.r2:0/self.mask"""
+        id = (((self.r1 << 8) + self.r2 << 16) + (self.area << 32))
         net_addr = IPv6Address(int(prefix.network_address) + id)
         return IPv6Network(f'{net_addr}/{self.mask}')
 
@@ -398,7 +408,7 @@ class Abr:
 class Router:
     """Holds a list of stub and transit networks it is connected to."""
 
-    NET_ID = 99
+    NET_ID = 11
     IFF_OFF = 2
 
     def __init__(self, id: int, stubs: List[Stub], trans: List[Tran]):
@@ -437,7 +447,7 @@ class Router:
             frr_buf = template.format(ABR=r.get_abr_str(prefix))
             np_buf = {'network': {'version': 2, 'ethernets': {}}}
             eths = np_buf["network"]['ethernets']
-            set_mgm_if(eths, mgm, Router.NET_ID, r.id)
+            set_mgm_if(eths, mgm, Router.NET_ID, r.id, True)
 
             i = 0
             nets: [str] = [MGM_NET]
@@ -465,7 +475,7 @@ class Router:
 
             for tran in r.trans:
                 addr = f'{tran.net.network_address + i2h_char(r.id)}/{tran.mask}'
-                i = add_net(i, tran.area, FRR_TRAN_CFG, tran.name)
+                i = add_net(i, tran.area, FRR_TRAN_CFG, tran.name, addr)
 
             np_cfg = path.join(outdir, r.name + '.yaml')
             frr_cfg = path.join(outdir, r.name + '.conf')
