@@ -224,10 +224,10 @@ index 1e8c90e97608..f0ce82d33e6b 100644
  		       ip6_forward_finish);
 diff --git a/net/ipv6/mdcast.c b/net/ipv6/mdcast.c
 new file mode 100644
-index 000000000000..ac434dd243fa
+index 000000000000..b64835cba68d
 --- /dev/null
 +++ b/net/ipv6/mdcast.c
-@@ -0,0 +1,513 @@
+@@ -0,0 +1,379 @@
 +#include "asm/checksum_64.h"
 +#include "linux/gfp_types.h"
 +#include "linux/in.h"
@@ -292,20 +292,12 @@ index 000000000000..ac434dd243fa
 +        return -1;
 +    }
 +
-+    // #ifdef MEADCAST_DEBUG
-+    // print_debug(iphdr, hdr);
-+    // #endif /* ifdef MEADCAST_DEBUG */
-+
 +    // TODO: handle wrong num_dst
 +    if (hdr->discovery) {
 +        md_dcv_rcv(skb);
 +    } else {
 +        md_data_rcv(skb);
 +    }
-+
-+
-+    // for (int i = 0; i < hdr->num_dst; i++)
-+    //     printk("MEADcast: Dst[%d] is %pI6c\n", i, &hdr->dst[i]);
 +
 +    return 0;
 +}
@@ -327,8 +319,8 @@ index 000000000000..ac434dd243fa
 +        return -1;
 +    }
 +
-+    printk("MEADcast: Got a packet from %pI6c to %pI6c for %pI6c on %d\n",
-+           &iphdr->saddr, &iphdr->daddr, &hdr->dst, skb->skb_iif);
++    // printk("MEADcast: Got a packet from %pI6c to %pI6c for %pI6c on %d\n",
++    //        &iphdr->saddr, &iphdr->daddr, &hdr->dst, skb->skb_iif);
 +    #ifdef MEADCAST_DEBUG
 +    print_debug(iphdr, hdr);
 +    #endif /* ifdef MEADCAST_DEBUG */
@@ -372,11 +364,6 @@ index 000000000000..ac434dd243fa
 +    if (!dst)
 +        return -1;
 +
-+    // printk("SK DATA: %p\n"
-+    //        "L3 HDR:  %p\n"
-+    //        "L4 HDR:  %p",
-+    //        skb->data, &ip, hdr);
-+
 +    rthdr_len = (hdr->rt_hdr.hdrlen + 1) * 8;
 +    ip_plen = ntohs(ip.payload_len) - rthdr_len;
 +    uh = (void *) hdr + rthdr_len;
@@ -389,22 +376,7 @@ index 000000000000..ac434dd243fa
 +    *pull = ip;
 +    skb_reset_network_header(skb);
 +
-+    // printk("SK PULL: %p\n"
-+    //        "SK DATA: %p\n"
-+    //        "L3 HDR:  %p\n"
-+    //        "L4 HDR:  %p",
-+    //        pull, skb->data, skb_network_header(skb), skb_transport_header(skb));
-+    //
-+    // printk("IP SRC: %pI6c\n"
-+    //        "IP DST: %pI6c\n"
-+    //        "IP PAY: %d\n"
-+    //        "SK LEN: %u",
-+    //        &ip.saddr, &ip.daddr, ntohs(ip.payload_len), skb->len);
-+
 +    uh->check = 0;
-+    // uh->check = csum_ipv6_magic(&ip.saddr, &ip.daddr, ip_plen, IPPROTO_UDP, 
-+    //                             csum_partial(uh, ip_plen, 0));
-+    // udp6_csum(skb->sk, skb, &ip.saddr, &ip.daddr, ntohs(ip.payload_len));
 +    __wsum csum = csum_partial(uh, ip_plen, 0);
 +
 +	/* add protocol-dependent pseudo-header */
@@ -412,13 +384,6 @@ index 000000000000..ac434dd243fa
 +				    ip_plen, IPPROTO_UDP, csum);
 +	if (uh->check == 0)
 +		uh->check = CSUM_MANGLED_0;
-+
-+
-+    // printk("UH SRC: %d\n"
-+    //        "UH DST: %d\n"
-+    //        "UH LEN: %d\n"
-+    //        "UH CHK: %d",
-+    //        ntohs(uh->source), ntohs(uh->dest), ntohs(uh->len), ntohs(uh->check));
 +
 +    return set_dst(skb, &ip.daddr);
 +}
@@ -464,105 +429,6 @@ index 000000000000..ac434dd243fa
 +    ip->daddr = hdr->dst[i + 1];
 +    // printk("M2U last i+1=%d ip=%pI6c", i + 1, &ip->daddr);
 +    return set_dst(skb, &ip->daddr);
-+
-+ //    fl6.daddr = ip->daddr;
-+	//
-+ //    // get route back to sender
-+ //    dst = ip6_route_output(net, skb->sk, &fl6);
-+ //    if (dst->error) {
-+ //        printk("Error during route lookup\n!");
-+ //        dst_release(dst);
-+ //        return 1;
-+ //    }
-+	//
-+	// skb_dst_set(skb, dst);
-+ //    return 0;
-+}
-+
-+/* Bitmaps:
-+ *   Router:     1 = router, 0 = ep
-+ *   Delivery:   1 = not delivered, 0 = delivered 
-+ *
-+ * Iterating Bitmaps:
-+ * If EP without router skip (safety)
-+ * If bit i is a router do a route lookup for bit i+1 (verify its an EP)
-+ * Go on til next router bit. Mark all other routers as delivered.
-+ */
-+int md_data_rcv2(struct sk_buff *skb)
-+{
-+    int i, j, n, len, rt, dlv, r1, r2;
-+    bool start;
-+    struct ipv6_rt_md_hdr *hdr;
-+    struct sk_buff *cpy;
-+    struct net *net;
-+
-+    hdr = (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
-+    if (hdr->discovery || hdr->response) {
-+        printk("MEADcast: invalid data packet!\n");
-+        return -1;
-+    }
-+
-+    hdr->hopcount++;
-+
-+    start = false;
-+    r1 = 0;
-+    r2 = 0;
-+    n = sizeof(hdr->rtmap) * 8;
-+
-+    for (i = 0; i < hdr->num_dst; i++) {
-+
-+        j = GET_I(i);
-+        rt  = CHECK_BIT(hdr->rtmap, j);
-+        dlv = CHECK_BIT(hdr->dlvmap, j);
-+
-+        if (!rt)
-+            continue;
-+
-+        if (start) {
-+
-+            if (dlv) {
-+                // if next router hasn't been delivered yet
-+                if (!r2)
-+                    r2 = i;
-+
-+                len = r2 - r1 - 1;
-+                printk("Deliver %d eps via rt at %d (copy)\n", len, r1);
-+
-+                cpy = pskb_copy(skb, GFP_ATOMIC);
-+                net = dev_net(cpy->dev);
-+                md_data_fwd(cpy, net, r1, r2);
-+
-+                if (dst_output(net, cpy->sk, cpy)) {
-+                    printk("Error during md data fwd!\n");
-+                    return 1;
-+                }
-+
-+                r1 = i;
-+                r2 = 0;
-+            }
-+            // if next router already has been delivered
-+            else if (!r2)
-+                r2 = i;
-+
-+            continue;
-+        }
-+
-+        if (!start && dlv) {
-+            start = true;
-+            r1 = i;
-+            continue;
-+        }
-+    }
-+
-+    if (!r2)
-+        r2 = i;
-+
-+    len = r2 - r1 - 1;
-+    printk("Deliver %d eps via rt at %d\n", len, r1);
-+    md_data_fwd(skb, dev_net(skb->dev), r1, r2);
-+
-+    // printk("FIN: %s\n", le);
-+    return 0;
 +}
 +
 +int md_data_rcv(struct sk_buff *skb)
@@ -602,7 +468,7 @@ index 000000000000..ac434dd243fa
 +            if (dlv) {
 +
 +                len = r2 - r1 - 1;
-+                printk("Deliver %d eps via rt at %d (copy)\n", len, r1);
++                // printk("Deliver %d eps via rt at %d (copy)\n", len, r1);
 +
 +                cpy = pskb_copy(skb, GFP_ATOMIC);
 +                net = dev_net(cpy->dev);
@@ -629,7 +495,7 @@ index 000000000000..ac434dd243fa
 +        r2 = i;
 +
 +    len = r2 - r1 - 1;
-+    printk("Deliver %d eps via rt at %d\n", len, r1);
++    // printk("Deliver %d eps via rt at %d\n", len, r1);
 +    md_data_fwd(skb, dev_net(skb->dev), r1, r2);
 +
 +    // printk("FIN: %s\n", le);
