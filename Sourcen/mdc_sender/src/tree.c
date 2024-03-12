@@ -284,10 +284,46 @@ struct router *back_propagate(struct router *r)
     return p;
 }
 
-void rec_back_propagate(struct router *r)
+static inline void rec_back_propagate(struct router *r)
 {
     while (r)
         r = back_propagate(r);
+}
+
+static inline void set_merging_stats(void *p, size_t i, int v)
+{
+    closest = p;
+    ic = i;
+    init_hops = v;
+}
+
+static inline bool is_mergeable(struct router *r)
+{
+    return closest &&
+           abs(init_hops - (int) r->hops) <= args.merge_range &&
+           abs((int) closest->hops - (int) r->hops) <= args.merge_range;
+}
+
+/* If we traverse the tree towards the root in the next iteration, it might be
+ * beneficial to set `r`'s parent as the closest router.
+ *
+ * In other words: if the current router has no free leaf nodes or free child
+ * nodes left and the parent router has at least one free child node (besides
+ * `r`) or a free leaf node left, the leaf nodes should be merged under the
+ * parent router. */
+static inline struct router *should_use_parent_as_closest(struct router *r,
+                                                          size_t m)
+{
+    struct router *pr;
+
+    if (r && r->fleaf <= m && r->fchild < 1 &&
+        (pr = get_router(r->node.parent)) &&
+        (pr->fleaf > 0 || pr->fchild > 1) &&
+        is_mergeable(pr)
+    )
+        return pr;
+
+    return NULL;
 }
 
 /* Updates the router bitmap `bm` and the address list `l`.
@@ -297,34 +333,33 @@ void rec_back_propagate(struct router *r)
  * Merge:
  * Returns an offset of 0, indicating that leafs will be merged.
  * If `r` is closer to the sender than `closest`, `closest` will be set to `r`
- * and the address of its predecessor in `l` will be overwritten.
+ * and the address of its predecessor at index `ic` in `l` will be overwritten.
+ * If after adding `m` leafs of `r`, `r` has no free leafs or free childs left
+ * the parent will be set as closest if it is within `MERGE_RANGE` (see:
+ * `should_use_parent_as_closest`).
  *
  * No merge:
  * Returns an offset of 1, indicating that leafs will not be merged.
  * Sets the router bit in `bm` at index `n` and copies the address of `r` to
  * `l` at index `n`. */
 size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
-                      size_t n)
+                      size_t n, size_t m)
 {
     size_t i, off;
     struct child *c;
+    struct router *pr;
 
     i = 0;
-    off = 0;
-    if (!args.merge_range) {
-        off = n;
-        i = 1;
+
+    if (!args.merge_range)
         goto bitmap;
-    }
 
     if (!closest) {
-        closest = r;
-        init_hops = r->hops;
-        i = 1;
+        set_merging_stats(r, n, r->hops);
         goto bitmap;
     }
 
-    if (closest->hops > r->hops) {
+    else if (closest->hops > r->hops) {
         closest = r;
         goto copy;
     }
@@ -332,15 +367,19 @@ size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
     return i;
 
 bitmap:
+    i = 1;
     /* set bitmap starting from msb. */
-    (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - off);
+    (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - ic);
 copy:
-    memcpy(&l[off], &r->sa.sin6_addr, sizeof(r->sa.sin6_addr));
+    if ((pr = should_use_parent_as_closest(r, m)))
+        closest = pr;
+    memcpy(&l[ic], &closest->sa.sin6_addr, sizeof(closest->sa.sin6_addr));
 
     return i;
 }
 
-/* Appends `m` free leafs of `r` to `l` at index `l`. */
+/* Appends `m` free leafs of `r` to `l` at index `n`, and updates bitmap `bm`
+ * accordingly. */
 void add2txg(struct in6_addr *l, uint32_t *bm, struct router *r,
              size_t *n, size_t m)
 {
@@ -349,7 +388,7 @@ void add2txg(struct in6_addr *l, uint32_t *bm, struct router *r,
     struct node *v;
     struct rcvr *rcvr;
 
-    s = set_txg_router(l, bm, r, *n);
+    s = set_txg_router(l, bm, r, *n, m);
     c = get_free_leaf(r);
     for (i = s; i < m + s; i++) {
         v = c->v;
@@ -388,17 +427,16 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
     c->n = *grp ? *grp : NULL;
     *grp = c;
 
-    print_grp(&addrs[0], *len, *bm);
+    // print_grp(&addrs[0], *len, *bm);
     *len = 0;
     *bm  = 0;
-    closest = NULL;
-    init_hops = 0;
+    set_merging_stats(NULL, -1, 0);
 }
 
 struct tx_group *greedy_grouping(struct router *s)
 {
     size_t i, n, m, p, max;
-    struct router *r;
+    struct router *r, *pr;
     struct child *c, *mdc;
     struct tx_group *grp;
     struct rcvr *rcvr;
@@ -412,21 +450,22 @@ struct tx_group *greedy_grouping(struct router *s)
         return NULL;
     
     mdc = NULL;
-    bm = 0;
-    n  = 0;
-    m  = 0;
+    bm  = 0;
+    n   = 0;
+    m   = 0;
+    r   = get_start(s);
 
-    r = get_start(s);
     while (r) {
+
 start:
+        /* If nodes are mergeable, don't consider the router for the address
+         * list space calculation (p = 0).
+         * Otherwise, include the router address for the space calculation
+         * (p = 1), and reset leaf merging parameters. */
+        if ((p = !is_mergeable(r)))
+            set_merging_stats(NULL, -1, 0);
+
         while (r->fleaf > 0) {
-            /* if nodes can be merged, don't consider router address. */
-            if (closest) {
-                p = 0;
-                if (abs(init_hops - (int) r->hops) > args.merge_range)
-                    goto next;
-            } else
-                p = 1;
 
             m = n + r->fleaf + p;
 
@@ -450,17 +489,22 @@ start:
             }
         }
 
-        while (r->fchild > 0) {
-            c = get_free_router(r);
-            if (c) {
-                r = get_router(c->v);
-                goto start;
-            }
+        if (r->fchild > 0 && (c = get_free_router(r))) {
+            r = get_router(c->v);
+            goto start;
         }
 
-        if (r->node.parent) {
+        if ((pr = get_router(r->node.parent))) {
+
+            /* Set parent as closest while going up, to avoid wrong mergage. */
+            if (closest == r && should_use_parent_as_closest(r, n)) {
+                    memcpy(&addrs[ic], &pr->sa.sin6_addr,
+                           sizeof(pr->sa.sin6_addr));
+                    closest = pr;
+            }
+
             back_propagate(r);
-            r = get_router(r->node.parent);
+            r = pr;
 
             /* if parent is root finish group */
             if (!r->node.parent)

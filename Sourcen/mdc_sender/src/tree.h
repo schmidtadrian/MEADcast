@@ -54,6 +54,8 @@ struct router {
 
 /* Points to closest router in current group. */
 static struct router *closest = NULL;
+/* Stores the index of the closest router in the address list. */
+static size_t ic = -1;
 /* Stores distance of first router in current group. */
 static int init_hops = 0;
 

@@ -251,6 +251,20 @@ void print_args(struct arguments *args)
     printf("]\n");
 }
 
+void print_grouping_args(struct arguments *args)
+{
+    printf("Grouping params:\n"
+           "MAX addrs:\t%zu\n"
+           "OK  addrs:\t%zu\n"
+           "MIN leafs:\t%zu\n"
+           "MIN childs:\t%zu\n"
+           "Split nodes:\t%d\n"
+           "Merge range:\t%zu\n",
+           args->max_addrs, args->ok_addrs,
+           args->min_leafs, args->min_routers,
+           args->split_nodes, args->merge_range);
+}
+
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
 
@@ -294,4 +308,5 @@ void init_args(struct arguments *args, int argc, char *argv[])
     set_default_args(args);
     argp_parse(&argp, argc, argv, 0, 0, args);
     // print_args(args);
+    print_grouping_args(args);
 }

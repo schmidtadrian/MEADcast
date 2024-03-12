@@ -41,6 +41,7 @@ struct arguments {
 };
 
 void init_args(struct arguments *args, int argc, char *argv[]);
+void print_grouping_args(struct arguments *args);
 
 enum opt_grp {
     OPT_GRP_NET     = 1,
