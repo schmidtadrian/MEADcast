@@ -16,9 +16,15 @@
  */
 
 /* Points to closest router in current group. */
-static struct router *closest = NULL;
+static struct router *cr = NULL;
+
+/* Points to a potential closest router that will be used if another mergable
+ * router is found. */
+static struct router *pcr = NULL;
+
 /* Stores the index of the closest router in the address list. */
-static size_t ic = -1;
+static size_t icr = 0;
+
 /* Stores distance of first router in current group. */
 static int init_hops = 0;
 
@@ -305,16 +311,23 @@ static inline void rec_back_propagate(struct router *r)
 
 static inline void set_merging_stats(void *p, size_t i, int v)
 {
-    closest = p;
-    ic = i;
+    cr  = p;
+    icr = i;
     init_hops = v;
+}
+
+static inline void reset_merging_stats()
+{
+    cr  = NULL;
+    pcr = NULL;
+    icr = 0;
+    init_hops = 0;
 }
 
 static inline bool is_mergeable(struct router *r)
 {
-    return closest &&
-           abs(init_hops - (int) r->hops) <= args.merge_range &&
-           abs((int) closest->hops - (int) r->hops) <= args.merge_range;
+    return cr && abs(init_hops - (int) r->hops) <= args.merge_range &&
+                 abs((int) cr->hops - (int) r->hops) <= args.merge_range;
 }
 
 /* If we traverse the tree towards the root in the next iteration, it might be
@@ -356,23 +369,31 @@ static inline struct router *should_use_parent_as_closest(struct router *r,
  * Sets the router bit in `bm` at index `n` and copies the address of `r` to
  * `l` at index `n`. */
 size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
-                      size_t n, size_t m)
+                      size_t n)
 {
     size_t i;
-    struct router *pr, *tmp;
+    struct router *tmp;
 
     i = 0;
 
-    if (!args.merge_range)
+    if (!args.merge_range) {
+        icr = n;
         goto bitmap;
+    }
 
-    if (!closest) {
+    if (!cr) {
         set_merging_stats(r, n, r->hops);
         goto bitmap;
     }
 
-    else if (closest->hops > r->hops) {
-        closest = r;
+    if (pcr->hops < r->hops && pcr->hops < cr->hops) {
+        cr  = pcr;
+        pcr = NULL;
+        goto copy;
+    }
+
+    if (r->hops < cr->hops) {
+        cr = r;
         goto copy;
     }
 
@@ -381,11 +402,10 @@ size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
 bitmap:
     i = 1;
     /* set bitmap starting from msb. */
-    (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - ic);
+    (*bm) |= 1 << (sizeof(*bm) * 8 - 1 - icr);
 copy:
-    pr  = should_use_parent_as_closest(r, m);
-    tmp = pr ? pr : r;
-    memcpy(&l[ic], &tmp->sa.sin6_addr, sizeof(tmp->sa.sin6_addr));
+    tmp = cr ? cr : r;
+    memcpy(&l[icr], &tmp->sa.sin6_addr, sizeof(tmp->sa.sin6_addr));
 
     return i;
 }
@@ -400,7 +420,7 @@ void add2txg(struct in6_addr *l, uint32_t *bm, struct router *r,
     struct node *v;
     struct rcvr *rcvr;
 
-    s = set_txg_router(l, bm, r, *n, m);
+    s = set_txg_router(l, bm, r, *n);
     c = get_free_leaf(r);
     for (i = s; i < m + s; i++) {
         v = c->v;
@@ -442,7 +462,7 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
     // print_grp(&addrs[0], *len, *bm);
     *len = 0;
     *bm  = 0;
-    set_merging_stats(NULL, 0, 0);
+    reset_merging_stats();
 }
 
 struct tx_group *greedy_grouping(struct router *s)
@@ -474,8 +494,8 @@ start:
          * list space calculation (p = 0).
          * Otherwise, include the router address for the space calculation
          * (p = 1), and reset leaf merging parameters. */
-        if ((p = !is_mergeable(r)))
-            set_merging_stats(NULL, 0, 0);
+        if ((p = !is_mergeable(r)) && cr)
+            reset_merging_stats();
 
         while (r->fleaf > 0) {
 
@@ -508,12 +528,9 @@ start:
 
         if ((pr = get_router(r->node.parent))) {
 
-            /* Set parent as closest while going up, to avoid wrong mergage. */
-            if (closest == r && should_use_parent_as_closest(r, n)) {
-                    memcpy(&addrs[ic], &pr->sa.sin6_addr,
-                           sizeof(pr->sa.sin6_addr));
-                    closest = pr;
-            }
+            /* If parent is mergable set it as potential closest router. */
+            if (cr && is_mergeable(pr))
+                pcr = pr;
 
             back_propagate(r);
             r = pr;
