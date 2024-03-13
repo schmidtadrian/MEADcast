@@ -5,6 +5,9 @@
 #include "tree.h"
 #include "tx.h"
 #include "util.h"
+#include <arpa/inet.h>
+#include <ifaddrs.h>
+#include <linux/if.h>
 #include <linux/if_ether.h>
 #include <linux/if_tun.h>
 #include <linux/ipv6.h>
@@ -20,12 +23,14 @@
 #include <unistd.h>
 
 
-static uint8_t *txbuf = NULL;
-static uint8_t *buf = NULL;
-static size_t txlen = 0;
-static size_t buflen = 0;
+static uint8_t *txbuf  = NULL;
+static uint8_t *buf    = NULL;
+static size_t txlen    = 0;
+static size_t buflen   = 0;
+
 static struct tun_pi *pi;
 static struct ipv6hdr *ip;
+static struct in6_addr bia;
 
 void set_rt_hdr(struct ip6_rthdr *hdr, uint8_t nh, uint8_t len, uint8_t type,
                 uint8_t segleft)
@@ -128,6 +133,7 @@ int tx_mdc(int fd, struct tx_group *grp, uint8_t *l3pl, size_t plen)
     struct ip6_mdc_hdr *hdr, *mdc;
     static struct sockaddr_in6 dst = { .sin6_family = AF_INET6,
                                        .sin6_port = 0 };
+    static struct udphdr *udp;
 
     if (fd < 1 || !grp || !l3pl)
         return -1;
@@ -143,6 +149,12 @@ int tx_mdc(int fd, struct tx_group *grp, uint8_t *l3pl, size_t plen)
         hlen = get_mdc_hdr_size(hdr->dsts);
         mdc = (struct ip6_mdc_hdr *) (l3pl - hlen);
         memcpy(mdc, hdr, hlen);
+
+        udp = (struct udphdr *) l3pl;
+        udp->check = 0;
+        udp->check = htons(
+            net_checksum_tcpudp(ntohs(udp->len), 0, IPPROTO_UDP,
+                                &bia, &dst.sin6_addr, udp));
 
         n = sendto(fd, mdc, hlen + plen, 0,
                    (struct sockaddr *) &dst, sizeof(dst));
@@ -237,6 +249,34 @@ void tx_loop(struct tx_targs *args)
     }
 }
 
+int get_sa()
+{
+    int ret;
+    struct ifaddrs *ifap, *ifa;
+    struct sockaddr_in6 *sa;
+
+    ret = getifaddrs (&ifap);
+    if (ret) {
+        perror("getifaddrs");
+        goto exit;
+    }
+
+    for (ifa = ifap; ifa; ifa = ifa->ifa_next) {
+        if (ifa->ifa_addr && ifa->ifa_addr->sa_family == AF_INET6 &&
+            !strncmp(args.bifname, ifa->ifa_name, IFNAMSIZ)) {
+            sa = (struct sockaddr_in6 *) ifa->ifa_addr;
+            if (IN6_IS_ADDR_LOOPBACK(&sa->sin6_addr) ||
+                IN6_IS_ADDR_LINKLOCAL(&sa->sin6_addr))
+                continue;
+            bia = sa->sin6_addr;
+        }
+    }
+
+exit:
+    freeifaddrs(ifap);
+    return ret;
+}
+
 pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu)
 {
     int ret;
@@ -254,8 +294,9 @@ pthread_t start_tx(int tun_fd, int mdc_fd, int ip6_fd, size_t mtu)
     args->ip6_fd = ip6_fd;
 
     init_tx(mtu);
-    ret = pthread_create(&tid, NULL, (void *) tx_loop, (void *) args);
+    get_sa();
 
+    ret = pthread_create(&tid, NULL, (void *) tx_loop, (void *) args);
     if (ret) {
         perror("pthread_create (tx)");
         return 0;

@@ -224,10 +224,10 @@ index 1e8c90e97608..f0ce82d33e6b 100644
  		       ip6_forward_finish);
 diff --git a/net/ipv6/mdcast.c b/net/ipv6/mdcast.c
 new file mode 100644
-index 000000000000..b64835cba68d
+index 000000000000..bb91b6ee0964
 --- /dev/null
 +++ b/net/ipv6/mdcast.c
-@@ -0,0 +1,379 @@
+@@ -0,0 +1,368 @@
 +#include "asm/checksum_64.h"
 +#include "linux/gfp_types.h"
 +#include "linux/in.h"
@@ -249,10 +249,6 @@ index 000000000000..b64835cba68d
 +#ifndef INET6_ADDRSTRLEN
 +#define INET6_ADDRSTRLEN 46
 +#endif
-+
-+// #ifndef MEADCAST_DEBUG
-+// #define MEADCAST_DEBUG
-+// #endif /* ifndef MEADCAST_DEBUG */
 +
 +#define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 +
@@ -321,9 +317,6 @@ index 000000000000..b64835cba68d
 +
 +    // printk("MEADcast: Got a packet from %pI6c to %pI6c for %pI6c on %d\n",
 +    //        &iphdr->saddr, &iphdr->daddr, &hdr->dst, skb->skb_iif);
-+    #ifdef MEADCAST_DEBUG
-+    print_debug(iphdr, hdr);
-+    #endif /* ifdef MEADCAST_DEBUG */
 +
 +    hdr->hopcount++;
 +    dcv_rsp(skb);
@@ -356,6 +349,7 @@ index 000000000000..b64835cba68d
 +    struct ipv6_rt_md_hdr *hdr;
 +    struct udphdr *uh;
 +    size_t rthdr_len, ip_plen;
++    unsigned int sum;
 +
 +    // printk("MEADcast M2U of %pI6c", dst);
 +    ip  = *(struct ipv6hdr *) skb_network_header(skb);
@@ -370,18 +364,16 @@ index 000000000000..b64835cba68d
 +
 +    ip.payload_len = htons(ip_plen);
 +    ip.nexthdr = hdr->rt_hdr.nexthdr;
++
++    sum = csum_partial(dst, sizeof(*dst), ~csum_unfold(uh->check));
++	sum = csum_sub(sum, csum_partial(&ip.daddr, sizeof(ip.daddr), 0));
++	uh->check = csum_fold(sum);
 +    ip.daddr = *dst;
 +
 +    pull = skb_pull(skb, rthdr_len);
 +    *pull = ip;
 +    skb_reset_network_header(skb);
 +
-+    uh->check = 0;
-+    __wsum csum = csum_partial(uh, ip_plen, 0);
-+
-+	/* add protocol-dependent pseudo-header */
-+	uh->check = csum_ipv6_magic(&ip.saddr, &ip.daddr,
-+				    ip_plen, IPPROTO_UDP, csum);
 +	if (uh->check == 0)
 +		uh->check = CSUM_MANGLED_0;
 +
@@ -396,14 +388,11 @@ index 000000000000..b64835cba68d
 +    struct ipv6hdr *ip;
 +    struct ipv6_rt_md_hdr *hdr;
 +    struct flowi6 fl6;
-+    // struct dst_entry *dst;
 +
 +    ip = (struct ipv6hdr *) skb_network_header(skb);
 +    hdr = (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
 +
 +    len = j - i - 1;
-+    // n = sizeof(hdr->rtmap) * 8;
-+    // memset(&fl6, 0, sizeof(fl6));
 +
 +    if (len < net->ipv6.sysctl.ip6_mdcast_min_dsts ||
 +        ipv6_chk_addr(net, &hdr->dst[i], skb->dev, 0)
