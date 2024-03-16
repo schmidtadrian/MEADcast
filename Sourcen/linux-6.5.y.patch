@@ -224,10 +224,10 @@ index 1e8c90e97608..f0ce82d33e6b 100644
  		       ip6_forward_finish);
 diff --git a/net/ipv6/mdcast.c b/net/ipv6/mdcast.c
 new file mode 100644
-index 000000000000..bb91b6ee0964
+index 000000000000..311d468ed394
 --- /dev/null
 +++ b/net/ipv6/mdcast.c
-@@ -0,0 +1,368 @@
+@@ -0,0 +1,383 @@
 +#include "asm/checksum_64.h"
 +#include "linux/gfp_types.h"
 +#include "linux/in.h"
@@ -366,16 +366,16 @@ index 000000000000..bb91b6ee0964
 +    ip.nexthdr = hdr->rt_hdr.nexthdr;
 +
 +    sum = csum_partial(dst, sizeof(*dst), ~csum_unfold(uh->check));
-+	sum = csum_sub(sum, csum_partial(&ip.daddr, sizeof(ip.daddr), 0));
-+	uh->check = csum_fold(sum);
++    sum = csum_sub(sum, csum_partial(&ip.daddr, sizeof(ip.daddr), 0));
++    uh->check = csum_fold(sum);
 +    ip.daddr = *dst;
++
++	if (uh->check == 0)
++		uh->check = CSUM_MANGLED_0;
 +
 +    pull = skb_pull(skb, rthdr_len);
 +    *pull = ip;
 +    skb_reset_network_header(skb);
-+
-+	if (uh->check == 0)
-+		uh->check = CSUM_MANGLED_0;
 +
 +    return set_dst(skb, &ip.daddr);
 +}
@@ -383,11 +383,15 @@ index 000000000000..bb91b6ee0964
 +int md_data_fwd(struct sk_buff *skb, struct net *net, int i, int j)
 +{
 +    int len, k;
++    unsigned int sum;
++    size_t rthdr_len;
 +    struct sk_buff *cpy;
 +    struct net *cnet;
 +    struct ipv6hdr *ip;
 +    struct ipv6_rt_md_hdr *hdr;
++    struct udphdr *uh;
 +    struct flowi6 fl6;
++    struct in6_addr *dst;
 +
 +    ip = (struct ipv6hdr *) skb_network_header(skb);
 +    hdr = (struct ipv6_rt_md_hdr *) skb_transport_header(skb);
@@ -413,6 +417,17 @@ index 000000000000..bb91b6ee0964
 +        // printk("M2U if last k=%d ip=%pI6c", k, &hdr->dst[k]);
 +        return m2u(skb, &hdr->dst[k]);
 +    }
++
++    rthdr_len = (hdr->rt_hdr.hdrlen + 1) * 8;
++    uh = (void *) hdr + rthdr_len;
++    dst = &hdr->dst[i + 1];
++
++    sum = csum_partial(dst, sizeof(*dst), ~csum_unfold(uh->check));
++    sum = csum_sub(sum, csum_partial(&ip->daddr, sizeof(ip->daddr), 0));
++    uh->check = csum_fold(sum);
++
++	if (uh->check == 0)
++		uh->check = CSUM_MANGLED_0;
 +
 +    hdr->dlvmap = 0 | 1 << GET_I(i);
 +    ip->daddr = hdr->dst[i + 1];
