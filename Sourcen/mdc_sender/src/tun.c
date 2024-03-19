@@ -12,6 +12,11 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 
+/* RFC 8200 requires a min MTU of 1280 bytes. */
+#ifndef MIN_IPV6_MTU
+#define MIN_IPV6_MTU 1280
+#endif /* ifndef MIN_IPV6_MTU */
+
 /* Creates TUN device of name `dev`.
  * If `dev` is NULL, the os sets a default name.
  * The name of the created interface gets written to `dev`. */
@@ -42,6 +47,8 @@ int tun_alloc(char *dev)
     return fd;
 }
 
+/* Sets mtu of interface with name `dev` to `mtu` bytes.
+ * On success returns the interface's new mtu. On error returns -1. */
 int tun_up(char *dev, int mtu)
 {
     int fd, ret;
@@ -55,7 +62,15 @@ int tun_up(char *dev, int mtu)
 
     memset(&ifr, 0, sizeof(ifr));
     strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-    ifr.ifr_mtu = mtu;
+    ifr.ifr_flags = IFF_UP | IFF_RUNNING;
+
+    ret = ioctl(fd, SIOCSIFFLAGS, &ifr);
+    if (ret < 0)
+        perror("ioctl(SIOCSIFFLAGS)");
+
+    memset(&ifr, 0, sizeof(ifr));
+    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+    ifr.ifr_mtu = mtu < MIN_IPV6_MTU ? MIN_IPV6_MTU : mtu;
 
     ret = ioctl(fd, SIOCSIFMTU, &ifr);
     if (ret < 0) {
@@ -63,13 +78,7 @@ int tun_up(char *dev, int mtu)
         goto error;
     }
 
-    memset(&ifr, 0, sizeof(ifr));
-    strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-    ifr.ifr_flags = IFF_UP | IFF_RUNNING;
-
-    ret = ioctl(fd, SIOCSIFFLAGS, &ifr);
-    if (ret < 0)
-        perror("ioctl(SIOCSIFFLAGS)");
+    ret = ifr.ifr_ifru.ifru_mtu;
 
 error:
     close(fd);
@@ -129,13 +138,17 @@ int init_tun(char *dev, struct in6_addr *ia, int mtu)
         return ret;
     }
 
+    printf("Created dev %s with MTU of %d\n", dev, ret);
+    if (mtu < ret)
+        printf("Still don't send packets bigger than %d "
+               "(IPv6 requires a min MTU of %d)\n", mtu, MIN_IPV6_MTU);
+
     ret = tun_setroute(dev, ia);
     if (ret < 0) {
         close(fd);
         return ret;
     }
 
-    printf("Created dev %s with MTU of %d\n", dev, mtu);
     printf("Send your traffic to ");
     print_ia(ia);
     printf("\n");
