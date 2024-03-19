@@ -6,6 +6,7 @@
 #include "tx.h"
 #include "util.h"
 #include <bits/types/struct_itimerspec.h>
+#include <pthread.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -205,36 +206,50 @@ int dx_loop(int epoll_fd, int mdc_fd, struct epoll_event *ev, size_t evlen)
     }
 }
 
-void print_timers(struct dx_targs *args)
+void print_timers(struct dx_targs *args, bool wait)
 {
-    printf("Discovery interval: %lds\n"
-           "Discovery timeout:  %lds\n"
-           "Inital discovery starts in %lds\n\n",
-        args->tint->it_interval.tv_sec,
-        args->tout->it_interval.tv_sec,
-        args->tint->it_value.tv_sec);
+    if (wait)
+        printf("Discovery interval: %lds\n"
+               "Discovery timeout:  %lds\n"
+               "Wating for traffic to start discovery...\n\n",
+            args->tint->it_interval.tv_sec,
+            args->tout->it_interval.tv_sec);
+
+    else
+        printf("Discovery interval: %lds\n"
+               "Discovery timeout:  %lds\n"
+               "Inital discovery starts in %lds\n\n",
+            args->tint->it_interval.tv_sec,
+            args->tout->it_interval.tv_sec,
+            args->tint->it_value.tv_sec);
 }
 
-int start_dx(struct dx_targs *args)
+int start_dx(struct dx_targs *targs)
 {
     int ret;
     int epoll_fd;
-    struct epoll_event ev[args->evlen];
+    struct epoll_event ev[targs->evlen];
 
-    tout_fd = init_timerfd(&tout_ts, args->tout);
+    print_timers(targs, args.dcvr_wait);
+    if (args.dcvr_wait) {
+        pthread_mutex_lock(&args.wait_mutex);
+        pthread_cond_wait(&args.wait_condition, &args.wait_mutex);
+        pthread_mutex_unlock(&args.wait_mutex);
+    }
+
+    tout_fd = init_timerfd(&tout_ts, targs->tout);
     if (tout_fd < 0)
         return tout_fd;
 
-    tint_fd = init_timerfd(&tint_ts, args->tint);
+    tint_fd = init_timerfd(&tint_ts, targs->tint);
     if (tint_fd < 0)
         return tint_fd;
 
-    epoll_fd = init_epoll(args->fd, tout_fd, tint_fd);
+    epoll_fd = init_epoll(targs->fd, tout_fd, tint_fd);
     if (epoll_fd < 1)
         return epoll_fd;
 
-    print_timers(args);
-    ret = dx_loop(epoll_fd, args->fd, ev, args->evlen);
+    ret = dx_loop(epoll_fd, targs->fd, ev, targs->evlen);
     if (ret < 0)
         return ret;
 

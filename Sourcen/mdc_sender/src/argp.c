@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <linux/if.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +27,7 @@ static struct argp_option options[] = {
     { "interval",     OPT_DCVR_INT,    "secs",     0, "Specify discovery interval.", OPT_GRP_DCVR },
     { "timeout",      OPT_DCVR_TOUT,   "secs",     0, "Specify discovery timeout.", OPT_GRP_DCVR },
     { "delay",        OPT_DCVR_DELAY,  "secs",     0, "Specify delay until initial discovery phase.", OPT_GRP_DCVR },
+    { "wait",         OPT_DCVR_WAIT,   0,          0, "If specified, sender waits for traffic before starting discovery phase.", OPT_GRP_DCVR },
 
     { 0, 0, 0, 0, "Grouping:", OPT_GRP_GRP},
     { "max",          OPT_MAX_ADDRS,   "max",      0, "Specify the maximal number of addresses per MEADcast packet.", OPT_GRP_GRP },
@@ -172,6 +174,11 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case OPT_DCVR_DELAY:
             arguments->dcvr_int.it_value.tv_sec = atoi(arg);
             break;
+        case OPT_DCVR_WAIT:
+            arguments->dcvr_int.it_value.tv_sec  = 0;
+            arguments->dcvr_int.it_value.tv_nsec = 1;
+            arguments->dcvr_wait = true;
+            break;
 
         // grouping
         case OPT_MAX_ADDRS:
@@ -259,6 +266,9 @@ void set_default_args(struct arguments *args)
                        .it_value    = { .tv_sec = 5, .tv_nsec = 0 }},
         .dcvr_tout = { .it_interval = { .tv_sec = 2, .tv_nsec = 0 },
                        .it_value    = { .tv_sec = 0, .tv_nsec = 0 }},
+        .dcvr_wait = false,
+        .wait_mutex = PTHREAD_MUTEX_INITIALIZER,
+        .wait_condition = PTHREAD_COND_INITIALIZER,
 
         // grouping
         .max_addrs   = 10,

@@ -2,6 +2,7 @@
 #define ARGP_H
 
 #include <argp.h>
+#include <bits/pthreadtypes.h>
 #include <bits/types/struct_itimerspec.h>
 #include <netinet/in.h>
 #include <stdbool.h>
@@ -26,6 +27,9 @@ struct arguments {
     // discovery
     struct itimerspec dcvr_int;
     struct itimerspec dcvr_tout;
+    bool dcvr_wait;
+    pthread_mutex_t wait_mutex;
+    pthread_cond_t wait_condition;
 
     // grouping
     size_t max_addrs;
@@ -64,6 +68,7 @@ enum sopts {
     OPT_DCVR_INT    = 'I',
     OPT_DCVR_TOUT   = 'T',
     OPT_DCVR_DELAY  = 'd',
+    OPT_DCVR_WAIT   = 'w',
 
     // grouping
     OPT_MAX_ADDRS   = 0x200,

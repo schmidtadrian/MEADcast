@@ -1,6 +1,7 @@
 #ifndef DISCOVER_H
 #define DISCOVER_H
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <time.h>
 

@@ -216,37 +216,75 @@ int tx_uni(int fd, struct tx_group *grp, struct ipv6hdr *ip, size_t len)
     return 0;
 }
 
-void tx_loop(struct tx_targs *args)
+void tx(int ip6_fd, int mdc_fd, size_t n)
 {
-    int n;
     size_t iplen;
     struct tx_group *grp;
 
-    if (args->tun_fd < 1 || args->ip6_fd < 1)
-        return;
+    grp = get_txg();
+    iplen = n - sizeof(*pi);
+
+    /* Unicast needs to be delivered first,
+     * hence `tx_mdc` overwrites ip header. */
+    tx_uni(ip6_fd, grp, ip, iplen);
+    tx_mdc(mdc_fd, grp, (void *) (ip + 1), iplen - sizeof(*ip));
+}
+
+void wait_init_input(struct tx_targs *targs)
+{
+    int n;
 
     for (;;) {
 
-        // TODO leave space at beginning for mdc hdr
-        n = read(args->tun_fd, buf, buflen);
+        n = read(targs->tun_fd, buf, buflen);
         if (n < 1) {
             perror("read");
             return;
         }
 
         if (ntohs(pi->proto) != ETH_P_IPV6)
-            return;
+            continue;
 
-        grp = get_txg();
-        if (!grp)
-            return;
+        if (ip->daddr.s6_addr32[0] != args.taddr.s6_addr32[0] ||
+            ip->daddr.s6_addr32[1] != args.taddr.s6_addr32[1] ||
+            ip->daddr.s6_addr32[2] != args.taddr.s6_addr32[2] ||
+            ip->daddr.s6_addr32[3] != args.taddr.s6_addr32[3])
+            continue;
 
-        iplen = n - sizeof(*pi);
-        /* Unicast needs to be delivered first,
-         * hence `tx_mdc` overwrites ip header. */
-        tx_uni(args->ip6_fd, grp, ip, iplen);
-        tx_mdc(args->mdc_fd, grp, (void *) (ip + 1), iplen - sizeof(*ip));
+        pthread_cond_signal(&args.wait_condition);
+        tx(targs->ip6_fd, targs->mdc_fd, n);
+        return;
     }
+}
+
+void _tx_loop(struct tx_targs *targs)
+{
+    int n;
+
+    for (;;) {
+
+        n = read(targs->tun_fd, buf, buflen);
+        if (n < 1) {
+            perror("read");
+            return;
+        }
+
+        if (ntohs(pi->proto) != ETH_P_IPV6)
+            continue;
+
+        tx(targs->ip6_fd, targs->mdc_fd, n);
+    }
+}
+
+void tx_loop(struct tx_targs *targs)
+{
+    if (targs->tun_fd < 1 || targs->ip6_fd < 1)
+        return;
+
+    if (args.dcvr_wait)
+        wait_init_input(targs);
+
+    _tx_loop(targs);
 }
 
 int get_sa()
