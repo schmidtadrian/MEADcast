@@ -209,7 +209,7 @@ void print_timers(struct dx_targs *args)
 {
     printf("Discovery interval: %lds\n"
            "Discovery timeout:  %lds\n"
-           "Inital discovery starts in %lds\n",
+           "Inital discovery starts in %lds\n\n",
         args->tint->it_interval.tv_sec,
         args->tout->it_interval.tv_sec,
         args->tint->it_value.tv_sec);

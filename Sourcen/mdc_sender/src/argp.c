@@ -211,9 +211,14 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
         // verification
         case ARGP_KEY_END:
+
             empty_check(arguments->tifname, state, "TUN interface");
             empty_check(arguments->bifname, state, "Bind interface");
             null_check(arguments->paddr, state, "At least one destination");
+
+            if (!arguments->ok_addrs)
+                arguments->ok_addrs = .8 * arguments->max_addrs;
+
             break;
         default:
             return ARGP_ERR_UNKNOWN;
@@ -230,7 +235,7 @@ void print_grouping_args(struct arguments *args)
            "MIN leafs:\t%zu\n"
            "MIN childs:\t%zu\n"
            "Split nodes:\t%d\n"
-           "Merge range:\t%zu\n",
+           "Merge range:\t%zu\n\n",
            args->max_addrs, args->ok_addrs,
            args->min_leafs, args->min_routers,
            args->split_nodes, args->merge_range);
@@ -257,7 +262,7 @@ void set_default_args(struct arguments *args)
 
         // grouping
         .max_addrs   = 10,
-        .ok_addrs    =  8,
+        .ok_addrs    =  0, /* set after arg parsing relative to max_addrs */
         .min_leafs   =  2,
         .min_routers =  1,
         .split_nodes =  0,

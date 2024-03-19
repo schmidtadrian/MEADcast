@@ -6,7 +6,8 @@ BUILD_DIR := ./build
 SRCS := $(shell find $(SRC_DIRS) -name '*.c')
 OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
 
-CFLAGS := -lpthread -g
+# CFLAGS := -Wall -Wextra -lpthread -g
+CFLAGS := -Wall -Wextra -lpthread -O3
 LDFLAGS := -lJudy -latomic
 
 
