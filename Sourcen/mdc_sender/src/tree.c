@@ -502,7 +502,7 @@ start:
             m = n + r->fleaf + p;
 
             if (m > max) {
-                if (args.split_nodes) {
+                if (r->fleaf >= max || args.split_nodes) {
                     m = max - n - p;
                     add2txg(&addrs[0], &bm, r, &n, m);
                 }

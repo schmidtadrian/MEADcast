@@ -36,7 +36,9 @@ static struct argp_option options[] = {
                                                       "Assigning `ok` a value greater or equal than `max` disables this feature.", OPT_GRP_GRP },
     { "min-leafs",    OPT_MIN_LEAFS,   "leafs",    0, "Routers with less leafs than `leafs` and less routers than `routers` get removed from tree.", OPT_GRP_GRP },
     { "min-routers",  OPT_MIN_ROUTERS, "routers",  0, "See `min-leafs`.", OPT_GRP_GRP },
-    { "split",        OPT_SPLIT_NODES, 0,          0, "Specify whether leafs of same parent can be split into multiple packets.", OPT_GRP_GRP },
+    { "split",        OPT_SPLIT_NODES, 0,          0, "Specify whether leafs of same parent can be split into multiple packets. "
+                                                      "If a router has more leafs than the maximal number of addresses per packet, "
+                                                      "they will be split regardless of this flag.", OPT_GRP_GRP },
     { "merge",        OPT_MERGE_RANGE, "distance", 0, "Specify whether to merge leafs with distinct parent routers under an common ancestor. "
                                                       "`distance` determines the range within which leafs will be merged. "
                                                       "Assigning `distance` a value of 0 disables this feature.", OPT_GRP_GRP },
