@@ -467,7 +467,7 @@ void finish_txg(struct child **grp, struct in6_addr *addrs,
 
 struct tx_group *greedy_grouping(struct router *s)
 {
-    size_t i, n, m, p, max;
+    size_t n, m, p, max;
     struct router *r, *pr;
     struct child *c, *mdc;
     struct tx_group *grp;
@@ -552,8 +552,7 @@ next:
     grp->nuni = s->fleaf;
     addr = grp->uni;
 
-    for (i = 0; i < grp->nuni; i++, addr++) {
-        c = get_free_leaf(s);
+    for (c = get_free_leaf(s); c && s->fleaf; addr++, s->fleaf--, c = c->n) {
         rcvr = &get_leaf(c->v)->val;
         memcpy(addr, &rcvr->addr, sizeof(*addr));
     }
