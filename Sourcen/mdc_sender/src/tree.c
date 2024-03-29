@@ -574,13 +574,16 @@ void rec_reset_tree(struct router *s, struct router *r)
     }
 
     p = get_router(r->node.parent);
-    if (!p)
+    if (!p) {
+        r->fleaf = r->nleaf;
         return;
+    }
 
     for (i = r->leaf; i; i = j) {
         j = i->n;
         adopt(s, i);
     }
+
     r->nleaf  = 0;
     r->fleaf  = 0;
     r->nchild = 0;
