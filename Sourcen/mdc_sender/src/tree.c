@@ -386,7 +386,7 @@ size_t set_txg_router(struct in6_addr *l, uint32_t *bm, struct router *r,
         goto bitmap;
     }
 
-    if (pcr->hops < r->hops && pcr->hops < cr->hops) {
+    if (pcr && pcr->hops < r->hops && pcr->hops < cr->hops) {
         cr  = pcr;
         pcr = NULL;
         goto copy;
