@@ -48,6 +48,15 @@
 \usepackage{makecell}
 \usepackage{svg}
 \usepackage{bytefield}
+% \usepackage[algoruled, linesnumbered]{algorithm2e}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{graphics}
+\usepackage{multirow}
+
+\algnewcommand{\algorithmicgoto}{\textbf{go to}\ }%
+\algnewcommand{\Goto}{\algorithmicgoto\xspace}%
+\algnewcommand{\Label}{\State\unskip}
 
 \makeglossaries
 \input{glossary}
@@ -115,5 +124,8 @@
     % \bibliographystyle{alphadin}
     % \bibliography{Bib/main}
     \printbibliography
+
+    \appendix
+    \input{app_results.tex}
 
 \end{document}

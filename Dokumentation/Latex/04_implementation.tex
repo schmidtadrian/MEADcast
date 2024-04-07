@@ -120,7 +120,9 @@ Due to the time frame of this thesis, we omit the usage of the optional port
     \bitbox{8}{Segments Left \\ \tiny (0)}
     \end{rightwordgroup} \\
     \bitbox{8}{Num. Dst} &
-    \bitbox{2}{Fl.} &
+    % \bitbox{2}{Fl.} &
+    \bitbox{1}{\tiny D\\[-1.25pt] C \\[-1.25pt] V} &
+    \bitbox{1}{\tiny R\\[-1.25pt]S\\[-1.25pt]P} &
     \bitbox{6}{Hops} &
     \bitbox{16}{Reserved} \\
     \bitbox{32}{Delivery Bitmap} \\
@@ -167,12 +169,19 @@ Segments Left & An 8-bit unsigned integer representing the number of remaining
 Num. Dst.     & An 8-bit unsigned integer denoting the number of IPv6
                 addresses encoded in the address list.
                 The field size sets a theoretical limit of 255 destinations.\\
-Flags         & A 2-bit Bitmap. The highest-order bit classifies the packet
-                either as a data (0) or discovery  (1) packet.
-                The lowest-order bit indicates whether the packet is a
-                discovery request (0) or response (1) \cite{meadcast2}.
-                Valid combinations comprise \inlinelst{00}, \inlinelst{10}, and
-                \inlinelst{11}\\
+% Flags         & A 2-bit Bitmap. The highest-order bit classifies the packet
+%                 either as a data (0) or discovery  (1) packet.
+%                 The lowest-order bit indicates whether the packet is a
+%                 discovery request (0) or response (1) \cite{meadcast2}.
+%                 Valid combinations comprise \inlinelst{00}, \inlinelst{10}, and
+%                 \inlinelst{11}\\
+\makecell[l]{Flags\\\hspace*{2mm} Dcv \\\hspace*{2mm} Rsp \\\ } &
+\makecell[X]{A 2-bit Bitmap, valid combinations comprise \inlinelst{00},
+                \inlinelst{10}, and \inlinelst{11}.\\
+                1 bit classifying the packet as a data (0)
+                or discovery (1) packet.\\
+                1 bit identifying the packet as a discovery request (0) or
+                response (1) \cite{meadcast2}.}\\
 Hops          & An 6-bit unsigned integer, specifying the distance between the
                 sender and a router, denoted in the number of MEADcast hops.
                 This field is utilized during the discovery phase. The sender
@@ -286,8 +295,8 @@ For example, if $R_u$ has one designated endpoint, $R_p$ could execute a
     premature MEADcast to IP unicast transformation, potentially enhancing
     performance.
 The threshold can also be configured during runtime by setting the parameter
-    \inlinelst{/proc/sys/net/ipv6/meadcast/min_dsts}.
-Setting \inlinelst{min_dsts} to 0 disables premature MEADcast to IP unicast
+    \inlinelst{/proc/sys/net/ipv6/meadcast/min\_dsts}.
+Setting \inlinelst{min\_dsts} to 0 disables premature MEADcast to IP unicast
     transformation.
 
 If the packet is forwarded via MEADcast, the router updates both the delivery
@@ -379,20 +388,21 @@ This is necessary to facilitate simultaneous data transmission and periodic
     \begin{center}
         \includegraphics[width=\textwidth]{tun_dev.pdf}
     \end{center}
-    \caption{TUN interface}
+    \caption{Sender: TUN interface}
     \label{fig:tun_dev}
 \end{figure}
+% paragraph Startup (end)
 
 \paragraph{TX thread} % (fold)
 \label{par:TX thread}
 The transmission thread operates on a straightforward pattern.
 It reads data from the TUN device and transmits it to the MEADcast group either
     via MEADcast or IPv6 unicast.
-The key element for data transmission is the \inlinelst{tx_group} structure,
+The key element for data transmission is the \inlinelst{tx\_group} structure,
     which includes three members: \inlinelst{*mdc}, \inlinelst{nuni}, and
     \inlinelst{uni} (as detailed in \autoref{lst:txg_struct}).
 These members encompass all the necessary information for data transmission,
-    rendering \inlinelst{tx_group} as the only data structure required by the
+    rendering \inlinelst{tx\_group} as the only data structure required by the
     transmission thread.
 \inlinelst{*mdc} is a reference to a linked list of receivers grouped into
     MEADcast headers ready for transmission.
@@ -400,20 +410,21 @@ These members encompass all the necessary information for data transmission,
     \inlinelst{uni[]}.
 Lastly, \inlinelst{uni[]} is an array of receivers served via IPv6 unicast.
 
-The \inlinelst{tx_group} structure is the only data accessed by both threads.
-Upon initialization of the transmission thread, a \inlinelst{tx_group}
+The \inlinelst{tx\_group} structure is the only data accessed by both the
+    discovery and transmisson thread.
+Upon initialization of the transmission thread, a \inlinelst{tx\_group}
     structure is instantiated with all receivers added to the \inlinelst{uni[]}
     list and an empty \inlinelst{*mdc} list.
 Subsequently, the \inlinelst{tx_group} is exclusively modified by the discovery
     thread.
-To prevent race conditions on the \inlinelst{tx_group}, the threads share an
+To prevent race conditions on the \inlinelst{tx\_group}, the threads share an
     atomic reference pointing to the current group.
 
 Next, the transmission thread enters an infinite loop executing the following
     steps.
 Initially, it blockingly reads data from the TUN device.
-Second, the sender atomically reads the current \inlinelst{tx_group}.
-This step is substantial because the \inlinelst{tx_group} can be updated by
+Second, the sender atomically reads the current \inlinelst{tx\_group}.
+This step is substantial because the \inlinelst{tx\_group} can be updated by
     the discovery thread at any time.
 Finally, the data read from the TUN device is transmitted to the MEADcast group
     by first transmitting it via IPv6 unicast to all addresses listed in
@@ -423,7 +434,7 @@ Finally, the data read from the TUN device is transmitted to the MEADcast group
 The copying of the MEADcast header overwrites the IPv6 header, necessitating
     the unicast transmission to occur before the MEADcast transmission.
 
-\begin{lstlisting}[language=C, caption=TX\_group structure, label={lst:txg_struct}]
+\begin{lstlisting}[language=C, caption={Sender: tx\_group structure}, label={lst:txg_struct}]
 struct tx_group {
     struct child  *mdc;
     size_t nuni;
@@ -440,14 +451,151 @@ struct tx_group {
 % - Send and receive discovery
 % - Perform grouping
 
+% - init timer fd for discovery interval and discovery timeout
+% - based on epoll (level-triggered)
+% - enter infinitiv loop
+%   - wait for an fd to become ready
+%   - if interval:
+%       - send discovery request to all group members
+%       - disarms interval timer and enables timeout timer
+%   - if mdc fd:
+%       - receive discovery rsp, sanity checks
+%       - modify topology tree (insert or update)
+%   - if timeout:
+%       - group receivers
+%       - atomically update tx_group reference
+%       - disarm timeout timer and enable interval timer
+The discovery thread operates on a more intricate pattern compared to the
+    transmission thread.
+Its primary tasks include sending periodic discovery requests to all group
+    members, receiving discovery responses from intermediate MEADcast routers,
+    maintaining the topology tree, and grouping receivers into MEADcast
+    headers.
+
+To manage the recurring discovery phase, the sender utilizes a discovery
+    interval and a discovery timeout timer (see
+    \autoref{fig:discovery_timers}).
+At the beginning of the discovery phase, the sender transmits discovery
+    requests to all group members.
+The discovery timeout determines how long the sender waits for discovery
+    responses, while the discovery interval determines the duration between two
+    consecutive discovery phases.
+To monitor multiple timers, file descriptor-based timers are employed, which
+    deliver timer expiration notifications via descriptors.
+This allows for efficient monitoring using \inlinelst{epoll}
+    \cite{man_timerfd}, an I/O event notification facility designed for
+    monitoring multiple file descriptors \cite{man_epoll}.
+% Besides the discovery interval and timeout file descriptors, we employ
+%     \inlinelst{epoll} also to monitor the file descriptor used for transmitting
+%     and receiving MEADcast.
+
+On startup, the discovery thread initializes the timers and adds the file
+    descriptors to \inlinelst{epoll}.
+Besides the timers, \inlinelst{epoll} also monitors the MEADcast file
+    descriptor.
+Afterward, the discovery thread enters an infinite loop executing the following
+    steps.
+Initially, the thread invokes \inlinelst{epoll\_wait} (level-triggered), waiting
+    for an event from one of the three file descriptors.
+It either waits for one of the timers to expire or a MEADcast packet to arrive.
+
+On expiration of the interval timer, the discovery thread sends discovery
+    requests to all group members, disarms the interval timer, and starts the
+    discovery timeout timer.
+
+Upon receiving a MEADcast packet, the sender performs basic sanity checks and
+    validation.
+This includes verifying whether the address from the discovery response's
+    address list is a MEADcast group member.
+To facilitate, a fast lookup of IPv6 addresses a Judy array is utilized.
+A Judy array is a sparse dynamic array with the key benefits of scalability,
+    high performance, and memory efficiency \cite{web_judy}.
+More precisely, we are using the \inlinelst{JudyHS} functions, being a
+    hybrid of the best features of hashing  and  Judy  methods \cite{man_judy}.
+\inlinelst{JudyHS} outperforms a hashing method across smaller and larger
+    populations than the optimal hash table size, without necessitating any
+    tuning or configuration \cite{man_judy}.
+All receivers and routers are stored in the Judy array, using their IPv6
+    address as the hashing key.
+If a discovery response passes the checks and validation, the router
+    is inserted into the topology tree or its existing entry is updated.
+The position in the tree is determined by the distance (hops) in the discovery 
+    response.
+
+On expiration of the timeout timer, the sender starts grouping the receivers
+    based on the topology tree.
+A new transmission group (\inlinelst{tx\_new}) is created, and the atomic
+    reference is updated to point to the newly created group (see:
+    \autoref{fig:group_update}).
+This procedure is required because complex structures can not be created
+    atomically, prompting the decision to swing the atomic pointer after the
+    new group's creation.
+
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=.95\textwidth]{discovery_timers.pdf}
+    \end{center}
+    \caption{Sender: Discovery Timers}
+    \label{fig:discovery_timers}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=.9\textwidth]{group_update.pdf}
+    \end{center}
+    \caption{Sender: Atomic update of the transmission group}
+    \label{fig:group_update}
+\end{figure}
 % paragraph Discovery Thread (end)
 
+\paragraph{Grouping} % (fold)
+\label{par:Grouping}
+To understand the grouping of receivers into MEADcast packets, one has to
+    understand the internal sender structures.
 
-% Transmit
-% - Init txg struct (atomic pointer)
-% - Read data from TUN & send it to groups
+% basic grouping algorithm:
+%   - search start (dfs)
+%   - while free leaf:
+%       - if cgs > max
+%           - finish group
+%           - goto search start
+%       - if cgs >= max - 1
+%           - add router to group
+%           - recursively update parent counters
+%           - finish group
+%           - goto search start
+%       - if cgs < max
+%           - add router to group
+%   - while free child:
+%       - get free router child
+%       - goto start
+%   - if parent
+%       - backpropagate
+%       - if parent is root
+%           - finish group
+%       - goto start
+    %
+% effect of merge and split parameter
 
-% paragraph Startup (end)
+% hash table:
+%   - stores pointer to node (router or leaf)
+%   - used to quickly find ip
+% *rcvr:
+%   - linked list of all receivers
+%   - used to quickly get all receivers
+% tree:
+%   - consists of nodes (router or leaf)
+%   - sender is root
+%   - used to group endpoints
+
+% Grouping:
+% 1) Reduce tree
+%   - Remove routers with less leafs or routers than X. Childs are adopted by parent
+% 2) Grouping
+%   - search start (dfs)
+% paragraph Grouping (end)
+
 % Startup
 % - Create TUN dev (set MTU, set Route)
 % - txg only struct shared between threads
@@ -459,13 +607,277 @@ struct tx_group {
 % - grouping algorithm
 % section Sender (end)
 
+% \begin{algorithm}
+% \caption{An algorithm with caption}
+% \label{alg:two}
+% \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+% \SetKw{KwGoTo}{go to}
+%
+% \Input{Router (s) to start grouping at}
+% $n\gets 0$\;
+% $m\gets 0$\;
+% $r\gets getStart(s)$\;
+% \While{r}{
+% \texttt{start:}\\
+%     \While{$r.freeLeafs < 0$}{
+%         $m\gets n + r.freeLeafs + 1$\;
+%         \uIf{$m>max$}{
+%             \KwGoTo next\;
+%         }
+%         \uElseIf{$m\geq max-1}{
+%             addRouterToGroup()\;
+%             recursiveBackpropergate(r)\;
+%             \KwGoTo next\;
+%         }
+%         \ElseIf{$m<max$}{
+%             addRouterToGroup()\;
+%             break\;
+%         }
+%     }
+%
+% \KwGoTo start\;
+% }
+% \end{algorithm}
+
+\begin{algorithm}
+    \caption{Sender: grouping algorithm}\label{alg:sender_grouping}
+    \hspace*{\algorithmicindent} \textbf{Input:} Router ($s$) to start grouping at\\
+    \hspace*{\algorithmicindent} \textbf{Output:} \texttt{tx\_group} structure\\
+\begin{algorithmic}[1]
+\State $group\gets NULL$\Comment{\texttt{tx\_group} structure}
+\State $m\gets 0$
+\State $n\gets 0$
+\State $r\gets \text{getStart($s$)}$
+\Comment{Gets next router based on depth-first search}
+\While{$r$}
+\Label \texttt{start:}
+    \While{$r.freeLeafs > 0$}
+        \State $m\gets n + r.freeLeafs + 1$
+        \If{$m > max$}
+            \State \Goto \texttt{start}
+        \ElsIf{$m \geq max - 1$}
+            \State addRouterToGroup($r$)
+            \Comment{Update bitmaps and address list}
+            \State recursiveBackpropergate($r$)
+            \Comment{Update leaf and child count of all anchestors}
+            \State \Goto \texttt{next}
+        \ElsIf{$m < max$}
+            \State addRouterToGroup($r$)
+            \State \textbf{break}
+        \EndIf
+    \EndWhile
+    \While{$r.freeChild > 0$}
+        \State $c\gets \text{getFreeRouter($r$)}$
+        \If{c}
+            \State $r\gets \text{getRouter($c$)}$
+            \State \Goto \texttt{start}
+        \EndIf
+    \EndWhile
+    \If{$r.node.parent$}
+        \State backPropagate($r$)
+        \Comment{Update parent leaf and child count}
+        \State $r\gets \text{getRouter($r.node.parent$)}$
+        \If{$\textbf{not}\ r.node.parent}
+        \Comment{If parent is root finish group}
+            \State \Goto \texttt{next}
+        \EndIf
+
+        \State \Goto \texttt{start}
+    \EndIf
+\Label \texttt{next:}
+    \State finishGroup()
+    \Comment{Adds MEADcast header to \texttt{group.mdc} list}
+    \State $r\gets \text{getStart($r$)}$
+\EndWhile
+    \State addRemainingLeafs($s$)
+    \Comment Adds the remaining leafs to \texttt{group.uni} list 
+    \State \Return $group$
+\end{algorithmic}
+\end{algorithm}
+
+\newpage 
 
 \section{Testbed} % (fold)
 \label{sec:Testbed_Implementation}
 % - python script reading json
 % - kvm, direct kernel boot, debian nocloud image
 % - chrony time sync (had to change boot param on host system)
+% - how measured
+
+\paragraph{EX1: Live Stream} % (fold)
+\label{par:impl EX1: Live Stream}
+
+\begin{figure}[!htbp]
+    \begin{center}
+        \includegraphics[width=.75\textwidth]{exp_live_stream.pdf}
+    \end{center}
+    \caption{Experiment: Live stream (\textit{sender is red})}
+    \label{fig:exp_live_stream}
+\end{figure}
+
+\begin{itemize}\itemsep0em
+    \item \textbf{Goal:} Measure \textit{1:n} MEADcast performance for a
+        mid to large-sized, comprising a mixture of highly clustered and spread
+        members, highlighting the protocols potential for heterogen receiver
+        distribution.
+    \item[] \textbf{Characteristics}
+    \begin{itemize}\itemsep0em
+        \item Use case: streaming a campus or business event across multiple
+            locations/buildings (requires multiple network domains)
+        \item Requires both local clustering and spread, to depict typical
+            campus layout (e.g. library high clustering, low receiver density
+            for remote offices)
+        \item Requires varying distance of receivers
+        \item 26 routers, $14-70$ receivers
+        \item Recurring downstream peaks to buffer content
+            \cite{cartesian_us_bw}
+    \end{itemize}
+    \item[] \textbf{Expectations}
+    \begin{itemize}\itemsep0em
+        \item Strongly differing levels of bandwidth reduction for highly
+            clustered and widely distributed endpoints
+        \item E.g. Merging receivers under $R_{41}$ can significantly reduce
+            the utilized bandwidth 
+        \item E.g. Receivers in network $C_{28}$ can be used to measure
+            the effect of MEADcast processing on latency and jitter compared to
+            unicast delivery
+    \end{itemize}
+    \item[] \textbf{Testing Parameters}
+    \begin{itemize}\itemsep0em
+            \item Network: Degree of MEADcast support (e.g. 25\%, 50\%, \dots,
+                dist. layer only)
+        \item Sender: Max group size, merging range, splitting siblings
+        \item Router: Premature M2U
+    \end{itemize}
+\end{itemize}
+% paragraph EX1: Live Stream (end)
+\newpage
+
+
+\paragraph{EX2: File transfer} % (fold)
+\label{par:implEX2: File transfer}
+
+\begin{figure}[!htbp]
+    \begin{center}
+        \includegraphics[width=.75\textwidth]{exp_file_transfer.pdf}
+    \end{center}
+    \caption{Experiment: File transfer (\textit{sender is red})}
+    \label{fig:exp_file_transfer}
+\end{figure}
+
+\begin{itemize}\itemsep0em
+    \item \textbf{Goal:} Measure \textit{1:n} MEADcast performance for a
+        mid to large-sized, highly clustered group, highlighting the protocols
+        potential under ideal conditions.
+    \item[] \textbf{Characteristics}
+    \begin{itemize}\itemsep0em
+        \item Use case: Rollout of software update (e.g. server OS)
+        \item Requires high clustering since servers are usually located within
+            one network domain
+        \item 13 Router, $9-45$ Receivers
+        \item Max out all the available bandwidth for a short period of time
+            \cite{cartesian_us_bw}
+    \end{itemize}
+    \item[] \textbf{Expectations}
+    \begin{itemize}\itemsep0em
+        \item For a small number of receivers per router, minor reduction in
+            bandwidth is expected compared to unicast (bc the first MEADcast
+            router will split packets)
+        \item For bigger numbers of receivers per router, more significant
+            saving in bandwidth is expected
+        \item High bandwidth savings on sender link across all scenarios
+    \end{itemize}
+    \item[] \textbf{Testing Parameters}
+    \begin{itemize}\itemsep0em
+        \item similar to \autoref{par:impl EX1: Live Stream}
+    \end{itemize}
+\end{itemize}
+% paragraph EX2: File transfer (end)
+\newpage
+
+\paragraph{EX3 Video conference} % (fold)
+\label{par:impl EX3 Video conference}
+
+\begin{figure}[!htbp]
+    \begin{center}
+        \includegraphics[width=.75\textwidth]{exp_video_conference.pdf}
+    \end{center}
+    \caption{Experiment: P2P Video Conference
+        (\textit{all members are senders})}
+    \label{fig:exp_video_conference}
+\end{figure}
+
+\begin{itemize}\itemsep0em
+    \item \textbf{Goal:} Measure \textit{m:n} MEADcast performance for a
+        small to mid-sized group, comprising a mixture of highly clustered and
+        spread members, highlighting the protocols potential for heterogen
+        receiver distribution.
+    \item[] \textbf{Characteristics}
+    \begin{itemize}\itemsep0em
+        \item Video conference by a department or project team
+        \item Requires P2P connection and a steady stream of up and download
+            \cite{cartesian_us_bw}
+        \item Requires both local clustering and spread, to depict typical work
+            culture (e.g. high clustering in office, and a few members like
+            a customer or a colleague in home office being further away)
+        \item Requires varying distance of group members
+        \item 18 routers, $12-60$ senders/receivers
+    \end{itemize}
+    \item[] \textbf{Expectations}
+    \begin{itemize}\itemsep0em
+        \item Sheds light on, whether MEADcast is capable of bridging the
+            asymmetric access link \cite{xcast_rfc, cartesian_us_bw}
+        \item Demonstrates how expensive MEADcast processing is in comparison
+            to unicast
+        \item Highlights the differences in measurements between highly
+            clustered and wider distributed areas
+    \end{itemize}
+    \item[] \textbf{Testing Parameters}
+    \begin{itemize}\itemsep0em
+        \item similar to \autoref{par:impl EX1: Live Stream}
+    \end{itemize}
+\end{itemize}
+% paragraph EX3 Video conference (end)
+\newpage
+
+\paragraph{EX4 Online Gaming} % (fold)
+\label{par:EX4 Online Gaming}
+
+\begin{figure}[!htbp]
+    \begin{center}
+        \includegraphics[width=.75\textwidth]{exp_online_gaming.pdf}
+    \end{center}
+    \caption{Experiment: Online gaming}
+    \label{fig:exp_online_gaming}
+\end{figure}
+
+\begin{itemize}\itemsep0em
+    \item \textbf{Goal:} Measure MEADcast performance in disadvantageous
+        setting in terms of distribution.
+        Highlight the threshold at which the number of receivers per router
+        makes MEADcast favourable. 
+    \item[] \textbf{Characteristics}
+    \begin{itemize}\itemsep0em
+        \item Online multiplayer game with a high receiver distribution
+        \item Frequent, downstream peaks in intervals of $2-4$ seconds
+            \cite{cartesian_us_bw}
+        \item 27 routers, $9-45$ receivers
+        \item Requires long distances, to measure whether MEADcast processing
+            significantly impacts latency and jitter.
+    \end{itemize}
+    \item[] \textbf{Expectations}
+    \begin{itemize}\itemsep0em
+        \item Demonstrates at which number of receivers per router, MEADcast
+            shows advantageous performance (e.g. bandwidth).
+        \item Demonstrates how expensive MEADcast processing is compared to
+            unicast
+    \end{itemize}
+    \item[] \textbf{Testing Parameters}
+    \begin{itemize}\itemsep0em
+        \item similar to \autoref{par:impl EX1: Live Stream}
+    \end{itemize}
+\end{itemize}
+% paragraph EX4 Online Gaming (end)
+
 % section Testbed (end)
-
-
 % chapter Implementation (end)
