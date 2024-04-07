@@ -1,4 +1,406 @@
-\chapter{Evaluation} % (fold)
+\chapter{Results and Evaluation} % (fold)
 \label{chap:Evaluation}
+This chapter depicts the results of our experiments and elaborates on them.
+\section{Performance} % (fold)
+\label{sec:Performance}
+The experiments conducted consistently demonstrated that MEADcast outperformed
+    Unicast.
+Across all MEADcast configurations tested, there was a significant reduction in
+    total network bandwidth utilization, sender upstream bandwidth utilization,
+    and transmission time.
+
+On average, the total network bandwidth was reduced by 50.29\% in EX1 Live
+    stream (1 MB for 45s), 58.78\% in EX1 Live stream (2.5 MB for 45s), and
+    58.93\% EX2 file transfer (25 MB) (see \autoref{tab:rel_save_net_bw}).
+Moreover, in both EX1 and EX2, the savings increased by approximately 30\%
+    when the number of clients per router increased from 1 to 5.
+The relative reduction stayed constant across varying data volumes.
+In comparison, IP Multicast achieved an average reduction of 80\%, with a
+    similar improvement observed as the number of receivers increased.
+
+\begin{table}
+    \centering
+        \begin{tabular}[c]{crrrrrr}
+            \toprule
+            \multirow{2}{*}[-2pt]{\makecell[c]{\textbf{Clients}\\\textit{(per Router)}}}
+            & \multicolumn{2}{c}{\textbf{EX1} \textit{(1 MB/s)}}
+            & \multicolumn{2}{c}{\textbf{EX1} \textit{(2.5 MB/s)}}
+            & \multicolumn{2}{c}{\textbf{EX2}} \\
+            \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+            &
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} & 
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} & 
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} \\
+            \midrule
+            1       & 25.50\%    & 59.59\%    & \makecell[c]{-}    & \makecell[c]{-}   & 42.11\%           & 64.69\%         \\
+            2       & 49.20\%    & 79.79\%    & 50.13\%            & 79.76\%           & \makecell[c]{-}   & \makecell[c]{-} \\
+            3       & 56.43\%    & 86.53\%    & 53.17\%            & 84.29\%           & 63.30\%           & 88.24\%         \\
+            4       & 60.28\%    & 89.89\%    & 60.34\%            & 86.35\%           & \makecell[c]{-}   & \makecell[c]{-} \\
+            5       & 60.06\%    & 91.45\%    & 71.49\%            & 88.62\%           & 71.38\%           & 94.24\%         \\
+            \midrule
+            Average & 50.29\%    & 81.45\%    & 58.78\%            & 84.76\%           & 58.93\%           & 82.39\%         \\
+            \bottomrule
+        \end{tabular}
+    \caption[Total network bandwidth reduction]{Total network bandwidth reduction \textit{(relative to unicast)}}
+    \label{tab:rel_save_net_bw}
+\end{table}
+
+Furthermore, we observed a substantial reduction of the sender upstream bandwidth
+    utilization.
+On average, it was reduced by 78.06\% in EX1 (1 MB/s for 45s), 81.03\% in EX1
+    (2.5 MB/s), and 84.61\% in EX2 (25 MB) (see \autoref{tab:rel_save_upstream}).
+Analog to the total network bandwidth reduction, the savings marginally
+    increased with an increasing number of clients and remained consistent
+    across various data volumes.
+IP Multicast, however, achieved a remarkable relative reduction of 96.15\%.
+
+
+\begin{table}
+    \centering
+        \begin{tabular}[c]{crrrrrr}
+            \toprule
+            \multirow{2}{*}[-2pt]{\makecell[c]{\textbf{Clients}\\\textit{(per Router)}}}
+            & \multicolumn{2}{c}{\textbf{EX1} \textit{(1 MB/s)}}
+            & \multicolumn{2}{c}{\textbf{EX1} \textit{(2.5 MB/s)}}
+            & \multicolumn{2}{c}{\textbf{EX2}} \\
+            \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+            &
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} & 
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} & 
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} \\
+            \midrule
+            1       & 64.61\%    & 92.90\%    & \makecell[c]{-}     & \makecell[c]{-}     & 79.84\%            & 89.03\%         \\
+            2       & 78.12\%    & 96.47\%    & 78.08\%             & 96.45\%             & \makecell[c]{-}    & \makecell[c]{-} \\
+            3       & 81.97\%    & 97.67\%    & 80.81\%             & 97.37\%             & 87.65\%            & 96.36\%         \\
+            4       & 84.65\%    & 98.22\%    & 84.77\%             & 97.86\%             & \makecell[c]{-}    & \makecell[c]{-} \\
+            5       & 80.95\%    & 98.31\%    & 80.45\%             & 97.64\%             & 86.33\%            & 97.86\%         \\
+            \midrule
+            Average & 78.06\% & 96.71\%   & 81.03\%             & 97.33\%             & 84.61\%            & 94.41\%         \\
+            \bottomrule
+        \end{tabular}
+    \caption[Total sender upstream bandwidth reduction]{Total sender upstream bandwidth reduction \textit{(relative to unicast)}}
+    \label{tab:rel_save_upstream}
+\end{table}
+
+In our experiments, MEADcast demonstrated notable reductions in the total
+    transfer time.
+On average MEADcast reduced the total transfer time by 8.94\% in EX1 (1 MB/s),
+    8.93\% in EX1 (2.5 MB/s), and 24.16\% in EX2 (25 MB).
+However, it is important to consider that the time savings observed in EX1 may
+    be influenced by resource limitations of the testbed, potentially causing
+    the fixed time period of 45 seconds to be exceeded during IP unicast
+    transmission.
+\autoref{fig:trans_time} illustrates a significantly lower growth rate of
+    MEADcast compared to IP Unicast.
+It rather scales more similar to IP Multicast in our experiments.
+For instance, with 5 clients per router, Multicast reduced the transfer time
+    by 77.97\%, from 2 minutes and 46 seconds to 36 seconds, while MEADcast 
+    achieved a reduction of 57.46\%, resulting in a transfer time of 1 minute
+    and 11 seconds \autoref{tab:rel_save_time}.
+% section Performance (end)
+
+
+% In file transfer experiment we verified, that transfering different sizes (25
+%     \& 100 MB) results in the same relative savings.
+% Therefore we tested with 25 MB. 
+
+% General stats
+% Impact Discovery
+%   - Performs (netload, upstream, transmission time) only slightly (<5%) worse
+%     than non discovery equivivalent
+%   - Not noticiable in Jitter
+%   - Noticiable in AVG Latency for higher number of clients (why?)
+%   - Discovery Phase increases MAX latency (why?)
+%   - No peaks in netload or upstream recognizable 
+% Grouping
+%   - Grouping does strongly influence performance
+%   - The more addresses per packet the lower the upstream bandwidth
+%   - (1) L2L3, (2) plain, (3) merge, L1
+%   - In both experiments MEADcast support only on L2L3 results on certain
+%     links in bandwidth savings of over 50%, because MEADcast router replicate
+%     packets eventhough they travel the same path
+% Dynamic network environments
+%   - Turn on FW: 100% packet loss until next discovery phase (for us ca. 2s).
+%     If falling back to a MEADcast router before the firewall, we experienced
+%     an increase in netload bc of the earlier converstion from m2u.
+%     If falling back to unicast way higher increase compared to falling back
+%     to MEADcast. After allowing MEADcast traffic on FW again and next discovery
+%     phase, back to normal.%
+%   - Routing change: Not recognizable in RX BW and no packets lost. Higher latency.
+%     Same behavior as Unicast.
+%   - Link failure: RX BW drops to zero. After next discovery phase Link BW
+%     increased bc of less optimal grouping. After routing change RX BW back up
+% Always performed better than unicast and worse than multicast, no matter of
+% config.
+% We can see  that in tables ...
+
+% Network bandwidth:
+% - 56%
+% - 82.72%
+% Sender upstream:
+% - 81.23%
+% - 96.08%
+% Transfer time:
+% - 12.03% (24.16%)
+% - 27.40% (49.18%)
+
+% Conclusion:
+% - less MEADcast support at the right spots performs better than 100%
+
+
+
+\begin{table}
+    \centering
+        \begin{tabular}[c]{crrrrrr}
+            \toprule
+            \multirow{2}{*}[-2pt]{\makecell[c]{\textbf{Clients}\\\textit{(per Router)}}}
+            & \multicolumn{2}{c}{\textbf{EX1} \textit{(1 MB/s)}}
+            & \multicolumn{2}{c}{\textbf{EX1} \textit{(2.5 MB/s)}}
+            & \multicolumn{2}{c}{\textbf{EX2}} \\
+            \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+            &
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} & 
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} & 
+            \multicolumn{1}{c}{Mead} & 
+            \multicolumn{1}{c}{Multi} \\
+            \midrule
+            1       & 0.65\%     & 0.66\%     & \makecell[c]{-}    & \makecell[c]{-}    & 37.94\%            & 61.54\%         \\
+            2       & 1.11\%     & 1.10\%     & 2.93\%             & 2.90\%             & \makecell[c]{-}    & \makecell[c]{-} \\
+            3       & 2.27\%     & 2.27\%     & 18.43\%            & 18.55\%            & 52.14\%            & 62.50\%         \\
+            4       & 10.39\%    & 10.40\%    & 36.19\%            & 36.24\%            & \makecell[c]{-}    & \makecell[c]{-} \\
+            5       & 30.30\%    & 30.22\%    & 38.82\%            & 38.94\%            & 57.46\%            & 77.97\%         \\
+            \midrule
+            % Average & 3.00\% &	8.94\%     & 8.93\%             & 24.09\%            & 24.16\%            &	49.18\% \\
+            Average & 8.94\%     & 8.93\%     & 24.09\%            & 24.16\%            & 49.18\%            & 67.34\%         \\
+
+            \bottomrule
+        \end{tabular}
+    \caption[Total transfer time reduction]{Total transfer time reduction \textit{(relative to unicast)}}
+    \label{tab:rel_save_time}
+\end{table}
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_ex2_25mb_tx_time.pgf}
+    \end{center}
+    \caption[EX2 File transfer: Comparison of transfer time]{
+        EX2 File transfer: Comparison of transfer time for a data volume of 25MB.
+    }
+    \label{fig:trans_time}
+\end{figure}
+
+
+% Fig X illustrates these metrics during two experiments.
+% Network bandwidth mehr als halbiert (64%, 71%).
+% Upstream um  (87%, 92%)
+% Tansmit time (10%, 55%)
+% Initial discovery klar zu erkennen
+% EX1 stready, EX2 higher variation bc operating on limit
+\autoref{fig:netload_upstream_cmp}, illustrates the performance enhancements in
+    two specific scenarios.
+In both cases, MEADcast substantially reduces network bandwidth utilization,
+    achieving reductions of over half compared to IP unicast (EX1: 64\%, EX2:
+    71\%).
+Moreover, MEADcast achieves even greater reductions in sender upstream
+    bandwidth utilization, reaching 87\% in EX1 and 92\% in EX2 compared to IP
+    unicast.
+At the start of the transmission, there is a discernible impact from the
+    initial discovery phase.
+During this phase, both network and upstream bandwidth experience peaks for
+    approximately 2 seconds, reaching similar values as IP unicast, and even
+    surpassing them in EX2.
+The network and upstream bandwidth peaks for approximately 2 seconds to similar
+    values as IP unicast, even exceeding it in EX2.
+The bandwidth utilization in EX2 fluctuates more compared to EX1 because it
+    pushes the testbed's resource usage to its limits.
+MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_netload_upstream.pgf}
+    \end{center}
+    \label{fig:netload_upstream_cmp}
+    \caption[Comparison of network and sender upstream bandwidth utilization]{
+        Comparison of network and sender upstream bandwidth utilization.
+        On the left side, \textbf{(a)} depicts the total network bandwidth
+        utilization and \textbf{(b)} the sender upstream bandwidth utilization
+        during the execution of EX1 Live stream (1 MB/s for 45s) with 56 clients
+        (5 per router), a maximum of 20 addresses per packet, and a discovery
+        interval of 5 seconds.
+        On the right side, \textbf{(c)} represents the total network bandwidth
+        utilization and \textbf{(d)} the sender upstream bandwidth utilization
+        during EX2 File transfer (25 MB) with 45 clients (5 per router), a
+        maximum of 24 addresses per packet and a discovery interval of 5
+        seconds.
+    }
+\end{figure}
+
+
+
+\section{Grouping and Network support} % (fold)
+\label{sec:Grouping and Network support}
+
+We conducted tests on MEADcast using various groupings and different levels of
+    MEADcast routers.
+As previously noted, MEADcast consistently outperformed IP Unicast across all
+    tested groupings and levels of network support.
+
+Interestingly, we observed the most significant reduction in total network
+    bandwidth utilization with MEADcast support on the Distribution (L2) and
+    Access Layer (L3), as shown in \autoref{fig:netloadcmp}.
+This was closely followed by 100\% network support and MEADcast with a merge 
+    range of 2.
+In contrast, the experiments with MEADcast support only on the Core Layer (L1)
+    achieved the least improvement compared to IP unicast.
+Each of these experiments were conducted with a maximum address list length of
+    10 and 20.
+Notably, in all tested scenarios in EX1, a maximum address list of 20
+    consistently outperformed a maximum of 10 addresses.
+The drop in total network bandwidth utilization in EX1 2.5 MB/s is caused by
+    an increased packet loss rate due to the resource limitations of the
+    testbed.
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_ex1_netload.pgf}
+    \end{center}
+    \caption[EX1 Live stream: Total network bandwidth utilization]{
+        EX1 Live stream: Total network bandwidth utilization.}
+    \label{fig:netloadcmp}
+\end{figure}
+
+\autoref{fig:upstreamcmp} illustrates, that all tested groupings and levels of
+    network exhibit significantly lower sender upstream bandwidth requirements
+    compared to IP unicast.
+Furthermore, as the number of receivers increases, the upstream bandwidth
+    demands of MEADcast grow at a much slower rate compared to IP unicast.
+Additionally, the higher the address list limit, the less packets with
+    identical payload are required, thus the greater the reduction in sender
+    upstream bandwidth utilization.
+For instance, configurations with an address limit of 20 consistently
+    outperformed all other configurations with a lower limit.
+In contrast to the results of the total network bandwidth reduction,
+    experiments with MEADcast support on L2 and L3 achieved the least
+    improvements.
+Experiments with 100\% MEADcast support and a merging range between 1 and 2
+    yielded comparable results.
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_upstream.pgf}
+    \end{center}
+    \caption[Total sender upstream bandwidth]{Total sender upstream bandwidth.}
+    \label{fig:upstreamcmp}
+\end{figure}
+
+Proceeding with the results of the bandwidth savings achieved by MEADcast
+Continuing with the examination of the bandwidth savings resulting from
+    MEADcast support solely on L2 and L3, \autoref{fig:link_bw_l2l3_100}
+    highlights the bandwidth usage per link in experiments with 100\% MEADcast
+    support versus protocol support exclusively on L2 and L3 (red).
+In both EX1 and EX2, the lower level of MEADcast support notably decreases
+    the bandwidth usage on certain links by over 50\%.
+    
+In context of low levels of MEADcast support, we executed EX2 File transfer
+    (25 MB), with 27 receivers, a maximum of 30 addresses er packet, and only
+    $R_3$ supporting MEADcast.
+This experiment lead to a reduction in transfer time by 42.98\%, network
+    bandwidth utilization by 53.14\%, and sender upstream bandwidth utilization
+    by 94.55\%.
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/hbar_link_bw_l2l3_100.pgf}
+    \end{center}
+    \caption[EX2 File Transfer: Comparison of total link bandwidth]{
+        EX2 File Transfer: Comparison of total link bandwidth.
+        \textbf{(1)} Black bars denote results from experiments with 100\%
+            MEADcast support.
+        \textbf{(2)} Red bars denote results from experiments with MEADcast
+            support on the Distribution (L2) and Access Layer (L3).
+        \textbf{(a)} depicts the results from the execution of EX1 Live
+            stream (1 MB/s for 45 seconds), with 70 receivers (5 per router),
+            and a maximum of 20 addresses per packet.
+        \textbf{(b)} depicts the results from the execution of EX2 File
+            transfer (25 MB), with 45 receivers (5 per router), and a maximum
+            of 24 addresses per packet.
+    }
+    \label{fig:link_bw_l2l3_100}
+\end{figure}
+
+%%%% LATENCY & JITTER %%%%
+% Results:
+%   Latency:
+%    - Discovery Latency is similar or slightly higher than Uni
+%    - AVG Latency: uni lower for small groups, switches with increasing group size
+%    - MIN Latency: Uni best,  Mead worst
+%    - MAX Latency: small group size all similar, increasing group size uni and mead discover worse
+% Discussion:
+%   Uni rises, bc we reach resource limits
+%   Min uni best, bc without resource constraints its the fastest
+%   --> MEADcast can save resources and therefore work in settings where Uni is not feasible
+%   AVG latency for discovery rises mostly bc of uni cast usage during init discovery phase (see line latency)
+
+The MEADcast support level and grouping also influences the protocols
+    performance.
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_ex1_1mb_latency.pgf}
+    \end{center}
+    \caption[EX1 Live stream: Latency comparison]{
+        EX1 Live stream: Latency comparison.
+    }
+    \label{fig:latency_cmp}
+\end{figure}
+
+% section Grouping and Network support (end)
+
+
+\section{Influence of the discovery phase} % (fold)
+\label{sec:Influence of the Discovery phase}
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_latency_cmp.pgf}
+    \end{center}
+    \caption[Latency]{Latency}
+\end{figure}
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_ex3_dcvr_loss.pgf}
+    \end{center}
+    \caption[Effect of the discovery phase]{
+        Effect of the discovery phase.
+        \textbf{(a)} depicts the received bandwidth on the sender.
+        \textbf{(b)} depicts the packet loss on a receiver.
+        \textbf{(c)} depicts the maximal latency on a receiver.
+    }
+\end{figure}
+
+% section Influence of the Discovery phase (end)
+
+\section{MEADcast in dynamic network environments} % (fold)
+\label{sec:MEADcast in dynamic network environments}
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_ex3_p2p_dyn_net_env.pgf}
+    \end{center}
+    \caption[MEADcast fallback mechanism]{MEADcast fallback mechanism: Firewall drops MEADcast packets during transmission.
+        \textbf{(1)} Black bar denotes results from experiment falling back to unicast transmission.
+        \textbf{(2)} Red bar denotes results from experiment where the clients could be assigned to another MEADcast router closer to the sender.
+        }
+\end{figure}
+
+% section MEADcast in dynamic network environments (end)
+Failure of the last router can lead to IP leak because MEADcast packets to the client, which address is in the IP destination field.
+In our experiment Iperf and Netcat just ignored the MEADcast header.
 
 % chapter Evaluation (end)

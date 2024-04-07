@@ -1,3 +1,12 @@
+% first fully functional (send, discovery, fallback, ...) implementation of sender and router
+% comparison to uni and multicast based on various metrics
+% test dynamic situations (firewall & fallback, link failure, route change)
+% propose improvements
+% tested own improvement (no hop by hop)
+% strategic deployment at key locations can result in significant netload and upstream savings
+% so far no disadvantage in using MEADcast as the sender, because of robust fallback mechanism
+
+
 \chapter{Summary} % (fold)
 \label{chap:Summary}
 
@@ -9,6 +18,9 @@
 
 \section{Further Work} % (fold)
 \label{sec:Further Work}
+% don't fragment flag or MEADcast islands (similar to Xcast Islands)
+% investigate grouping algorithm
+% test in real network or over the internet
 
 % section Further Work (end)
 
