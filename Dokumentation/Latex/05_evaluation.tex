@@ -248,7 +248,7 @@ MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
 \label{sec:Grouping and Network support}
 
 We conducted tests on MEADcast using various groupings and different levels of
-    MEADcast routers.
+    MEADcast network support.
 As previously noted, MEADcast consistently outperformed IP Unicast across all
     tested groupings and levels of network support.
 
@@ -262,8 +262,8 @@ In contrast, the experiments with MEADcast support only on the Core Layer (L1)
 Each of these experiments were conducted with a maximum address list length of
     10 and 20.
 Notably, in all tested scenarios in EX1, a maximum address list of 20
-    consistently outperformed a maximum of 10 addresses.
-The drop in total network bandwidth utilization in EX1 2.5 MB/s is caused by
+    consistently outperformed its counterpart with a limit of 10 addresses.
+The drop in total network bandwidth utilization in EX1 (2.5 MB/s) is caused by
     an increased packet loss rate due to the resource limitations of the
     testbed.
 
@@ -277,8 +277,8 @@ The drop in total network bandwidth utilization in EX1 2.5 MB/s is caused by
 \end{figure}
 
 \autoref{fig:upstreamcmp} illustrates, that all tested groupings and levels of
-    network exhibit significantly lower sender upstream bandwidth requirements
-    compared to IP unicast.
+    network support exhibit significantly lower sender upstream bandwidth
+    requirements compared to IP unicast.
 Furthermore, as the number of receivers increases, the upstream bandwidth
     demands of MEADcast grow at a much slower rate compared to IP unicast.
 Additionally, the higher the address list limit, the less packets with
@@ -300,11 +300,10 @@ Experiments with 100\% MEADcast support and a merging range between 1 and 2
     \label{fig:upstreamcmp}
 \end{figure}
 
-Proceeding with the results of the bandwidth savings achieved by MEADcast
 Continuing with the examination of the bandwidth savings resulting from
     MEADcast support solely on L2 and L3, \autoref{fig:link_bw_l2l3_100}
     highlights the bandwidth usage per link in experiments with 100\% MEADcast
-    support versus protocol support exclusively on L2 and L3 (red).
+    support versus protocol support exclusively on L2 and L3.
 In both EX1 and EX2, the lower level of MEADcast support notably decreases
     the bandwidth usage on certain links by over 50\%.
     
@@ -348,8 +347,29 @@ This experiment lead to a reduction in transfer time by 42.98\%, network
 %   --> MEADcast can save resources and therefore work in settings where Uni is not feasible
 %   AVG latency for discovery rises mostly bc of uni cast usage during init discovery phase (see line latency)
 
-The MEADcast support level and grouping also influences the protocols
-    performance.
+The grouping configuration and the level of MEADcast network support also
+    affects the latency.
+For small groups MEADcast leads to an increase in average latency compared to
+    IP unicast (see \autoref{fig:latency_cmp}).
+As the number of receivers growth the latency of IP unicast significantly
+    exceeds MEADcast's latency.
+We measured the lowest latency with MEADcast support on L2 and L3 followed by
+    100\% network support.
+Analog to IP unicast, for large group sizes, MEADcast with periodic discovery
+    phases yielded a higher average latency, however it is still lower than IP
+    unicast.
+The maximal latency shows similar results, besides that the latency of MEADcast
+    with discovery phase is similar or slightly higher than IP unicast.
+
+The minimal bandwidth of MEADcast is higher than IP unicast.
+The protocol rather achieved similar results to IP Multicast.
+All tested MEADcast configurations with a address list limit of 20 have a lower
+    minimal latency than any configuration with a limit of 10.
+The increase in latency, as the number of receivers growths, is the highest for
+    the maximal latency and the lowest for the minimal latency.
+During our experiments we also measured average, minimal and maximal Jitter.
+However, the results indicate no measurable impact from MEADcast on Jitter.
+
 \begin{figure}
     \begin{center}
         \input{Bilder/line_ex1_1mb_latency.pgf}
@@ -365,11 +385,40 @@ The MEADcast support level and grouping also influences the protocols
 
 \section{Influence of the discovery phase} % (fold)
 \label{sec:Influence of the Discovery phase}
+
+% higher latency for a large number of receivers
+% spikes in latency: for small number of receivers nearly no increase in avg latency
+% for larger number of receivers notable peaks in both avg and max latency
+As demonstrated previously, when dealing with a large number of receivers,
+    MEADcast with periodic discovery phase tends to exhibit higher latency
+    compared to MEADcast without discovery phase.
+
+\autoref{fig:dcvr_latency_effect}, illustrates a spike in maximum latency for
+    both 28 and 70 receivers during the discovery phase.
+Additionally, there is a noticeable increase in average latency for 70 clients
+    during the discovery phase, although the increase is marginal for 28
+    clients.
+Especially the initial discovery phase results in a significant spike in
+    total network bandwidth utilization, sender upstream bandwidth utilization,
+    and latency, as depicted in \autoref{fig:netload_upstream_cmp} and
+    \autoref{fig:latency_cmp}).
+Moreover, if the network is already operating at its capacity limit, the
+    discovery phase can also result in increased packet loss, as shown in 
+    \autoref{fig:dcvr_loss_effect}.
+The initial discovery phase has also the most substantial effect on the packet
+    loss.
+
 \begin{figure}
     \begin{center}
         \input{Bilder/line_latency_cmp.pgf}
     \end{center}
-    \caption[Latency]{Latency}
+    \caption[Effect of the discovery phase on latency]{
+        EX1 Live stream: Effect of the discovery phase on latency.
+        The vertical dashed line represents the periodic discovery phase.
+        The green line depicts the maximal latency and the blue line the
+        average latency.
+    }
+    \label{fig:dcvr_latency_effect}
 \end{figure}
 
 \begin{figure}
@@ -382,25 +431,80 @@ The MEADcast support level and grouping also influences the protocols
         \textbf{(b)} depicts the packet loss on a receiver.
         \textbf{(c)} depicts the maximal latency on a receiver.
     }
+    \label{fig:dcvr_loss_effect}
 \end{figure}
 
+Furthermore we observed, that in the current sender implementation the order in
+    which it receives discovery responses also effect the grouping of the
+    clients.
+However, we did not observed performance implication of the change in receiver
+    grouping.
 % section Influence of the Discovery phase (end)
 
 \section{MEADcast in dynamic network environments} % (fold)
 \label{sec:MEADcast in dynamic network environments}
 
+% Fallback
+% After enabeling FW, receive BW drops to 0, netload drops low
+% After next discovery, client receive traffic again.
+%   the net bw goes up (bc longer time or whole path uni)
+% After disableing nothing happens in first place.
+%   But after next discovery netload reduces, bc sender switches back to MEADcast
+In EX3 P2P we tested MEADcasts capabilities in dynamic network environments.
+We deployed a firewall between the sender and receivers to drop MEADcast
+    packets.
+During the transmission we enabled the firewall for 8 seconds.
+\autoref{fig:dyn_net_env} illustrates, that after enabling the firewall the
+    receiver bandwidth drops to zero and the network bandwidth utilization gets
+    reduced as well.
+After the next discovery phase the sender assigns the clients to a router in
+    front of the firewall or falls back to unicast and the clients receive 
+    traffic again.
+In both cases the total network bandwidth goes up, however falling back to
+    another MEADcast router saves nearly half the bandwidth.
+When the firewall gets disabled, in the first place no change can be observed.
+After the subsequent discovery phase, the sender switches back to MEADcast or 
+    a router which is more closely located to the clients.
+
+When a route gets changed during MEADcast transmission the receiver bandwidth
+    remained constant.
+We observed only an peak in latency.
+
 \begin{figure}
     \begin{center}
         \input{Bilder/line_ex3_p2p_dyn_net_env.pgf}
     \end{center}
-    \caption[MEADcast fallback mechanism]{MEADcast fallback mechanism: Firewall drops MEADcast packets during transmission.
-        \textbf{(1)} Black bar denotes results from experiment falling back to unicast transmission.
-        \textbf{(2)} Red bar denotes results from experiment where the clients could be assigned to another MEADcast router closer to the sender.
+    \caption[MEADcast fallback and recovery mechanism]{
+        EX3 P2P MEADcast fallback and recovery mechanism:
+        \textbf{(1)} The left column illustrates the total network bandwidth
+            \textbf{(a)} and receiver bandwidth \textbf{(b)} in a scenario
+            where MEADcast packets are dropped during transmission, for
+            instance, due to firewall intervention.
+        The black line represents the results when falling back to IP Unicast
+            transmission.
+        The red line illustrates the results from scenarios where the clients
+            could be assigned to a MEADcast router located in front of the
+            firewall.
+        The triangular marker indicate the period during which MEADcast packets
+            are dropped and the square marker represent the discovery phase.
+        \textbf{(2)} The middle column illustrates the bandwidth per link
+            \textbf{(c)} and receiver bandwidth \textbf{(d)} in a scenario
+            where a route change occurred during transmission.
+        \textbf{(3)} The right column  shows the bandwidth per link
+            \textbf{(e)} and receiver bandwidth \textbf{(f)} in a scenario
+            where a link outage occurred during transmission.
         }
+    \label{fig:dyn_net_env}
 \end{figure}
 
 % section MEADcast in dynamic network environments (end)
-Failure of the last router can lead to IP leak because MEADcast packets to the client, which address is in the IP destination field.
-In our experiment Iperf and Netcat just ignored the MEADcast header.
+If the last router fails to execute the MEADcast to IP unicast transformation
+    (due to reasons such as an error, MEADcast being disabled, or a routing
+    change), the MEADcast packets are forwarded to the client whose address is
+    indicated in the IP destination field.
+This situation could potentially result in a leakage of the addresses of other
+    group members.
+In our experiments, the client software (Iperf and Netcat) ignored the MEADcast
+    header and processed the packet correctly.
 
 % chapter Evaluation (end)

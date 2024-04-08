@@ -3364,7 +3364,7 @@
 \definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=3.238489in,y=1.975031in,,base]{\color{textcolor}\rmfamily\fontsize{9.600000}{11.520000}\selectfont (b) Minimal Latency}%
+\pgftext[x=3.238489in,y=1.975031in,,base]{\color{textcolor}\rmfamily\fontsize{9.600000}{11.520000}\selectfont (b) Minimum Latency}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfsetbuttcap%
@@ -5111,7 +5111,7 @@
 \definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=5.262607in,y=1.975031in,,base]{\color{textcolor}\rmfamily\fontsize{9.600000}{11.520000}\selectfont (c) Maximal Latency}%
+\pgftext[x=5.262607in,y=1.975031in,,base]{\color{textcolor}\rmfamily\fontsize{9.600000}{11.520000}\selectfont (c) Maximum Latency}%
 \end{pgfscope}%
 \end{pgfpicture}%
 \makeatother%
