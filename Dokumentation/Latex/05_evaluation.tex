@@ -1,7 +1,22 @@
 \chapter{Results and Evaluation} % (fold)
 \label{chap:Evaluation}
-This chapter depicts the results of our experiments and elaborates on them.
-\section{Performance} % (fold)
+This chapter presents the results of our experiments.
+\autoref{sec:Performance} provides a comparison of performance metrics among IP
+    Unicast, MEADcast, and IP Multicast, including total network bandwidth
+    utilization, sender upstream bandwidth utilization, and total transfer
+    time.
+\autoref{sec:Grouping and Network support}, delves into the impact of different
+    sender configurations and varying levels of MEADcast network support on
+    these performance metrics as well as link bandwidth utilization, and
+    latency.
+In \autoref{sec:Effects of the Discovery phase}, we examine the effect of the
+    discovery phase on metrics such as bandwidth utilization, latency, and
+    packet loss.
+Lastly, \autoref{sec:MEADcast in dynamic network environments} depicts the
+    effect of events such as route change, link outages, and intermediate nodes
+    dropping packets on MEADcast delivery.
+
+\section{Performance Metrics} % (fold)
 \label{sec:Performance}
 The experiments conducted consistently demonstrated that MEADcast outperformed
     Unicast.
@@ -334,6 +349,40 @@ This experiment lead to a reduction in transfer time by 42.98\%, network
     \label{fig:link_bw_l2l3_100}
 \end{figure}
 
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[]
+\centering
+\begin{tabular}{@{}ccrrcc@{}}
+\toprule
+        &                          & \multicolumn{2}{r}{\textbf{BW Reduction}}                & \multicolumn{2}{c}{\textbf{Ranking}} \\
+        \cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Clients & \multicolumn{1}{c}{Mode} & \multicolumn{1}{c}{Network} & \multicolumn{1}{c}{Sender} & Network       & Sender      \\ \midrule
+1       & 100\%                    & 19.15\%                    & 76.19\%                   & 3             & 2           \\
+1       & Merge                    & 32.52\%                    & \textbf{76.54\%}          & 2             & 1           \\
+1       & L2L3                     & 19.04\%                    & 27.69\%                   & 4             & 4           \\
+1       & L1                       & \textbf{38.58\%}           & 69.84\%                   & 1             & 3           \\ \midrule
+2       & 100\%                    & 51.29\%                    & 80.36\%                   & 2             & 2           \\
+2       & Merge                    & 48.20\%                    & \textbf{84.17\%}          & 3             & 1           \\
+2       & L2L3                     & \textbf{55.82\%}           & 69.59\%                   & 1             & 3           \\
+2       & L1                       & 42.31\%                    & 69.65\%                   & 4             & 4           \\ \midrule
+3       & 100\%                    & 62.02\%                    & 79.57\%                   & 2             & 2           \\
+3       & Merge                    & 59.90\%                    & \textbf{84.44\%}          & 3             & 1           \\
+3       & L2L3                     & \textbf{64.85\%}           & 77.20\%                   & 1             & 3           \\
+3       & L1                       & 41.96\%                    & 70.63\%                   & 4             & 4           \\ \midrule
+4       & 100\%                    & 65.85\%                    & 84.09\%                   & 2             & 2           \\
+4       & Merge                    & 63.52\%                    & \textbf{84.14\%}          & 3             & 1           \\
+4       & L2L3                     & \textbf{67.97\%}           & 80.48\%                   & 1             & 3           \\
+4       & L1                       & 43.05\%                    & 71.31\%                   & 4             & 4           \\ \midrule
+5       & 100\%                    & 65.44\%                    & \textbf{79.40\%}          & 2             & 1           \\
+5       & Merge                    & 59.53\%                    & 74.36\%                   & 3             & 3           \\
+5       & L2L3                     & \textbf{66.72\%}           & 76.00\%                   & 1             & 2           \\
+5       & L1                       & 39.47\%                    & 66.27\%                   & 4             & 4           \\ \bottomrule
+\end{tabular}
+\caption{}
+\label{tab:mead_cmp}
+\end{table}
+
 %%%% LATENCY & JITTER %%%%
 % Results:
 %   Latency:
@@ -383,8 +432,8 @@ However, the results indicate no measurable impact from MEADcast on Jitter.
 % section Grouping and Network support (end)
 
 
-\section{Influence of the discovery phase} % (fold)
-\label{sec:Influence of the Discovery phase}
+\section{Effects of the discovery phase} % (fold)
+\label{sec:Effects of the Discovery phase}
 
 % higher latency for a large number of receivers
 % spikes in latency: for small number of receivers nearly no increase in avg latency
@@ -450,25 +499,59 @@ However, we did not observed performance implication of the change in receiver
 %   the net bw goes up (bc longer time or whole path uni)
 % After disableing nothing happens in first place.
 %   But after next discovery netload reduces, bc sender switches back to MEADcast
-In EX3 P2P we tested MEADcasts capabilities in dynamic network environments.
-We deployed a firewall between the sender and receivers to drop MEADcast
-    packets.
-During the transmission we enabled the firewall for 8 seconds.
-\autoref{fig:dyn_net_env} illustrates, that after enabling the firewall the
-    receiver bandwidth drops to zero and the network bandwidth utilization gets
-    reduced as well.
-After the next discovery phase the sender assigns the clients to a router in
-    front of the firewall or falls back to unicast and the clients receive 
-    traffic again.
-In both cases the total network bandwidth goes up, however falling back to
-    another MEADcast router saves nearly half the bandwidth.
-When the firewall gets disabled, in the first place no change can be observed.
-After the subsequent discovery phase, the sender switches back to MEADcast or 
-    a router which is more closely located to the clients.
+In EX3 P2P we evaluated MEADcasts resilience and recovery mechanisms required
+    for dynamic network environments.
 
-When a route gets changed during MEADcast transmission the receiver bandwidth
-    remained constant.
-We observed only an peak in latency.
+We deployed a firewall to intentionally drop MEADcast packets during the
+    transmission.
+\autoref{fig:dyn_net_env} (a) illustrates, that upon enabling the firewall,
+    the receiver bandwidth drops to zero, and the network bandwidth utilization
+    decreases as well.
+After the next discovery phase, the sender tries to assign the clients to a
+    router positioned in front of the firewall.
+If this is not feasible, the sender falls back to IP Unicast transmission.
+Consequently, the packets traverse the firewall and the client receives the 
+    traffic again.
+Fallback to IP unicast increases the total network bandwidth utilization from
+    15 MB/s to 50 MB/s, whereas falling back to another MEADcast router raises
+    the bandwidth only up to 28 MB/s.
+When the firewall is disabled again, initially, no change is observed.
+However, after the subsequent discovery phase, the sender switches back to the
+    initial MEADcast grouping.
+This results in the network bandwidth utilization returning to its previous
+    value of 15 MB/s before the firewall was activated.
+
+Furthermore, we assessed MEADcast's resilience to route changes.
+In our experiments, we observed that the receiver bandwidth remained consistent
+    despite altering a route during MEADcast transmission.
+The only observed effect was a peak in latency.
+After the route change, packet delivery remained undisrupted because we
+    adjusted the traffic from $R_1$ to $R_3$ (\textit{r1\_r3}) to traverse via
+    $R_4$ (\textit{r1\_r4}), ensuring the packet keeps traversing all MEADcast
+    routers from its address list.
+It is crucial to note that if a MEADcast packet does not pass through a router
+    listed in its header, there is a risk of it not being processed correctly,
+    potentially resulting in the packet not being delivered to its intended
+    receivers. 
+
+
+Lastly, we evaluated MEADcast's recovery from a link outage.
+Immediately after the failure of the link between $R_1$ and $R_3$, the receiver
+    bandwidth dropped to zero.
+Following the subsequent discovery phase, the output bandwidth of $R_1$
+    (\textit{r1\_r3}) increased from 1.5 MB/s to 8 MB/s.
+This increase occurred due to a new grouping, characterized by an earlier
+    MEADcast to IP Unicast transformation.
+Once the underlying routing protocol detected the link failure and adjusted
+    the route accordingly, the clients resumed receiving traffic.
+Similar to the route change experiment, the routing protocol adjusted the
+    traffic from $R_1$ to $R_3$ (\textit{r1\_r3}) to traverse via $R_4$
+    (\textit{r1\_r4}), ensuring that the packet resumed traversing all
+    MEADcast routers from its address list, resulting in correct packet
+    processing and delivery.
+After the next discovery phase, the sender reverted back to the initial
+    grouping, lowering the link bandwidth utilization back to its previous
+    value of 1.5 MB/s again.
 
 \begin{figure}
     \begin{center}
@@ -493,18 +576,27 @@ We observed only an peak in latency.
         \textbf{(3)} The right column  shows the bandwidth per link
             \textbf{(e)} and receiver bandwidth \textbf{(f)} in a scenario
             where a link outage occurred during transmission.
+        The square marker indicate the discovery phase, the triangular marker
+            represent the time of link outage, and the diamond marker the time 
+            of route change.
         }
     \label{fig:dyn_net_env}
 \end{figure}
 
 % section MEADcast in dynamic network environments (end)
-If the last router fails to execute the MEADcast to IP unicast transformation
-    (due to reasons such as an error, MEADcast being disabled, or a routing
-    change), the MEADcast packets are forwarded to the client whose address is
-    indicated in the IP destination field.
-This situation could potentially result in a leakage of the addresses of other
+Additionally, we observed that in cases where a router fails to perform the
+    MEADcast to IP Unicast transformation -- due to reasons such as an error,
+    MEADcast being disabled, or a routing change -- MEADcast packets are
+    forwarded to the client whose address is specified in the IP destination
+    field.
+% Furthermore we oberserved, that if the last router fails to execute the MEADcast to IP unicast transformation
+%     (due to reasons such as an error, MEADcast being disabled, or a routing
+%     change), the MEADcast packets are forwarded to the client whose address is
+%     indicated in the IP destination field.
+This scenario potentially results in a leakage of the addresses of other
     group members.
-In our experiments, the client software (Iperf and Netcat) ignored the MEADcast
-    header and processed the packet correctly.
+However, in our experiments, we found that the client software (specifically
+    Iperf and Netcat) disregarded the MEADcast header and processed the packet
+    correctly.
 
 % chapter Evaluation (end)
