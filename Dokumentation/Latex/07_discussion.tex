@@ -1,0 +1,193 @@
+\chapter{Discussion} % (fold)
+\label{chap:Discussion}
+
+% Research Questions:
+
+% Scenario identification
+% - When to use MEADcast (Application Requirements, Network Environment)
+% - No disadvantage in using MEADcast (bc of Fallback)
+% - Limited network control, deploying a single router at key location can already signifiantly
+%     improve performance (ref to r03)
+% - 
+
+
+% How does MEADcast perform compared to IP-Unicast and IP-Multicast?
+% - throughput, latency, jitter, and resource utilization
+% - Impact of discovery phase (Overhead, Shift from extensive unicast to MEADcast delivery)
+% - Couldn't measure resource utilization but we argue less processing bc of
+%   lower latency and drop rate for large number of receivers
+
+% Which application and characteristics are well served by MEADcast?
+
+% In which conditions is the usage of MEADcast sensible?
+% - Prevailing circumstances, level of network control, endpoint distribution
+
+
+
+% Performance very good, can reduce netload, bandwidth, time, latency
+% Negligible effect of the discovery phase on bandwidth and latency.
+%   We recommend relative low interval
+% Splitting of packets after the first hop can be an issue
+% Even in cases of higher endpoint distribution and one client per router
+%   performance improvement. As long as a few links are shared
+% Grouping gives the sender the ability to adjust the protocol to his needs.
+    % large groups --> general higher bw savings, more clients effected by pkt loss
+    % discovery interval --> often: latency spikes more often, faster recovery
+    % merging nodes --> better performance for higher distribution of nodes
+% Because of the resilience and adaptivity to changing 
+
+This chapter evaluates the results from our experiments presented in
+    \autoref{chap:Evaluation} and aims to address the research questions
+    formulated in \autoref{sec:Measurements}.
+As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
+    to conduct a real-world evaluation of MEADcast, focusing on the aspects of
+    \textit{feasibility}, \textit{performance}, and \textit{scenario
+    identification}.
+
+\paragraph{Feasibility} % (fold)
+\label{par:discussion_Feasibility}
+\begin{itemize}
+\item[\textit{RQ1}]
+    \textit{How robust is the current MEADcast specification? (deployment
+        limitations \& structural issues of the protocol specification)}\par
+% - Feasibility of deploying MEADcast (limitations & structural issues of specification)
+%%%
+% - Correct routing header
+% - Omit Hop-by-Hop header
+% - Each router interface needs an IP address
+% - Packet gets split, which can lead to an increase in bandwidth utilization
+% - If MEADcast router fails, IP addresses can be leaked
+% - PLUS that no special routing is required (was hard to make Multicast routing)
+    \textbf{Protocol specification:}
+    As discussed in \autoref{sec:Protocol Specification}, we propose the
+        omission of the empty Hop-by-Hop IPv6 Extension, which experiences an
+        increased drop rate \cite{rfc7872_ext_hdrs_drop_rate}, aiming to reduce
+        the protocol's overhead by removing a header that serves no purpose,
+        decrease the likelihood of slow path processing, and increase the
+        probability of being forwarded by non-MEADcast routers.
+    Furthermore, to align with RFC 8200 \cite{rfc8200_ipv6_hdr} and mitigate
+        the risk of intermediate nodes dropping MEADcast packets due to a
+        malformed IPv6 routing extension, we advocate the inclusion of the
+        ``Segments Left'' field from the static IPv6 routing header extension.
+
+    \textbf{Deployment:}
+    The conducted series of experiments, encompassing deployment and evaluation,
+        effectively showcases the feasibility of employing MEADcast within a
+        medium-sized network.
+    MEADcast deployment requires only the installation of sender and router
+        software.
+    Additionally, the fallback mechanism enables MEADcast to operate even
+        without dedicated router support, presenting a distinct advantage over
+        IP Multicast.
+    In contrast to IP Multicast, which entails increased technical complexity
+        and a compound routing procedure, necessitating all routers to support
+        the protocol (see \autoref{sub:IP Multicast}), MEADcast imposes no
+        additional requirements beyond the sender and router software.
+    This characteristic facilitates a partial deployment of MEADcast,
+        underscoring its superior feasibility compared to IP Multicast.
+
+% How robust is the current specification?
+% - deliberate routing changes
+% - network disruption (link & router outage)
+% - Anomaly handling
+% - firewall (fallback mechanism)
+% => adaptivity and suitability for dynamic network environments)
+%%%%
+% - Handles routing changes, and network disruption similar to Unicast.
+%   Needs max. one discovery phase afterwards
+% - Anomaly handling mostly implementation dependent (no router authorization so far)
+% - Falling back to MEADcast if possible lead to way better results
+    \textbf{Robustness:}
+    MEADcast has demonstrated resilience to deliberate routing changes, network
+        disruptions such as link and router outages, and packet discarding by
+        intermediate nodes.
+    As MEADcast operates based on IP Unicast routes, its adaptability to
+        evolving network topologies primarily relies on the underlying routing
+        protocol.
+    However, if a packet's route is altered and it does not traverse the
+        routers listed in its header, delivery disruption persists until the
+        next discovery phase.
+    In the event of a firewall dropping packets during MEADcast transmission,
+        disruptions endure until the sender detects the modified topology tree
+        in the subsequent discovery phase.
+    Both MEADcast and IP Unicast fallback effectively address the presence of
+        a firewall.
+    However, reverting to a router positioned in front of the firewall results
+        in 50\% less network bandwidth utilization compared to IP Unicast.
+
+    \textbf{Anomaly Handling:}
+    In cases where a router fails to perform the MEADcast to IP Unicast
+        transformation, packets are forwarded to the client specified in the IP
+        destination field, potentially exposing group member IP addresses.
+    The handling of anomalies is implementation-specific.
+    Since no authentication mechanism is specified for MEADcast, miscellaneous
+        discovery responses can be injected, potentially hindering transmission
+        to multiple clients.
+
+    \textbf{Packet replication:}
+    The experiments have revealed an inefficiency within the MEADcast routing
+        process.
+    Specially, when multiple router addresses are included within a single
+        packet, sharing a common path of MEADcast routers, the first MEADcast
+        hop generates a replica for each router in the address list.
+    This behavior, while technically correct, arises from the stateless nature
+        of routers, which lack information regarding whether routers from the
+        address list share another intermediate router that could instead
+        perform the replica generation.
+    Although the sender possesses knowledge of how long routers within a packet
+        share the same path, the current MEADcast specification lacks a feature
+        to determine the point of packet replication, thus preventing previous
+        MEADcast routers from doing so.
+    As depicted in \autoref{fig:link_bw_l2l3_100} this inefficiency leads to a
+        significant increase in bandwidth utilization.
+    To address this issue, we propose the introduction of a ``Don't Replicate''
+        field in the header.
+    Similar to the IPv6 Hop Limit, this field contains a counter that
+        decrements with each forwarding MEADcast router.
+    As long as the field is greater than 0, the packet should not be
+        replicated, facilitating the sender to mitigate this inefficiency.
+
+    These results emphasize the feasibility of employing MEADcast in
+        medium-sized networks.
+    Moreover, the experiments illustrate MEADcast's resilience to network
+        disruptions and recovery capabilities.
+    This highlights the protocol's adaptivity and suitability for dynamic
+        network environments, offering promising initial insights into the
+        real-world applicability and resilience of MEADcast.
+    However, anomaly handling is highly implementation specific.
+    % propose several adaption to the MEADcast header, to comply with existing
+    % RFCs, reduce overhead, and mitigate routing inefficiencies.
+\end{itemize}
+% paragraph Feasibility (end)
+
+\paragraph{Performance} % (fold)
+\label{par:discussion_Performance}
+\begin{itemize}
+\item[\textit{RQ2}]
+    \textit{How does MEADcast perform compared to IP-Unicast and IP-Multicast?}
+% Performance Evaluation:
+% - Compare MEADcast with uni and multicast (efficiency and effectiveness)
+%%%%%
+% Performance falls always between Unicast and Multicast
+% AVG Netload Reduction 56%
+% AVG Upstream Reduction 81.23%
+% AVG Transfer Time Reduction (EX2) 49.18%
+    
+\end{itemize}
+
+% paragraph Performance (end)
+
+\paragraph{Scenario identification} % (fold)
+\label{par:discussion_scenario}
+\begin{itemize}
+\item[\textit{RQ3}]
+    \textit{Which applications and characteristics are well served by MEADcast?}
+\item[\textit{RQ4}]
+    \textit{In which conditions is the usage of MEADcast sensible?}
+    % limited resources
+    % limited network control
+\end{itemize}
+% paragraph  (end)
+
+
+% chapter Discussion (end)
