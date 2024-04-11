@@ -61,18 +61,19 @@ As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
     \textbf{Protocol specification:}
     As discussed in \autoref{sec:Protocol Specification}, we propose the
         omission of the empty Hop-by-Hop IPv6 Extension, which experiences an
-        increased drop rate \cite{rfc7872_ext_hdrs_drop_rate}, aiming to reduce
-        the protocol's overhead by removing a header that serves no purpose,
-        decrease the likelihood of slow path processing, and increase the
-        probability of being forwarded by non-MEADcast routers.
+        increased drop rate \cite{rfc7872_ext_hdrs_drop_rate}.
+    This adjustment aims to reduce the protocol's overhead by eliminating a
+        header that serves no purpose, decrease the likelihood of slow path
+        processing, and increase the probability of being forwarded by
+        non-MEADcast routers.
     Furthermore, to align with RFC 8200 \cite{rfc8200_ipv6_hdr} and mitigate
         the risk of intermediate nodes dropping MEADcast packets due to a
-        malformed IPv6 routing extension, we advocate the inclusion of the
+        malformed IPv6 routing extension, we advocate for the inclusion of the
         ``Segments Left'' field from the static IPv6 routing header extension.
 
     \textbf{Deployment:}
     The conducted series of experiments, encompassing deployment and evaluation,
-        effectively showcases the feasibility of employing MEADcast within a
+        effectively demonstrates the feasibility of employing MEADcast within a
         medium-sized network.
     MEADcast deployment requires only the installation of sender and router
         software.
@@ -98,9 +99,9 @@ As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
 % - Anomaly handling mostly implementation dependent (no router authorization so far)
 % - Falling back to MEADcast if possible lead to way better results
     \textbf{Robustness:}
-    MEADcast has demonstrated resilience to deliberate routing changes, network
-        disruptions such as link and router outages, and packet discarding by
-        intermediate nodes.
+    MEADcast has demonstrated resilience and recovery from deliberate routing
+        changes, network disruptions such as link and router outages, and
+        packet discarding by intermediate nodes.
     As MEADcast operates based on IP Unicast routes, its adaptability to
         evolving network topologies primarily relies on the underlying routing
         protocol.
@@ -119,8 +120,14 @@ As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
     In cases where a router fails to perform the MEADcast to IP Unicast
         transformation, packets are forwarded to the client specified in the IP
         destination field, potentially exposing group member IP addresses.
-    The handling of anomalies is implementation-specific.
-    Since no authentication mechanism is specified for MEADcast, miscellaneous
+    We recommend investigating whether targeting packets to the next MEADcast
+        hop, rather than the first client from the address list, can prevent
+        the exposure of group member information in cases of failure.
+    This investigation should also consider the implications in cases of route
+        changes and network disruptions.
+    It is important to note that the handling of anomalous discovery responses
+        is implementation-specific.
+    Since no authentication mechanism is specified for MEADcast, malicious
         discovery responses can be injected, potentially hindering transmission
         to multiple clients.
 
@@ -154,9 +161,9 @@ As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
     This highlights the protocol's adaptivity and suitability for dynamic
         network environments, offering promising initial insights into the
         real-world applicability and resilience of MEADcast.
-    However, anomaly handling is highly implementation specific.
-    % propose several adaption to the MEADcast header, to comply with existing
-    % RFCs, reduce overhead, and mitigate routing inefficiencies.
+    However, anomaly handling is highly implementation-specific.
+    Furthermore, we propose several refinements to the MEADcast specification
+        and further investigation of their implications.
 \end{itemize}
 % paragraph Feasibility (end)
 
@@ -168,11 +175,79 @@ As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
 % Performance Evaluation:
 % - Compare MEADcast with uni and multicast (efficiency and effectiveness)
 %%%%%
-% Performance falls always between Unicast and Multicast
-% AVG Netload Reduction 56%
-% AVG Upstream Reduction 81.23%
-% AVG Transfer Time Reduction (EX2) 49.18%
     
+% Resource utilization
+%   - Sender load (See increase in transfer time EX1 4-5 clients for unicast)
+%   - Latency and Drop rates grow 
+
+    % NET BW, UP BW, TIME
+    % Performance falls always between Unicast and Multicast
+    % AVG Netload Reduction: Mead 56%, Multi 82.87% --> 32.42%
+    % AVG Upstream Reduction: Mead 81.23%, Multi 96.15% --> 15.51%
+    % AVG Transfer Time Reduction (EX2): Mead 49.18%, Multi 67.34% --> 26.97%
+    The experiments emphasize that MEADcast significantly enhances performance
+        metrics such as total network bandwidth utilization, sender upstream
+        bandwidth utilization, and total transfer time compared to IP Unicast.
+    On average, MEADcast reduced network bandwidth utilization by more than
+        half (56\%), sender upstream bandwidth utilization by 81.23\%, and
+        total transfer time by half (EX2: 49.18\%).
+    In contrast, compared to IP Multicast, MEADcast increased network bandwidth
+        utilization by 32.42\%, sender upstream bandwidth by 15.51\%, and total
+        transfer time by 26.97\% (EX2).
+
+    % Implications of the discovery phase
+    \autoref{sub:Results_Effects of the Discovery phase} illustrates that the discovery
+        phase produces an average overhead of 4.69\% in total network bandwidth
+        utilization, 18.36\% in sender upstream bandwidth utilization, 0.88\%
+        (EX2) in total transfer time, and 39.57\% in average latency.
+    However, excluding the initial discovery phase signififantly reduces the 
+        average overhead to an increase of 0.62\% in total network bandwidth
+        utilization, 0.42\% in sender upstream bandwidth utilization, and
+        15.69\% in average latency.
+
+    % Resource utilization
+    % We argue, that MEADcast results in a decrease in resouce utilization:
+    % - for 4-5 clients Unicast latency strongly increases and packet loss starts
+    %   to occurr.
+    % - In contrast MEADcast latency is way lower and no or small packet loss
+    % - Further we argue that the increase in latency for MEADcast with discovery
+    %   supports that.
+    % - bc for small numbers the diff in latency between with and without init
+    %   discovery is ~11% and for high number, the overhead in latency is 75% with init discovery,
+    %   showing Unicast processing utilizies the available resources.
+    Although meaningful results for sender and router resource utilization were
+        not attainable, we contend that MEADcast results in reduced resource
+        utilization compared to IP Unicast as the number of receivers
+        increases.
+    \autoref{fig:latency_cmp} illustrates a distinct increase in average
+        latency for IP Unicast transmissions with more than three clients,
+        coinciding with the onset of packet loss.
+    This suggests, that IP Unicast transmission exhausts the testbed's
+        resources at this point.
+    In contrast, MEADcast maintains constant latency levels with little to no
+        packet loss.
+    Moreover, the observed increase in average latency for MEADcast with
+        discovery phase supports our hypothesis.
+    As indicated in \autoref{tab:init_dcvr_latency}, the difference in latency
+        increase with and without consideration of the initial discovery phase
+        is only 11\% for three or fewer clients but rises to 75\% for more than
+        three clients.
+    This suggests that IP Unicast transmission during the initial discovery
+        phase is the primary cause for resource strain.
+
+    % Shift from extensive IP Unicast to MEADcast is possible,
+    % leads to significant performance improvements, especially bw and latency reduction
+    % results also in less resource utilization
+    % Initial discovery causes major portion of the overhead produced by the
+    % discovery mechanism, overhead of the recurrying disovery phase is negligible
+    The results emphasize the feasibility of a graduate shift from extensive
+        IP Unicast to MEADcast delivery, highlighting significant performance
+        improvements, particularly in terms of reduced total network and sender
+        upstream bandwidth utilization, as well as latency.
+    Furthermore, the overhead generated by the discovery phase is primarily
+        originates from the initial discovery, whereas the overhead of
+        subsequent recurring discovery phases is negligible.
+% Effect of the discovery phase
 \end{itemize}
 
 % paragraph Performance (end)
@@ -182,10 +257,98 @@ As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
 \begin{itemize}
 \item[\textit{RQ3}]
     \textit{Which applications and characteristics are well served by MEADcast?}
+    % File transfer
+    % Stream
+    % Discovery Phase can impede latency
+    % Group:
+    % - all tested group sizes from small (<10) up to <= 70 always beneficial
+    % - the more members the better
+    % - the longer the better, bc negligible overhead of subsequent discovery
+    % Communication:
+    % - recurring burst (e.g. File transfer) if long enough 
+    % - steady stream (e.g. video/audio stream)
+    % - not able to test asymmetric communication, but results from symmetric communication should be applicable
+    % Network:
+    % - No effect on Jitter measurable
+    % - MEADcast could reduce latency, however may peak during discovery
+    % - throughput intense is well-suited.
+
+    Across all experiments, MEADcast has consistently demonstrated its
+        benefits.
+
+    % Group (Members, Distribution, Session length)
+    From small group sizes ($<10$) to groups with $\leq 70$ receivers, MEADcast
+        has shown improvements in all metrics.
+    As the total number of group members and the number of receivers per
+        router increased, these enhancements became more pronounced.
+    Additionally, MEADcast exhibits performance improvements across all tested
+        session durations.
+    However, due to the overhead associated with the initial discovery phase,
+        we recommend session durations of at least 5 seconds.
+    Particularly with longer session durations, the performance improvements
+        become more significant, as subsequent discovery phases represent a
+        negligible overhead.
+    % It is expected that there is an upper limit
+
+    % Communication pattern (burst, steady, symmetric, asymmetric)
+    MEADcast is well-suited for communication patterns characterized by steady
+        flows (e.g. video/audio stream) and recurring bursts (e.g. file
+        transfer).
+    Although experiments with asymmetric communication patterns were not
+        feasible due to resource limitations, we anticipate that the results
+        from symmetric communication patterns are applicable, except for the
+        enlarged traffic volume inherent in \gls{p2p} communication.
+
+    % Network
+    MEADcast proves beneficial across all group sizes, receiver distributions,
+        session durations, and communication patterns.
+    However, as group sizes, receiver clustering, and session duration
+        increase, the performance improvements compared to IP Unicast become
+        more pronounced.
+    MEADcast excels in throughput-intense scenarios, with no discernible impact
+        on jitter, making it suitable for applications sensitive to jitter.
+    However, MEADcast may not be suitable for applications sensitive to initial
+        startup latency.
+
 \item[\textit{RQ4}]
     \textit{In which conditions is the usage of MEADcast sensible?}
     % limited resources
+    % - especially upstream
     % limited network control
+    % - deployment of router at key location can significantly reduce bw
+    % offers sender the ability to shape how its packets should be transferred
+    % - more MEADcast router does not mean better performance
+    % - No disadvantage in deploying MEADcast, offers significant performance
+    %   improvement already with a small number of receivers, and routers. And
+    %   otherwise just falls back to Uni Cast
+    % - If bandwidth should be reduced, but can not ensure Multicast support
+
+    The employment of MEADcast proves particularly beneficial when the
+        reduction of the total network bandwidth or sender upstream utilization
+        is a major concern, especially in cases where IP Multicast support
+        cannot be guaranteed.
+    Deploying a single MEADcast router at a strategic location can
+        significantly reduce bandwidth utilization between the sender and
+        router.
+    However, it is important to note that the presence of a higher number of
+        MEADcast routers may not necessarily translate to performance
+        enhancements, as indicated in \autoref{par:discussion_Feasibility}
+        highlighting packet replication inefficiencies.
+
+    MEADcast excels in scenarios characterized by resource constraints and
+        limited network control.
+    Moreover, MEADcast empowers the sender to granularly tailor the traffic
+        pattern according to specific requirements and prevailing network
+        conditions.
+    Given the protocol's support for partial deployment and resilient fallback
+        mechanism, coupled with the absence of any major performance
+        disadvantages, we advocate for the adoption of MEADcast whenever
+        multicast communication is applicable.
+    However, in scenarios where IP Multicast usage can be assured, it remains
+        the preferred choice.
+    % only disadvantage if MULTIcast works
+    % to small can be prevented
+
 \end{itemize}
 % paragraph  (end)
 

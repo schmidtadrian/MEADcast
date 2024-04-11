@@ -880,4 +880,39 @@ To understand the grouping of receivers into MEADcast packets, one has to
 % paragraph EX4 Online Gaming (end)
 
 % section Testbed (end)
+
+\section{Experiment} % (fold)
+\label{sec:Experiment}
+
+\subsection{Technical Infrastructure} % (fold)
+\label{sub:Technical Infrastructure}
+%%% Facts
+% Hardware Resources
+% Debian Version
+% KVM
+% para virtualized Net IO Dev
+% One backing file, and vm disk only tracking differences.
+% Debian No-Cloud Image Version for clients
+% Direct Kernel boot for router
+% VM resources
+
+%%% How created
+% python script virsh util
+% from json file describing topo
+% frr for routing, had to change repo bc ospf6 was missing
+% ospf6 and Pim as routing protocols
+% ospf domains
+% chrony ptp for time sync, had to add kernel boot arg to make it work
+% each vm a IPv6 only MGM if and other interfaces IPv6 only
+% IP addressing concept
+% each transit link neads a non link local address to make MEADcast work
+% command to build topo
+
+% subsection Technical Infrastructure (end)
+% section Experiment (end)
+
+\subsection{Conduction} % (fold)
+\label{sub:Conduction}
+
+% subsection Conduction (end)
 % chapter Implementation (end)

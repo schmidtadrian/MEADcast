@@ -1,23 +1,45 @@
-\chapter{Results and Evaluation} % (fold)
+\chapter{Evaluation} % (fold)
 \label{chap:Evaluation}
-This chapter presents the results of our experiments.
-\autoref{sec:Performance} provides a comparison of performance metrics among IP
+
+\section{Experiment Conduction} % (fold)
+\label{sec:Experiment Conduction}
+% - More than 150 measurements, repeated multiple times to ensure validity of results
+% - Gnu parallel, iperf, ifstat to measure data
+% - Measured with and without discovery phase
+% - Measured BW on all links on hypervisor
+% - Why no P2P and online gaming
+% - proved that MEADcast on/off flag has no impact
+% - Where and how simulated firewall, routing change and link failure
+%   - Sender: c1201
+%   - Receivers: c33-c36 clients 1-3
+%   - Once all MEADcast routers --> MEADcast Fallback
+%   - Once r31, r310, r311 --> Unicast Fallback
+%   - Firewall: Iperf drop IPv6 Routing header on link between r01 r03
+%   - Start MEADcast transmission with periodic discovery phase, to ensure
+%       firewall starts dropping during MEADcast data delivery
+%   - Enable Firewall for 8 seconds
+
+% section Experiment Conduction (end)
+
+\section{Results} % (fold)
+\label{sec:Results}
+This section presents the results of our experiments.
+\autoref{sub:Results_Performance} provides a comparison of performance metrics among IP
     Unicast, MEADcast, and IP Multicast, including total network bandwidth
     utilization, sender upstream bandwidth utilization, and total transfer
     time.
-\autoref{sec:Grouping and Network support}, delves into the impact of different
+\autoref{sub:Results_Grouping and Network support}, delves into the impact of different
     sender configurations and varying levels of MEADcast network support on
     these performance metrics as well as link bandwidth utilization, and
     latency.
-In \autoref{sec:Effects of the Discovery phase}, we examine the effect of the
+In \autoref{sub:Results_Effects of the Discovery phase}, we examine the effect of the
     discovery phase on metrics such as bandwidth utilization, latency, and
     packet loss.
-Lastly, \autoref{sec:MEADcast in dynamic network environments} depicts the
+Lastly, \autoref{sub:Results_MEADcast in dynamic network environments} depicts the
     effect of events such as route change, link outages, and intermediate nodes
     dropping packets on MEADcast delivery.
-
-\section{Performance Metrics} % (fold)
-\label{sec:Performance}
+\subsection{Performance Metrics} % (fold)
+\label{sub:Results_Performance}
 The experiments conducted consistently demonstrated that MEADcast outperformed
     Unicast.
 Across all MEADcast configurations tested, there was a significant reduction in
@@ -237,6 +259,7 @@ The network and upstream bandwidth peaks for approximately 2 seconds to similar
 The bandwidth utilization in EX2 fluctuates more compared to EX1 because it
     pushes the testbed's resource usage to its limits.
 MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
+
 \begin{figure}
     \begin{center}
         \input{Bilder/line_netload_upstream.pgf}
@@ -259,8 +282,8 @@ MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
 
 
 
-\section{Grouping and Network support} % (fold)
-\label{sec:Grouping and Network support}
+\subsection{Grouping and Network support} % (fold)
+\label{sub:Results_Grouping and Network support}
 
 We conducted tests on MEADcast using various groupings and different levels of
     MEADcast network support.
@@ -349,40 +372,6 @@ This experiment lead to a reduction in transfer time by 42.98\%, network
     \label{fig:link_bw_l2l3_100}
 \end{figure}
 
-% Please add the following required packages to your document preamble:
-% \usepackage{booktabs}
-\begin{table}[]
-\centering
-\begin{tabular}{@{}ccrrcc@{}}
-\toprule
-        &                          & \multicolumn{2}{r}{\textbf{BW Reduction}}                & \multicolumn{2}{c}{\textbf{Ranking}} \\
-        \cmidrule(lr){3-4}\cmidrule(lr){5-6}
-Clients & \multicolumn{1}{c}{Mode} & \multicolumn{1}{c}{Network} & \multicolumn{1}{c}{Sender} & Network       & Sender      \\ \midrule
-1       & 100\%                    & 19.15\%                    & 76.19\%                   & 3             & 2           \\
-1       & Merge                    & 32.52\%                    & \textbf{76.54\%}          & 2             & 1           \\
-1       & L2L3                     & 19.04\%                    & 27.69\%                   & 4             & 4           \\
-1       & L1                       & \textbf{38.58\%}           & 69.84\%                   & 1             & 3           \\ \midrule
-2       & 100\%                    & 51.29\%                    & 80.36\%                   & 2             & 2           \\
-2       & Merge                    & 48.20\%                    & \textbf{84.17\%}          & 3             & 1           \\
-2       & L2L3                     & \textbf{55.82\%}           & 69.59\%                   & 1             & 3           \\
-2       & L1                       & 42.31\%                    & 69.65\%                   & 4             & 4           \\ \midrule
-3       & 100\%                    & 62.02\%                    & 79.57\%                   & 2             & 2           \\
-3       & Merge                    & 59.90\%                    & \textbf{84.44\%}          & 3             & 1           \\
-3       & L2L3                     & \textbf{64.85\%}           & 77.20\%                   & 1             & 3           \\
-3       & L1                       & 41.96\%                    & 70.63\%                   & 4             & 4           \\ \midrule
-4       & 100\%                    & 65.85\%                    & 84.09\%                   & 2             & 2           \\
-4       & Merge                    & 63.52\%                    & \textbf{84.14\%}          & 3             & 1           \\
-4       & L2L3                     & \textbf{67.97\%}           & 80.48\%                   & 1             & 3           \\
-4       & L1                       & 43.05\%                    & 71.31\%                   & 4             & 4           \\ \midrule
-5       & 100\%                    & 65.44\%                    & \textbf{79.40\%}          & 2             & 1           \\
-5       & Merge                    & 59.53\%                    & 74.36\%                   & 3             & 3           \\
-5       & L2L3                     & \textbf{66.72\%}           & 76.00\%                   & 1             & 2           \\
-5       & L1                       & 39.47\%                    & 66.27\%                   & 4             & 4           \\ \bottomrule
-\end{tabular}
-\caption{}
-\label{tab:mead_cmp}
-\end{table}
-
 %%%% LATENCY & JITTER %%%%
 % Results:
 %   Latency:
@@ -432,8 +421,8 @@ However, the results indicate no measurable impact from MEADcast on Jitter.
 % section Grouping and Network support (end)
 
 
-\section{Effects of the discovery phase} % (fold)
-\label{sec:Effects of the Discovery phase}
+\subsection{Effects of the discovery phase} % (fold)
+\label{sub:Results_Effects of the Discovery phase}
 
 % higher latency for a large number of receivers
 % spikes in latency: for small number of receivers nearly no increase in avg latency
@@ -442,8 +431,8 @@ As demonstrated previously, when dealing with a large number of receivers,
     MEADcast with periodic discovery phase tends to exhibit higher latency
     compared to MEADcast without discovery phase.
 
-\autoref{fig:dcvr_latency_effect}, illustrates a spike in maximum latency for
-    both 28 and 70 receivers during the discovery phase.
+\autoref{fig:dcvr_latency_effect}, illustrates spikes in maximum latency for
+    both 28 and 70 receivers during discovery phases.
 Additionally, there is a noticeable increase in average latency for 70 clients
     during the discovery phase, although the increase is marginal for 28
     clients.
@@ -456,6 +445,34 @@ Moreover, if the network is already operating at its capacity limit, the
     \autoref{fig:dcvr_loss_effect}.
 The initial discovery phase has also the most substantial effect on the packet
     loss.
+
+Consequently, \autoref{tab:init_dcvr_latency} demonstrates the latency increase
+    caused by the discovery phase, particularly focusing on the initial
+    discovery.
+In experiments with the discovery phase, the average latency increases by
+    39.57\%.
+Excluding the initial discovery phase and the associated IP Unicast
+    transmission, the increase in latency is reduced by more than half to
+    15.69\%.
+Furthermore, the results emphasize a distinct increase in latency as the number
+    of clients rises.
+For $\leq 3$ clients per router, the latency increase is 11.1\% with the
+    initial discovery and 3.9\% without it.
+However, for $>3$ clients per router, the latency increase grows to 75.16\%
+    with the initial discovery and to 30.83\% without it.
+
+\autoref{tab:dcvr_net_up_effect} illustrates the impact of the discovery phase
+    on network bandwidth utilization and sender upstream bandwidth utilization.
+The discovery phase increases the network bandwidth utilization by an average
+    of 4.69\%, while the sender upstream bandwidth utilization increases by
+    18.36\% (compared to the corresponding experiment without discovery phase).
+Excluding the initial discovery phase and the associated IP Unicast
+    transmission, the increase in network bandwidth utilization is reduced to
+    0.62\%, and for sender upstream utilization, it is reduced to 0.42\%
+The theoretically calculated increase of the sender upstream bandwidth is
+    merely 0.04\%.
+The average increase in total transfer time is 0.88\% for EX2 File transfer
+    (25 MB).
 
 \begin{figure}
     \begin{center}
@@ -483,15 +500,86 @@ The initial discovery phase has also the most substantial effect on the packet
     \label{fig:dcvr_loss_effect}
 \end{figure}
 
-Furthermore we observed, that in the current sender implementation the order in
-    which it receives discovery responses also effect the grouping of the
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[]
+\centering
+\begin{tabular}{@{}ccrrrrrr@{}}
+\toprule
+    & & \multicolumn{4}{c}{\textbf{Average Latency} \textit{(ms)}} & \multicolumn{2}{c}{\textbf{Rel. increase} \textit{(\%)}} \\
+    \cmidrule(lr){3-6}\cmidrule(lr){7-8}
+        \makecell{\bfseries Clients\\\itshape (per Router)}
+    &   \textbf{\makecell{Address\\limit}}
+    &   \multicolumn{1}{c}{\makecell{No\\Dcvr}}
+    &   \multicolumn{1}{c}{\makecell{Incl. init.\\Dcvr}}
+    &   \multicolumn{1}{c}{\makecell{Excl. init.\\Dcvr}}
+    &   \multicolumn{1}{c}{\makecell{Diff\\\itshape (\%)}}
+    &   \multicolumn{1}{c}{\makecell{Incl. init.\\Dcvr}}
+    &   \multicolumn{1}{c}{\makecell{Excl. init.\\Dcvr}} \\ \midrule
+    1 & 10  &  2.77  & 2.72  & 2.69  & 0.86\%    & -2.17\%   & -3.05\%   \\
+    2 & 10  &  3.14  & 3.81  & 3.54  & 6.93\%    & 17.51\%   & 11.37\%   \\
+    3 & 10  &  4.31  & 4.51  & 4.20  & 7.01\%    & 4.40\%    & -2.81\%   \\
+    4 & 10  &  5.15  & 24.16 & 6.42  & 73.42\%   & 78.70\%   & 19.86\%   \\
+    5 & 10  &  12.42 & 59.28 & 33.98 & 42.67\%   & 79.05\%   & 63.46\%   \\ \midrule
+    2 & 20  &  3.33  & 3.64  & 3.50  & 3.84\%    & 8.46\%    & 4.80\%    \\
+    3 & 20  &  4.20  & 5.77  & 4.53  & 21.53\%   & 27.32\%   & 7.39\%    \\
+    4 & 20  &  6.10  & 19.92 & 6.08  & 69.46\%   & 69.38\%   & -0.27\%   \\
+    5 & 20  &  9.94  & 37.49 & 16.69 & 55.47\%   & 73.49\%   & 40.47\%   \\ \midrule
+    & & & \multicolumn{2}{r}{\textbf{Average}}  & 31.24\%   & 39.57\%   & 15.69\% \\ \bottomrule
+\end{tabular}
+\caption[Latency increase caused by the discovery phase]{
+    Latency increase caused by the discovery phase.
+    We gathered the results by executing the experiments once with and once
+        without periodic discovery phase.
+    The relative difference describes the variation between the experiments
+        conducted with and without the initial discovery phase.
+    The relative increase refers to the corresponding experiment without
+        discovery phase.
+}
+\label{tab:init_dcvr_latency}
+\end{table}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[]
+\centering
+\begin{tabular}{@{}lrrrrrc@{}}
+\toprule
+    & & \multicolumn{5}{c}{\textbf{Bandwidth}} \\ \cmidrule(lr){3-7}
+    & & \multicolumn{2}{c}{\textbf{\makecell{Inclusive initial\\discovery phase}}}
+    & \multicolumn{3}{c}{\textbf{\makecell{Exclusive initial\\discovery phase}}} \\ \cmidrule(lr){3-4}\cmidrule(lr){5-7}
+    \multicolumn{1}{c}{\textbf{Experiment}} &
+    \multicolumn{1}{c}{\textbf{Time}} &
+    \multicolumn{1}{c}{Network} &
+    \multicolumn{1}{c}{Sender} &
+    \multicolumn{1}{c}{Network} &
+    \multicolumn{1}{c}{Sender} &
+    \multicolumn{1}{c}{Sender \textit{(Calc.)}\tnote{1}} \\ \midrule
+    EX1 \textit{(1 MB/s)}                   & 0.00\%  & 6.17\%  & 17.37\%   & 0.54\%    & -2.24\%   & 0.06\% \\
+    EX1 \textit{(2.5 MB/s)}                 & -0.03\% & 2.79\%  & 16.35\%   & 0.78\%    & 2.48\%    & 0.03\% \\
+    EX2 \textit{(25 MB)}                    & 0.88\%  & 5.11\%  & 21.37\%   & 0.55\%    & 1.01\%    & 0.02\% \\ \midrule
+    \multicolumn{1}{c}{\textbf{Average}}    & 0.28\%  & 4.69\%  & 18.36\%   & 0.62\%    & 0.42\%    & 0.04\% \\ \bottomrule
+\end{tabular}
+    \caption[Bandwidth utilization increase caused by the discovery phase]{
+        Bandwidth utilization increase caused by the discovery phase.
+        We gathered the results by executing the experiments once with and once
+            without periodic discovery phase.
+        100\% referrs to the corresponding experiment without discovery phase.
+    }
+\label{tab:dcvr_net_up_effect}
+\end{table}
+
+
+Furthermore, we observed that in the current sender implementation, the order
+    in which it receives discovery responses also affects the grouping of the
     clients.
-However, we did not observed performance implication of the change in receiver
-    grouping.
+However, we did not observe any performance implications of the change in
+    receiver grouping.
 % section Influence of the Discovery phase (end)
 
-\section{MEADcast in dynamic network environments} % (fold)
-\label{sec:MEADcast in dynamic network environments}
+\subsection{MEADcast in dynamic network environments} % (fold)
+\label{sub:Results_MEADcast in dynamic network environments}
 
 % Fallback
 % After enabeling FW, receive BW drops to 0, netload drops low
@@ -599,4 +687,362 @@ However, in our experiments, we found that the client software (specifically
     Iperf and Netcat) disregarded the MEADcast header and processed the packet
     correctly.
 
+% section Results (end)
+
+\section{Discussion} % (fold)
+\label{sec:Discussion}
+
+% Research Questions:
+
+% Scenario identification
+% - When to use MEADcast (Application Requirements, Network Environment)
+% - No disadvantage in using MEADcast (bc of Fallback)
+% - Limited network control, deploying a single router at key location can already signifiantly
+%     improve performance (ref to r03)
+% - 
+
+
+% How does MEADcast perform compared to IP-Unicast and IP-Multicast?
+% - throughput, latency, jitter, and resource utilization
+% - Impact of discovery phase (Overhead, Shift from extensive unicast to MEADcast delivery)
+% - Couldn't measure resource utilization but we argue less processing bc of
+%   lower latency and drop rate for large number of receivers
+
+% Which application and characteristics are well served by MEADcast?
+
+% In which conditions is the usage of MEADcast sensible?
+% - Prevailing circumstances, level of network control, endpoint distribution
+
+
+
+% Performance very good, can reduce netload, bandwidth, time, latency
+% Negligible effect of the discovery phase on bandwidth and latency.
+%   We recommend relative low interval
+% Splitting of packets after the first hop can be an issue
+% Even in cases of higher endpoint distribution and one client per router
+%   performance improvement. As long as a few links are shared
+% Grouping gives the sender the ability to adjust the protocol to his needs.
+    % large groups --> general higher bw savings, more clients effected by pkt loss
+    % discovery interval --> often: latency spikes more often, faster recovery
+    % merging nodes --> better performance for higher distribution of nodes
+% Because of the resilience and adaptivity to changing 
+
+This chapter evaluates the results from our experiments presented in
+    \autoref{chap:Evaluation} and aims to address the research questions
+    formulated in \autoref{sec:Measurements}.
+As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
+    to conduct a real-world evaluation of MEADcast, focusing on the aspects of
+    \textit{feasibility}, \textit{performance}, and \textit{scenario
+    identification}.
+
+\paragraph{Feasibility} % (fold)
+\label{par:discussion_Feasibility}
+\begin{itemize}
+\item[\textit{RQ1}]
+    \textit{How robust is the current MEADcast specification? (deployment
+        limitations \& structural issues of the protocol specification)}\par
+% - Feasibility of deploying MEADcast (limitations & structural issues of specification)
+%%%
+% - Correct routing header
+% - Omit Hop-by-Hop header
+% - Each router interface needs an IP address
+% - Packet gets split, which can lead to an increase in bandwidth utilization
+% - If MEADcast router fails, IP addresses can be leaked
+% - PLUS that no special routing is required (was hard to make Multicast routing)
+    \textbf{Protocol specification:}
+    As discussed in \autoref{sec:Protocol Specification}, we propose the
+        omission of the empty Hop-by-Hop IPv6 Extension, which experiences an
+        increased drop rate \cite{rfc7872_ext_hdrs_drop_rate}.
+    This adjustment aims to reduce the protocol's overhead by eliminating a
+        header that serves no purpose, decrease the likelihood of slow path
+        processing, and increase the probability of being forwarded by
+        non-MEADcast routers.
+    Furthermore, to align with RFC 8200 \cite{rfc8200_ipv6_hdr} and mitigate
+        the risk of intermediate nodes dropping MEADcast packets due to a
+        malformed IPv6 routing extension, we advocate for the inclusion of the
+        ``Segments Left'' field from the static IPv6 routing header extension.
+
+    \textbf{Deployment:}
+    The conducted series of experiments, encompassing deployment and evaluation,
+        effectively demonstrates the feasibility of employing MEADcast within a
+        medium-sized network.
+    MEADcast deployment requires only the installation of sender and router
+        software.
+    Additionally, the fallback mechanism enables MEADcast to operate even
+        without dedicated router support, presenting a distinct advantage over
+        IP Multicast.
+    In contrast to IP Multicast, which entails increased technical complexity
+        and a compound routing procedure, necessitating all routers to support
+        the protocol (see \autoref{sub:IP Multicast}), MEADcast imposes no
+        additional requirements beyond the sender and router software.
+    This characteristic facilitates a partial deployment of MEADcast,
+        underscoring its superior feasibility compared to IP Multicast.
+
+% How robust is the current specification?
+% - deliberate routing changes
+% - network disruption (link & router outage)
+% - Anomaly handling
+% - firewall (fallback mechanism)
+% => adaptivity and suitability for dynamic network environments)
+%%%%
+% - Handles routing changes, and network disruption similar to Unicast.
+%   Needs max. one discovery phase afterwards
+% - Anomaly handling mostly implementation dependent (no router authorization so far)
+% - Falling back to MEADcast if possible lead to way better results
+    \textbf{Robustness:}
+    MEADcast has demonstrated resilience and recovery from deliberate routing
+        changes, network disruptions such as link and router outages, and
+        packet discarding by intermediate nodes.
+    As MEADcast operates based on IP Unicast routes, its adaptability to
+        evolving network topologies primarily relies on the underlying routing
+        protocol.
+    However, if a packet's route is altered and it does not traverse the
+        routers listed in its header, delivery disruption persists until the
+        next discovery phase.
+    In the event of a firewall dropping packets during MEADcast transmission,
+        disruptions endure until the sender detects the modified topology tree
+        in the subsequent discovery phase.
+    Both MEADcast and IP Unicast fallback effectively address the presence of
+        a firewall.
+    However, reverting to a router positioned in front of the firewall results
+        in 50\% less network bandwidth utilization compared to IP Unicast.
+
+    \textbf{Anomaly Handling:}
+    In cases where a router fails to perform the MEADcast to IP Unicast
+        transformation, packets are forwarded to the client specified in the IP
+        destination field, potentially exposing group member IP addresses.
+    We recommend investigating whether targeting packets to the next MEADcast
+        hop, rather than the first client from the address list, can prevent
+        the exposure of group member information in cases of failure.
+    This investigation should also consider the implications in cases of route
+        changes and network disruptions.
+    It is important to note that the handling of anomalous discovery responses
+        is implementation-specific.
+    Since no authentication mechanism is specified for MEADcast, malicious
+        discovery responses can be injected, potentially hindering transmission
+        to multiple clients.
+
+    \textbf{Packet replication:}
+    The experiments have revealed an inefficiency within the MEADcast routing
+        process.
+    Specially, when multiple router addresses are included within a single
+        packet, sharing a common path of MEADcast routers, the first MEADcast
+        hop generates a replica for each router in the address list.
+    This behavior, while technically correct, arises from the stateless nature
+        of routers, which lack information regarding whether routers from the
+        address list share another intermediate router that could instead
+        perform the replica generation.
+    Although the sender possesses knowledge of how long routers within a packet
+        share the same path, the current MEADcast specification lacks a feature
+        to determine the point of packet replication, thus preventing previous
+        MEADcast routers from doing so.
+    As depicted in \autoref{fig:link_bw_l2l3_100} this inefficiency leads to a
+        significant increase in bandwidth utilization.
+    To address this issue, we propose the introduction of a ``Don't Replicate''
+        field in the header.
+    Similar to the IPv6 Hop Limit, this field contains a counter that
+        decrements with each forwarding MEADcast router.
+    As long as the field is greater than 0, the packet should not be
+        replicated, facilitating the sender to mitigate this inefficiency.
+
+    These results emphasize the feasibility of employing MEADcast in
+        medium-sized networks.
+    Moreover, the experiments illustrate MEADcast's resilience to network
+        disruptions and recovery capabilities.
+    This highlights the protocol's adaptivity and suitability for dynamic
+        network environments, offering promising initial insights into the
+        real-world applicability and resilience of MEADcast.
+    However, anomaly handling is highly implementation-specific.
+    Furthermore, we propose several refinements to the MEADcast specification
+        and further investigation of their implications.
+\end{itemize}
+% paragraph Feasibility (end)
+
+\paragraph{Performance} % (fold)
+\label{par:discussion_Performance}
+\begin{itemize}
+\item[\textit{RQ2}]
+    \textit{How does MEADcast perform compared to IP-Unicast and IP-Multicast?}
+% Performance Evaluation:
+% - Compare MEADcast with uni and multicast (efficiency and effectiveness)
+%%%%%
+    
+% Resource utilization
+%   - Sender load (See increase in transfer time EX1 4-5 clients for unicast)
+%   - Latency and Drop rates grow 
+
+    % NET BW, UP BW, TIME
+    % Performance falls always between Unicast and Multicast
+    % AVG Netload Reduction: Mead 56%, Multi 82.87% --> 32.42%
+    % AVG Upstream Reduction: Mead 81.23%, Multi 96.15% --> 15.51%
+    % AVG Transfer Time Reduction (EX2): Mead 49.18%, Multi 67.34% --> 26.97%
+    The experiments emphasize that MEADcast significantly enhances performance
+        metrics such as total network bandwidth utilization, sender upstream
+        bandwidth utilization, and total transfer time compared to IP Unicast.
+    On average, MEADcast reduced network bandwidth utilization by more than
+        half (56\%), sender upstream bandwidth utilization by 81.23\%, and
+        total transfer time by half (EX2: 49.18\%).
+    In contrast, compared to IP Multicast, MEADcast increased network bandwidth
+        utilization by 32.42\%, sender upstream bandwidth by 15.51\%, and total
+        transfer time by 26.97\% (EX2).
+
+    % Implications of the discovery phase
+    \autoref{sub:Results_Effects of the Discovery phase} illustrates that the discovery
+        phase produces an average overhead of 4.69\% in total network bandwidth
+        utilization, 18.36\% in sender upstream bandwidth utilization, 0.88\%
+        (EX2) in total transfer time, and 39.57\% in average latency.
+    However, excluding the initial discovery phase signififantly reduces the 
+        average overhead to an increase of 0.62\% in total network bandwidth
+        utilization, 0.42\% in sender upstream bandwidth utilization, and
+        15.69\% in average latency.
+
+    % Resource utilization
+    % We argue, that MEADcast results in a decrease in resouce utilization:
+    % - for 4-5 clients Unicast latency strongly increases and packet loss starts
+    %   to occurr.
+    % - In contrast MEADcast latency is way lower and no or small packet loss
+    % - Further we argue that the increase in latency for MEADcast with discovery
+    %   supports that.
+    % - bc for small numbers the diff in latency between with and without init
+    %   discovery is ~11% and for high number, the overhead in latency is 75% with init discovery,
+    %   showing Unicast processing utilizies the available resources.
+    Although meaningful results for sender and router resource utilization were
+        not attainable, we contend that MEADcast results in reduced resource
+        utilization compared to IP Unicast as the number of receivers
+        increases.
+    \autoref{fig:latency_cmp} illustrates a distinct increase in average
+        latency for IP Unicast transmissions with more than three clients,
+        coinciding with the onset of packet loss.
+    This suggests, that IP Unicast transmission exhausts the testbed's
+        resources at this point.
+    In contrast, MEADcast maintains constant latency levels with little to no
+        packet loss.
+    Moreover, the observed increase in average latency for MEADcast with
+        discovery phase supports our hypothesis.
+    As indicated in \autoref{tab:init_dcvr_latency}, the difference in latency
+        increase with and without consideration of the initial discovery phase
+        is only 11\% for three or fewer clients but rises to 75\% for more than
+        three clients.
+    This suggests that IP Unicast transmission during the initial discovery
+        phase is the primary cause for resource strain.
+
+    % Shift from extensive IP Unicast to MEADcast is possible,
+    % leads to significant performance improvements, especially bw and latency reduction
+    % results also in less resource utilization
+    % Initial discovery causes major portion of the overhead produced by the
+    % discovery mechanism, overhead of the recurrying disovery phase is negligible
+    The results emphasize the feasibility of a graduate shift from extensive
+        IP Unicast to MEADcast delivery, highlighting significant performance
+        improvements, particularly in terms of reduced total network and sender
+        upstream bandwidth utilization, as well as latency.
+    Furthermore, the overhead generated by the discovery phase is primarily
+        originates from the initial discovery, whereas the overhead of
+        subsequent recurring discovery phases is negligible.
+% Effect of the discovery phase
+\end{itemize}
+
+% paragraph Performance (end)
+
+\paragraph{Scenario identification} % (fold)
+\label{par:discussion_scenario}
+\begin{itemize}
+\item[\textit{RQ3}]
+    \textit{Which applications and characteristics are well served by MEADcast?}
+    % File transfer
+    % Stream
+    % Discovery Phase can impede latency
+    % Group:
+    % - all tested group sizes from small (<10) up to <= 70 always beneficial
+    % - the more members the better
+    % - the longer the better, bc negligible overhead of subsequent discovery
+    % Communication:
+    % - recurring burst (e.g. File transfer) if long enough 
+    % - steady stream (e.g. video/audio stream)
+    % - not able to test asymmetric communication, but results from symmetric communication should be applicable
+    % Network:
+    % - No effect on Jitter measurable
+    % - MEADcast could reduce latency, however may peak during discovery
+    % - throughput intense is well-suited.
+
+    Across all experiments, MEADcast has consistently demonstrated its
+        benefits.
+
+    % Group (Members, Distribution, Session length)
+    From small group sizes ($<10$) to groups with $\leq 70$ receivers, MEADcast
+        has shown improvements in all metrics.
+    As the total number of group members and the number of receivers per
+        router increased, these enhancements became more pronounced.
+    Additionally, MEADcast exhibits performance improvements across all tested
+        session durations.
+    However, due to the overhead associated with the initial discovery phase,
+        we recommend session durations of at least 5 seconds.
+    Particularly with longer session durations, the performance improvements
+        become more significant, as subsequent discovery phases represent a
+        negligible overhead.
+    % It is expected that there is an upper limit
+
+    % Communication pattern (burst, steady, symmetric, asymmetric)
+    MEADcast is well-suited for communication patterns characterized by steady
+        flows (e.g. video/audio stream) and recurring bursts (e.g. file
+        transfer).
+    Although experiments with asymmetric communication patterns were not
+        feasible due to resource limitations, we anticipate that the results
+        from symmetric communication patterns are applicable, except for the
+        enlarged traffic volume inherent in \gls{p2p} communication.
+
+    % Network
+    MEADcast proves beneficial across all group sizes, receiver distributions,
+        session durations, and communication patterns.
+    However, as group sizes, receiver clustering, and session duration
+        increase, the performance improvements compared to IP Unicast become
+        more pronounced.
+    MEADcast excels in throughput-intense scenarios, with no discernible impact
+        on jitter, making it suitable for applications sensitive to jitter.
+    However, MEADcast may not be suitable for applications sensitive to initial
+        startup latency.
+
+\item[\textit{RQ4}]
+    \textit{In which conditions is the usage of MEADcast sensible?}
+    % limited resources
+    % - especially upstream
+    % limited network control
+    % - deployment of router at key location can significantly reduce bw
+    % offers sender the ability to shape how its packets should be transferred
+    % - more MEADcast router does not mean better performance
+    % - No disadvantage in deploying MEADcast, offers significant performance
+    %   improvement already with a small number of receivers, and routers. And
+    %   otherwise just falls back to Uni Cast
+    % - If bandwidth should be reduced, but can not ensure Multicast support
+
+    The employment of MEADcast proves particularly beneficial when the
+        reduction of the total network bandwidth or sender upstream utilization
+        is a major concern, especially in cases where IP Multicast support
+        cannot be guaranteed.
+    Deploying a single MEADcast router at a strategic location can
+        significantly reduce bandwidth utilization between the sender and
+        router.
+    However, it is important to note that the presence of a higher number of
+        MEADcast routers may not necessarily translate to performance
+        enhancements, as indicated in \autoref{par:discussion_Feasibility}
+        highlighting packet replication inefficiencies.
+
+    MEADcast excels in scenarios characterized by resource constraints and
+        limited network control.
+    Moreover, MEADcast empowers the sender to granularly tailor the traffic
+        pattern according to specific requirements and prevailing network
+        conditions.
+    Given the protocol's support for partial deployment and resilient fallback
+        mechanism, coupled with the absence of any major performance
+        disadvantages, we advocate for the adoption of MEADcast whenever
+        multicast communication is applicable.
+    However, in scenarios where IP Multicast usage can be assured, it remains
+        the preferred choice.
+    % only disadvantage if MULTIcast works
+    % to small can be prevented
+
+\end{itemize}
+% paragraph  (end)
+
+
+% chapter Discussion (end)
 % chapter Evaluation (end)
