@@ -4,6 +4,7 @@ This chapter introduces the employed protocol specification, the implementation
     of the MEADcast router and sender, as well as the testbed.
 
 \section{Protocol Specification} % (fold)
+\label{sec:Protocol Specification}
 Since the existing literature on MEADcast lacks specific details regarding the
     header, such as the size of each field, we introduce the
     specifications utilized for our experiments.
@@ -55,7 +56,6 @@ Due to the time frame of this thesis, we omit the usage of the optional port
 %   - Invalid routing header in BA (better use valid header)
 %   - reduced size
 %   - Omitted optional Port List for testing
-\label{sec:Protocol Specification}
 % python protocol "Next Header:8,Hdr Ext Len:8,Routing Type:8,Num. Dst:8,Flags:2,Hops:6,Reserved:24,Delivery Map:32,Router Map:32,Address List:128"
 % python protocol "Next Header:8,Hdr Ext Len:8,Routing Type:8,Segments Left:8,Num. Dst:8,Flags:2,Hops:6,Reserved:16,Delivery Map:32,Router Map:32,Address List:128"
 
@@ -434,13 +434,17 @@ Finally, the data read from the TUN device is transmitted to the MEADcast group
 The copying of the MEADcast header overwrites the IPv6 header, necessitating
     the unicast transmission to occur before the MEADcast transmission.
 
-\begin{lstlisting}[language=C, caption={Sender: tx\_group structure}, label={lst:txg_struct}]
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{c}
 struct tx_group {
-    struct child  *mdc;
+    struct child *mdc;
     size_t nuni;
     struct addr uni[];
 };
-\end{lstlisting}
+\end{minted}
+    \caption{Sender: tx\_group structure}
+    \label{lst:txg_struct}
+\end{listing}
 % paragraph Tx thread (end)
 
 
@@ -654,13 +658,13 @@ To understand the grouping of receivers into MEADcast packets, one has to
     \While{$r.freeLeafs > 0$}
         \State $m\gets n + r.freeLeafs + 1$
         \If{$m > max$}
-            \State \Goto \texttt{start}
+            \State \textbf{go to} \texttt{start}
         \ElsIf{$m \geq max - 1$}
             \State addRouterToGroup($r$)
             \Comment{Update bitmaps and address list}
             \State recursiveBackpropergate($r$)
             \Comment{Update leaf and child count of all anchestors}
-            \State \Goto \texttt{next}
+            \State \textbf{go to} \texttt{next}
         \ElsIf{$m < max$}
             \State addRouterToGroup($r$)
             \State \textbf{break}
@@ -670,19 +674,19 @@ To understand the grouping of receivers into MEADcast packets, one has to
         \State $c\gets \text{getFreeRouter($r$)}$
         \If{c}
             \State $r\gets \text{getRouter($c$)}$
-            \State \Goto \texttt{start}
+            \State \textbf{go to} \texttt{start}
         \EndIf
     \EndWhile
     \If{$r.node.parent$}
         \State backPropagate($r$)
         \Comment{Update parent leaf and child count}
         \State $r\gets \text{getRouter($r.node.parent$)}$
-        \If{$\textbf{not}\ r.node.parent}
-        \Comment{If parent is root finish group}
-            \State \Goto \texttt{next}
+        \If{\textbf{not}\ r.node.parent}
+            \Comment{If parent is root finish group}
+            \State \textbf{go to} \texttt{next}
         \EndIf
 
-        \State \Goto \texttt{start}
+        \State \textbf{go to} \texttt{start}
     \EndIf
 \Label \texttt{next:}
     \State finishGroup()
@@ -695,10 +699,12 @@ To understand the grouping of receivers into MEADcast packets, one has to
 \end{algorithmic}
 \end{algorithm}
 
-\newpage 
 
-\section{Testbed} % (fold)
-\label{sec:Testbed_Implementation}
+\section{Experiment} % (fold)
+\label{sec:Experiment}
+
+\subsection{Testbed} % (fold)
+\label{sub:Testbed_Implementation}
 % - python script reading json
 % - kvm, direct kernel boot, debian nocloud image
 % - chrony time sync (had to change boot param on host system)
@@ -879,10 +885,8 @@ To understand the grouping of receivers into MEADcast packets, one has to
 \end{itemize}
 % paragraph EX4 Online Gaming (end)
 
-% section Testbed (end)
+% subsection Testbed (end)
 
-\section{Experiment} % (fold)
-\label{sec:Experiment}
 
 \subsection{Technical Infrastructure} % (fold)
 \label{sub:Technical Infrastructure}
@@ -895,6 +899,28 @@ To understand the grouping of receivers into MEADcast packets, one has to
 % Debian No-Cloud Image Version for clients
 % Direct Kernel boot for router
 % VM resources
+Given the impracticality of creating a physical testbed, we have opted for a 
+    virtual environment using \gls{kvm}.
+The testbed comprises \glspl{vm} connected by virtual networks.
+The hypervisor, based on Debian X, is equipped with 4 vCPUs, 32 GB memory, and
+    120 GB of storage capacity.
+
+Each VM is configured with 1 vCPU, 256 MB, and 8 GB of storage.
+To optimize resource utilization, we employ the para-virtualized ``virtio''
+    network adapter for the \glspl{vm}.
+We utilize two types of \glspl{vm}: clients and routers, both based on a Debian
+    11 no-cloud image.
+No-cloud images streamline the setup process by bypassing the need for \gls{os}
+    installation.
+Additionally, direct Kernel boot is facilitated for the router, enabling swift
+    kernel exchange by simply replacing the Kernel image file on the
+    hypervisor.
+
+% template images
+During the build process, a router and a client template image are created.
+These serve as \textit{``Qemu''} backing files for the \gls{vm} images,
+    ensuring that \glspl{vm} only have to monitor changes compared to the
+    backing template, reducing storage usage and build time significantly.
 
 %%% How created
 % python script virsh util
@@ -907,12 +933,286 @@ To understand the grouping of receivers into MEADcast packets, one has to
 % IP addressing concept
 % each transit link neads a non link local address to make MEADcast work
 % command to build topo
+Automating the build process is a Python script provided in the digital
+    appendix, with the command to construct our topology shown in
+    \autoref{lst:cmd_mk_topo_start}.
+The script presents a wrapper around tools such as ``\textit{virsh}'',
+    ``\textit{libguestfs-tools}'', and ``\textit{qemu-img}''.
+It accepts several input parameters, including template configuration files
+    for the virtual network generation, ``\textit{chrony}'' (time
+    synchronization), and ``\textit{frr}'' (routing).
+Additionally, the script requires a Kernel image for the router and a
+    configuration file describing the network topology.
+\autoref{lst:topo_cfg_format} demonstrates an exemplary topology definition,
+    resulting in the topology shown in \autoref{fig:ex_topo}.
+The  \texttt{"stub"} key from the topology configuration contains a list of
+    objects describing a stub network, its number of clients, the upstream
+    router, and the OSPF area.
+The \texttt{"trans"} key includes a list of objects comprising a tuple of two
+    router IDs and OSPF area.
+The routers are interconnected according to this list.
+The \texttt{"area\_boundary"} key consists of a list of objects representing
+    the OSPF boundaries, by router ID, OSPF area ID, and the network mask
+    of the published summarizing route.
+
+The IP naming scheme for client machines follows the format
+    \texttt{"fd14::<AREA ID>:<ROUTER ID>:<CLIENT ID>"}.
+Additionally, each \gls{vm} is attached to an IPv4 management network.
+The clients utilize static routing, with a default IPv4 route on the management
+    interface and a ``fd14::/16'' route on the upstream interface.
+
+% Time sync
+For accurate measurement of latency and jitter, synchronized clocks among the
+    \glspl{vm} are imperative.
+While \gls{ntp} is a common solution for time synchronization, Linux provides
+    an alternative mechanism that does not require an \gls{ntp} server or the 
+    network stack at all.
+Instead, the host injects para-virtualized \gls{ptp} devices into the guests
+    facilitating highly accurate time synchronization.
+Apart from loading the \texttt{"kvm\_ptp"} Kernel module and configuring
+    \textit{``chrony''} as usual, setting the clock source on the host via
+    Kernel command line parameters to X was necessary.
+
+% Router, routing protocol,
+The router operates on our custom MEADcast Kernel version 6.5.2.
+\textit{``Frr''} facilitates the routing stack, which supports a variety of
+    routing protocols such as BGP, OSPF, RIP, and PIM \cite{frr_doc}.
+OSPF is utilized as the IP Unicast routing protocol and PIM for IP Multicast
+    routing.
+Beyond the standard setup of \textit{``frr''}, manual alteration of the package
+    manager source to \url{https://deb.frrouting.org/} was necessary, as the
+    package from the default source misses the IPv6 PIM daemon.
+It is noteworthy while OSPF mandates routers to possess only a link-local
+    address, the MEADcast discovery phase necessitates each router to have at
+    least one global IPv6 address.
+
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{json}
+{
+    "stub_range": "fd14:0::/32",
+    "tran_range": "fd14:0::/32",
+    "mgm_gw": "10.10.0.1/8",
+    "stubs": [
+        {
+            "id": 10,
+            "mask": 112,
+            "area": 1,
+            "router": 10,
+            "clients": 5
+        }, {
+            "id": 11,
+            "mask": 112,
+            "area": 1,
+            "router": 10,
+            "clients": 5
+        }, {
+            "id": 20,
+            "mask": 112,
+            "area": 2,
+            "router": 20,
+            "clients": 5
+        }, {
+            "id": 21,
+            "mask": 112,
+            "area": 2,
+            "router": 20,
+            "clients": 5
+        }
+    ],
+    "trans": [
+        [[  1,   2], 0],    /* [[ <ROUTER ID>, <ROUTER ID>], <OSPF AREA>] */
+        [[  1,  10], 1],
+        [[  2,  20], 2],
+    ],
+    "area_boundary": [
+        /* { <ROUTER ID>, <OSPF AREA>, <PUBLISHED NET MASK> } */
+        { "id": 1, "area": 1, "mask": 96 },
+        { "id": 2, "area": 2, "mask": 96 },
+    ]
+\end{minted}
+    \caption[Network topology configuration file format]{
+        Network topology configuration file format.
+        The resulting topology is illustrated in \autoref{fig:ex_topo}
+    }
+    \label{lst:topo_cfg_format}
+\end{listing}
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=0.85\textwidth]{topo_format.pdf}
+    \end{center}
+    \caption[Example topology]{
+        Example topology generated from the configuration file shown in
+        \autoref{lst:topo_cfg_format}.
+    }
+    \label{fig:ex_topo}
+\end{figure}
 
 % subsection Technical Infrastructure (end)
 % section Experiment (end)
 
 \subsection{Conduction} % (fold)
 \label{sub:Conduction}
+% How conducted
+% How evaluated
+
+% More than 180 experiments, repeated multiple times to ensure validity
+% 120 measurements EX1, 50 EX2, 10 EX3
+We conducted over 180 measurements across three distinct use cases (UC1-3),
+    repeating each measurement multiple times to ensure the validity and
+    reliability of the collected data.
+Specifically, we conducted more than 120 measurements for UC1, 50 for UC2, and
+    10 for UC3.
+
+Each \textit{use case} is delineated by its compilation of routers, transit and
+    stub networks, and specific application characteristics, including
+    communication and traffic pattern.
+An \textit{experiment} entails executing a series of measurements for a given
+    use case, featuring a specific number of clients and data volume.
+This series comprises measurements for IP Unicast IP Multicast, and various 
+    MEADcast configurations.
+A MEADcast configuration is composed of the sender parameterization and the 
+    network support level.
+For instance, \autoref{tab:usecase_experiment_measurement} provides an excerpt
+    of two experiments conducted within UC1 (Live stream).
+
+\begin{table}[]
+\centering
+\begin{tabular}{@{}ccccccccccc@{}}
+\toprule
+& & \multicolumn{3}{c}{\textbf{Experiment}} & \multicolumn{6}{c}{\textbf{MEADcast}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-11}
+\multirow{2}{*}[-4pt]{\textbf{\makecell[c]{Use\\case}}} & &
+\multicolumn{2}{c}{Clients} & &
+\multirow{2}{*}[-4pt]{\makecell[c]{Net.\\Supp.}} &
+\multicolumn{3}{c}{Discovery} &
+\multicolumn{2}{c}{Grouping} \\
+\cmidrule(lr){3-4}\cmidrule(lr){7-9}\cmidrule(lr){10-11}
+         & Proto.   & Tot.      & p. Router & Vol.   &        & Dly    & Intvl     & T. out    & Max. size       & Merge      \\ \midrule
+Stream   & Uni      & 14        & 1         & 1      & -      & -      & -         & -         & -               & -          \\
+Stream   & Multi    & 14        & 1         & 1      & -      & -      & -         & -         & -               & -          \\
+Stream   & Mead     & 14        & 1         & 1      & 100\%  & 0      & 0         & 0         & 10              & 0          \\
+Stream   & Mead     & 14        & 1         & 1      & 100\%  & 0      & 5         & 2         & 10              & 0          \\
+\vdots   & \vdots   & \vdots    & \vdots    & \vdots & \vdots & \vdots & \vdots    & \vdots    & \vdots          & \vdots \\[3pt]
+Stream   & Mead     & 14        & 1         & 1      & 100\%  & 0      & 0         & 0         & 10              & 2          \\
+Stream   & Mead     & 14        & 1         & 1      & L1     & 0      & 0         & 0         & 20              & 0          \\ \midrule
+Stream   & Uni      & 28        & 2         & 2.5    & -      & -      & -         & -         & -               & -          \\
+Stream   & Multi    & 28        & 2         & 2.5    & -      & -      & -         & -         & -               & -          \\
+Stream   & Mead     & 28        & 2         & 2.5    & 100\%  & 0      & 0         & 0         & 10              & 0          \\
+Stream   & Mead     & 28        & 2         & 2.5    & 100\%  & 0      & 5         & 2         & 10              & 0          \\
+\vdots   & \vdots   & \vdots    & \vdots    & \vdots & \vdots & \vdots & \vdots    & \vdots    & \vdots          & \vdots \\[3pt]
+Stream   & Mead     & 28        & 2         & 2.5    & 100\%  & 0      & 0         & 0         & 10              & 2          \\
+Stream   & Mead     & 28        & 2         & 2.5    & L1     & 0      & 0         & 0         & 20              & 0          \\
+\bottomrule
+\end{tabular}
+\caption[Use case, experiments and measurements]{
+    Use case, experiments and measurements.
+    Excerpt of two experimets comprising multiple measurements conducted within UC1 (Live stream)
+}
+\label{tab:usecase_experiment_measurement}
+\end{table}
+
+% started with one client per router and scaled up
+
+\paragraph{Measurment} % (fold)
+\label{par:Measurment}
+
+% Always measured all links. Used ifstat on host (bc each network is just a bridge)
+We utilized \textit{``Iperf2''} for the data transmission and to collect
+    performance metrics including sender and receiver bandwidth utilization,
+    latency, jitter, and packet loss.
+The usage of \textit{``Iperf3''} was not feasible due to the necessity of an
+    initial \gls{tcp} handshake.
+
+% Used Iperf to measure tx/rx bw utilization, latency, jitter, packet loss
+To measure the total network bandwidth utilization, we monitored all links
+    within the use case.
+As the experiments were conducted in a virtual environment, we simply needed to
+    measure the receive and transmission bandwidth of each virtual network,
+    which is essentially a network bridge on the host system.
+For this purpose, we utilized \textit{``ifstat''}.
+% paragraph Measurment (end)
+
+\paragraph{RX/TX} % (fold)
+\label{par:RX/TX}
+% Uni (1:n):
+%   - rx: ssh into all machines, start Iperf server and detach from it
+%   - tx: ssh into sender and start one Iperf instance per receiver via gnu parallel
+To conduct IP Unicast measurements for UC1 and UC2 we connected to all
+    receivers using GNU parallel and SSH, initiated Iperf in server mode and
+    detached from the process.
+On the sender we initiated one instance of Iperf per receiver using GNU
+    parallel.
+
+% Multicast:
+%   - rx: same as Unicast (but listen on Multicast address)
+%   - tx: start Iperf client on sender with Multicast address
+For the IP Multicast measurements, the procedure on the receiver side is
+    identical to IP Unicast, except that Iperf listens on a IPv6 Multicast
+    address.
+On the sender side, one instance of Iperf is started to transmit traffic
+    towards all multicast listeners.
+
+% MEADcast:
+%   - rx: same as Unicast
+%   - tx: start MEADcast sender, and send IPerf into TUN dev
+To measure MEADcast, the procedure on the receiver side is identical to IP
+    Unicast.
+On the sender we started the MEADcast sender implementation and configured
+    Iperf to send its traffic into the TUN device, as shown in
+    \autoref{fig:tun_dev}.
+It is noteworthy, that we initiated the Iperf client (our sender) with the
+    \texttt{"--no-udp-fin"} flag to prevent the Iperf server (our receivers)
+    from sending a final report to the client, potentially falsifying our
+    bandwidth measurements.
+
+% Uni (m:n):
+%   - rx: same
+%   - tx: ssh into each client and do the same as 1:n
+To conduct IP Unicast measurements for UC3 (\gls{ptp}), we employed one
+    instance of Iperf in server mode on each client ($n$), along with $n-1$
+    instances of Iperf in client mode, sending traffic to each other.
+% Multicast (m:n)
+%   - not possible, bc Iperf requires receiver to bind to Unicast host to listen to
+%   - might be possible if one can bypass this limitation, or
+%     start for each sender an Iperf rx
+\gls{p2p} Multicast measurements were not feasible because Iperf only supports
+    \gls{ssm}.
+% MEADcast (m:n)
+%   - rx: same as unicast
+%   - tx: start MEADcast on each client
+The procedure for \gls{p2p} MEADcast measurements is similar to the 1:n
+    measurement, except that the MEADcast sender is initiated on each client.
+% paragraph RX/TX (end)
+
+% MEADcast
+%   - with and without discovery phase
+%   - various sender configurations
+%   - various network support levels
+
+% - proved that MEADcast on/off flag has no impact
+
+% EX1
+% EX2
+% - BC iperf has no feature to MAX out bandwidth, went up until we reached
+%   packet loss of approx 1.5%
+% - started with data volume of 25 MB and 100 MB
+% - same relative savings --> omitted 100 MB
+% EX3
+% - To high packet loss already in base experiment
+% EX4
+% Firewall
+%   - EX3
+%   - Sender: c1201
+%   - Receivers: c33-36 clients 1-3
+%   - Once all routers MEADcast --> MEADcast fallback
+%   - Once only r31, r310, and r311 MEADcast --> Unicast fallback
+%   - Firewall: Iperf drop IPv6 Routing header on link between r01 r03
+%   - Start MEADcast transmission with periodic discovery phase, to ensure
+%       firewall starts dropping during MEADcast data delivery
+%   - Enable Firewall for 8 seconds
+% Routing Change
+% Link failure
 
 % subsection Conduction (end)
 % chapter Implementation (end)

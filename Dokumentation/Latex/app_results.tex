@@ -1,0 +1,109 @@
+\chapter{Results} % (fold)
+\label{chap:Results}
+% Performance
+%   - Network, Upstream, Time
+% Grouping
+%   - Influence of different groupings
+%   - Sometimes better results with less routers
+% Discovery
+%   - Max Latency
+%   - Comparison to non discovery
+% Dynamic network environment
+%   - Routing change, Link failure, Firewall
+%   - Turn Meadcast off
+
+\begin{figure}
+    \begin{center}
+        \input{Bilder/line_ex1_1mb_net_bw_cmp_big.pgf}
+    \end{center}
+    \caption{EX1 Live Stream (1MB for 45s): MEADcast grouping comparison network bandwidth}
+\end{figure}
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{@{}cccccccrrrrrrr@{}}
+\toprule
+\multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{1}{l}{} & \multicolumn{4}{c}{\textbf{MEADcast}} &                          & \multicolumn{2}{c}{\textbf{\begin{tabular}[c]{@{}c@{}}TX time\\ (s)\end{tabular}}} & \multicolumn{2}{c}{\textbf{\begin{tabular}[c]{@{}c@{}}Netload\\ (GB)\end{tabular}}} & \multicolumn{2}{c}{\textbf{\begin{tabular}[c]{@{}c@{}}Upstream\\ (MB)\end{tabular}}} \\
+Exp                  & Mode                 & Rx                   & Supp      & Mrg     & Dcv    & Max    & \multicolumn{1}{c}{Loss} & \multicolumn{1}{c}{Tot.}                 & \multicolumn{1}{c}{Diff}                & \multicolumn{1}{c}{Tot.}                 & \multicolumn{1}{c}{Diff}                 & \multicolumn{1}{c}{Tot.}                  & \multicolumn{1}{c}{Diff}                 \\ \midrule
+1                    & Uni                  & 14                   & -         & -       & -      & -      & 0.00                     & 45.33                                    & 0.00\%                                  & 0.57                                     & 0.00\%                                   & 78.98                                     & 0.00\%                                   \\
+1                    & Multi                & 14                   & -         & -       & -      & -      & 0.00                     & 45.03                                    & -0.66\%                                 & 0.23                                     & -59.59\%                                 & 5.61                                      & -92.90\%                                 \\
+1                    & Mead                 & 14                   & 100\%     & 0       & no     & 10     & 0.00                     & 45.03                                    & -0.66\%                                 & 0.46                                     & -19.15\%                                 & 18.80                                     & -76.19\%                                 \\
+1                    & Mead                 & 14                   & 100\%     & 0       & yes    & 10     & 0.00                     & 45.04                                    & -0.64\%                                 & 0.46                                     & -18.21\%                                 & 21.50                                     & -72.77\%                                 \\
+1                    & Mead                 & 14                   & 100\%     & 2       & no     & 10     & 0.00                     & 45.03                                    & -0.66\%                                 & 0.38                                     & -32.52\%                                 & 18.53                                     & -76.54\%                                 \\
+1                    & Mead                 & 14                   & L2-L3     & 0       & no     & 10     & 0.00                     & 45.04                                    & -0.65\%                                 & 0.46                                     & -19.04\%                                 & 57.11                                     & -27.69\%                                 \\
+1                    & Mead                 & 14                   & L1        & 0       & no     & 10     & 0.00                     & 45.03                                    & -0.67\%                                 & 0.35                                     & -38.58\%                                 & 23.82                                     & -69.84\%                                 \\ \bottomrule
+\end{tabular}}
+\caption{}
+\label{tab:my-table2}
+\end{table}
+
+\begin{table}
+    \begin{center}
+        \begin{tabular}[c]{lcrrr}
+            \toprule
+            &
+            \multirow{2}{*}[-4pt]{\makecell[c]{\textbf{Vol.}\\\textit{(MB)}}} &
+            & \multicolumn{2}{c}{\textbf{Bandwidth}} \\
+            \cmidrule{4-5}
+            \multicolumn{1}{c}{\textbf{Mode}} & &
+            \multicolumn{1}{c}{\textbf{Time}} &
+            \multicolumn{1}{c}{Network} &
+            \multicolumn{1}{c}{Sender} \\
+            \midrule
+            Multi             & 25     & 61.54\%    & 64.69\%    & 89.03\%    \\
+            Multi             & 100    & 61.66\%    & 64.29\%    & 89.07\%    \\ \midrule
+            Mead 10           & 25     & 22.92\%    & 29.46\%    & 75.62\%    \\
+            Mead 10           & 100    & 22.10\%    & 28.42\%    & 75.30\%    \\ \midrule
+            Mead 10, Merge 1  & 25     & 41.19\%    & 46.82\%    & 76.59\%    \\
+            Mead 10, Merge 1  & 100    & 40.27\%    & 46.22\%    & 75.82\%    \\ \midrule
+            Mead 10, Layer 1  & 25     & 49.71\%     & 50.05\%    & 87.31\%    \\
+            Mead 10, Layer 1  & 100    & 35.26\%     & 49.80\%    & 87.38\%    \\
+            \bottomrule
+        \end{tabular}
+        \caption[EX1 File transfer: Relative savings in comparison to unicast]{EX1 File transfer: Relative savings in comparison to unicast.
+        The results highlight, that the relative savings are analog between the 25MB and 100MB experiment.
+        Based on this observation, we continued the experiments only with a data volume of 25MB.
+        Further experiments are required, to investigate whether this conclusion is applicable for other scenarios.}
+    \label{tab:a}
+    \end{center}
+\end{table}
+
+
+% Please add the following required packages to your document preamble:
+% \usepackage{booktabs}
+\begin{table}[]
+\centering
+\begin{tabular}{@{}ccrrcc@{}}
+\toprule
+        &                          & \multicolumn{2}{r}{\textbf{BW Reduction}}                & \multicolumn{2}{c}{\textbf{Ranking}} \\
+        \cmidrule(lr){3-4}\cmidrule(lr){5-6}
+Clients & \multicolumn{1}{c}{Mode} & \multicolumn{1}{c}{Network} & \multicolumn{1}{c}{Sender} & Network       & Sender      \\ \midrule
+1       & 100\%                    & 19.15\%                    & 76.19\%                   & 3             & 2           \\
+1       & Merge                    & 32.52\%                    & \textbf{76.54\%}          & 2             & 1           \\
+1       & L2L3                     & 19.04\%                    & 27.69\%                   & 4             & 4           \\
+1       & L1                       & \textbf{38.58\%}           & 69.84\%                   & 1             & 3           \\ \midrule
+2       & 100\%                    & 51.29\%                    & 80.36\%                   & 2             & 2           \\
+2       & Merge                    & 48.20\%                    & \textbf{84.17\%}          & 3             & 1           \\
+2       & L2L3                     & \textbf{55.82\%}           & 69.59\%                   & 1             & 3           \\
+2       & L1                       & 42.31\%                    & 69.65\%                   & 4             & 4           \\ \midrule
+3       & 100\%                    & 62.02\%                    & 79.57\%                   & 2             & 2           \\
+3       & Merge                    & 59.90\%                    & \textbf{84.44\%}          & 3             & 1           \\
+3       & L2L3                     & \textbf{64.85\%}           & 77.20\%                   & 1             & 3           \\
+3       & L1                       & 41.96\%                    & 70.63\%                   & 4             & 4           \\ \midrule
+4       & 100\%                    & 65.85\%                    & 84.09\%                   & 2             & 2           \\
+4       & Merge                    & 63.52\%                    & \textbf{84.14\%}          & 3             & 1           \\
+4       & L2L3                     & \textbf{67.97\%}           & 80.48\%                   & 1             & 3           \\
+4       & L1                       & 43.05\%                    & 71.31\%                   & 4             & 4           \\ \midrule
+5       & 100\%                    & 65.44\%                    & \textbf{79.40\%}          & 2             & 1           \\
+5       & Merge                    & 59.53\%                    & 74.36\%                   & 3             & 3           \\
+5       & L2L3                     & \textbf{66.72\%}           & 76.00\%                   & 1             & 2           \\
+5       & L1                       & 39.47\%                    & 66.27\%                   & 4             & 4           \\ \bottomrule
+\end{tabular}
+\caption{}
+\label{tab:mead_cmp}
+\end{table}
+
+% chapter Results (end)

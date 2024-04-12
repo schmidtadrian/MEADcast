@@ -1,0 +1,23 @@
+\chapter{Code} % (fold)
+\label{chap:Code}
+
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{bash}
+sudo python3 mk_topo.py \
+    -t "template/testbed.json" \
+    -o "out/" \
+    -n "template/net.xml" \
+    -u user \
+    --ssh "~/id_rsa_vms.pub" \
+    --client-run "template/run.sh template/run_client.sh" \
+    --router-run "template/run.sh template/run_router.sh" \
+    --backing-file "/var/lib/libvirt/images/templates/debian-12-nocloud-amd64.raw" \
+    -c template/chrony.conf \
+    -f template/frr.conf \
+    -k kernel=/var/lib/libvirt/images/kernel/vmlinuz-6.5.2-dirty, initrd=/var/lib/libvirt/images/kernel/initrd.img-6.5.2-dirty, kernel_args="root=/dev/vda1 ro console=ttyS0,115200" \
+    --os-variant debian10
+\end{minted}
+\caption{Build topology start command.}
+\label{lst:cmd_mk_topo_start}
+\end{listing}
+% chapter Code (end)

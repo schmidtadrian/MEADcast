@@ -48,12 +48,19 @@
 \usepackage{makecell}
 \usepackage{svg}
 \usepackage{bytefield}
-% \usepackage[algoruled, linesnumbered]{algorithm2e}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{graphics}
 \usepackage{multirow}
+\usepackage{caption}
+\usepackage[toc,page]{appendix}
 
+
+\usepackage[outputdir=out, newfloat]{minted}
+% \newenvironment{code}{\captionsetup{type=listing}}{}
+% \SetupFloatingEnvironment{listing}{name=Listing}
+
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 \algnewcommand{\algorithmicgoto}{\textbf{go to}\ }%
 \algnewcommand{\Goto}{\algorithmicgoto\xspace}%
 \algnewcommand{\Label}{\State\unskip}
@@ -64,26 +71,26 @@
 \addbibresource{Bib/main.bib}
 \definecolor{light-gray}{gray}{0.95}
 
-\lstdefinestyle{mystyle}{
-    backgroundcolor=\color{light-gray},
-    % commentstyle=\color{codegreen},
-    keywordstyle=\color{magenta},
-    % numberstyle=\tiny\color{codegray},
-    % stringstyle=\color{codepurple},
-    basicstyle=\ttfamily\footnotesize,
-    % breakatwhitespace=false,         
-    % breaklines=true,                 
-    captionpos=b,
-    % keepspaces=true,                 
-    numbers=left,
-    numbersep=5pt,
-    showspaces=false,
-    showstringspaces=false,
-    showtabs=false,
-    frame=tb,
-    tabsize=2
-}
-\lstset{style=mystyle}
+% \lstdefinestyle{mystyle}{
+%     backgroundcolor=\color{light-gray},
+%     % commentstyle=\color{codegreen},
+%     keywordstyle=\color{magenta},
+%     % numberstyle=\tiny\color{codegray},
+%     % stringstyle=\color{codepurple},
+%     basicstyle=\ttfamily\footnotesize,
+%     % breakatwhitespace=false,         
+%     breaklines=true,                 
+%     captionpos=b,
+%     % keepspaces=true,                 
+%     numbers=left,
+%     numbersep=5pt,
+%     showspaces=false,
+%     showstringspaces=false,
+%     showtabs=false,
+%     frame=tb,
+%     tabsize=2
+% }
+% \lstset{style=mystyle}
 
 \newcommand{\inlinelst}[1]{\lstinline[basicstyle=\ttfamily\normalsize]{#1}}
 \begin{document}
@@ -110,23 +117,21 @@
     \input{03_design.tex}
     \input{04_implementation.tex}
     \input{05_evaluation.tex}
-    \input{07_discussion.tex}
+    % % \input{07_discussion.tex}
     \input{06_conclusion.tex}
-    % \input{compare.tex}
-    % \input{improvement.tex}
-    % \input{implementation.tex}
-    % \input{open.tex}
-    % \input{proposal.tex}
 
 % ---------------------------------------------------------------
-\backmatter % ab hier keine Nummerierung mehr
+% \backmatter % ab hier keine Nummerierung mehr
     \listoffigures
     \printglossary[type=\acronymtype]
-    % \bibliographystyle{alphadin}
-    % \bibliography{Bib/main}
     \printbibliography
 
-    \appendix
+    % \appendix
+    \begin{appendices}
+    % \renewcommand{\thechapter}{\Alph{chapter}}
+    % \renewcommand{\thesection}{\arabic{section}}
+    \input{app_code.tex}
     \input{app_results.tex}
+    \end{appendices}
 
 \end{document}

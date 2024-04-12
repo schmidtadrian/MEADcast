@@ -1,26 +1,6 @@
 \chapter{Evaluation} % (fold)
 \label{chap:Evaluation}
 
-\section{Experiment Conduction} % (fold)
-\label{sec:Experiment Conduction}
-% - More than 150 measurements, repeated multiple times to ensure validity of results
-% - Gnu parallel, iperf, ifstat to measure data
-% - Measured with and without discovery phase
-% - Measured BW on all links on hypervisor
-% - Why no P2P and online gaming
-% - proved that MEADcast on/off flag has no impact
-% - Where and how simulated firewall, routing change and link failure
-%   - Sender: c1201
-%   - Receivers: c33-c36 clients 1-3
-%   - Once all MEADcast routers --> MEADcast Fallback
-%   - Once r31, r310, r311 --> Unicast Fallback
-%   - Firewall: Iperf drop IPv6 Routing header on link between r01 r03
-%   - Start MEADcast transmission with periodic discovery phase, to ensure
-%       firewall starts dropping during MEADcast data delivery
-%   - Enable Firewall for 8 seconds
-
-% section Experiment Conduction (end)
-
 \section{Results} % (fold)
 \label{sec:Results}
 This section presents the results of our experiments.
@@ -264,7 +244,6 @@ MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
     \begin{center}
         \input{Bilder/line_netload_upstream.pgf}
     \end{center}
-    \label{fig:netload_upstream_cmp}
     \caption[Comparison of network and sender upstream bandwidth utilization]{
         Comparison of network and sender upstream bandwidth utilization.
         On the left side, \textbf{(a)} depicts the total network bandwidth
@@ -278,6 +257,7 @@ MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
         maximum of 24 addresses per packet and a discovery interval of 5
         seconds.
     }
+    \label{fig:netload_upstream_cmp}
 \end{figure}
 
 
@@ -438,7 +418,7 @@ Additionally, there is a noticeable increase in average latency for 70 clients
     clients.
 Especially the initial discovery phase results in a significant spike in
     total network bandwidth utilization, sender upstream bandwidth utilization,
-    and latency, as depicted in \autoref{fig:netload_upstream_cmp} and
+    % and latency, as depicted in \autoref{fig:netload_upstream_cmp} and
     \autoref{fig:latency_cmp}).
 Moreover, if the network is already operating at its capacity limit, the
     discovery phase can also result in increased packet loss, as shown in 
