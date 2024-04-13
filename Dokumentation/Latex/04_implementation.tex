@@ -902,8 +902,8 @@ To understand the grouping of receivers into MEADcast packets, one has to
 Given the impracticality of creating a physical testbed, we have opted for a 
     virtual environment using \gls{kvm}.
 The testbed comprises \glspl{vm} connected by virtual networks.
-The hypervisor, based on Debian X, is equipped with 4 vCPUs, 32 GB memory, and
-    120 GB of storage capacity.
+The hypervisor, based on Debian 11.3, is equipped with 4 CPUs, 8 threads, 32 GB
+    memory, and 120 GB of storage capacity.
 
 Each VM is configured with 1 vCPU, 256 MB, and 8 GB of storage.
 To optimize resource utilization, we employ the para-virtualized ``virtio''
@@ -1020,7 +1020,7 @@ It is noteworthy while OSPF mandates routers to possess only a link-local
         }
     ],
     "trans": [
-        [[  1,   2], 0],    /* [[ <ROUTER ID>, <ROUTER ID>], <OSPF AREA>] */
+        [[  1,   2], 0],  /* [[ <ROUTER ID>, <ROUTER ID>], <OSPF AREA>] */
         [[  1,  10], 1],
         [[  2,  20], 2],
     ],
@@ -1029,6 +1029,7 @@ It is noteworthy while OSPF mandates routers to possess only a link-local
         { "id": 1, "area": 1, "mask": 96 },
         { "id": 2, "area": 2, "mask": 96 },
     ]
+}
 \end{minted}
     \caption[Network topology configuration file format]{
         Network topology configuration file format.
@@ -1069,26 +1070,37 @@ Each \textit{use case} is delineated by its compilation of routers, transit and
     communication and traffic pattern.
 An \textit{experiment} entails executing a series of measurements for a given
     use case, featuring a specific number of clients and data volume.
-This series comprises measurements for IP Unicast IP Multicast, and various 
+This series comprises measurements for IP Unicast, IP Multicast, and various 
     MEADcast configurations.
 A MEADcast configuration is composed of the sender parameterization and the 
     network support level.
 For instance, \autoref{tab:usecase_experiment_measurement} provides an excerpt
     of two experiments conducted within UC1 (Live stream).
 
-\begin{table}[]
+\begin{table}
 \centering
 \begin{tabular}{@{}ccccccccccc@{}}
 \toprule
 & & \multicolumn{3}{c}{\textbf{Experiment}} & \multicolumn{6}{c}{\textbf{MEADcast}} \\
 \cmidrule(lr){3-5}\cmidrule(lr){6-11}
-\multirow{2}{*}[-4pt]{\textbf{\makecell[c]{Use\\case}}} & &
-\multicolumn{2}{c}{Clients} & &
-\multirow{2}{*}[-4pt]{\makecell[c]{Net.\\Supp.}} &
+& &
+\multicolumn{2}{c}{Clients}
+& & &
 \multicolumn{3}{c}{Discovery} &
 \multicolumn{2}{c}{Grouping} \\
 \cmidrule(lr){3-4}\cmidrule(lr){7-9}\cmidrule(lr){10-11}
-         & Proto.   & Tot.      & p. Router & Vol.   &        & Dly    & Intvl     & T. out    & Max. size       & Merge      \\ \midrule
+
+\textbf{\makecell[c]{Use\\case}} &
+    Proto.   &
+    Tot.      &
+    \makecell[c]{per\\Router} &
+    \makecell[c]{Vol.\\\itshape (MB/s)}       &
+    \makecell[c]{Net.\\Supp.}       &
+    \makecell[c]{Dly\\\itshape (s)}    &
+    \makecell[c]{Intvl\\\itshape (s)}     &
+    \makecell[c]{T. out\\\itshape (s)}    &
+    \makecell[c]{Max.\\size}       &
+    \makecell[c]{Merge\\range}      \\ \midrule
 Stream   & Uni      & 14        & 1         & 1      & -      & -      & -         & -         & -               & -          \\
 Stream   & Multi    & 14        & 1         & 1      & -      & -      & -         & -         & -               & -          \\
 Stream   & Mead     & 14        & 1         & 1      & 100\%  & 0      & 0         & 0         & 10              & 0          \\
@@ -1107,12 +1119,11 @@ Stream   & Mead     & 28        & 2         & 2.5    & L1     & 0      & 0      
 \end{tabular}
 \caption[Use case, experiments and measurements]{
     Use case, experiments and measurements.
-    Excerpt of two experimets comprising multiple measurements conducted within UC1 (Live stream)
+    Excerpt of two experiments comprising multiple measurements conducted
+    within UC1 (Live stream).
 }
 \label{tab:usecase_experiment_measurement}
 \end{table}
-
-% started with one client per router and scaled up
 
 \paragraph{Measurment} % (fold)
 \label{par:Measurment}
@@ -1169,7 +1180,7 @@ It is noteworthy, that we initiated the Iperf client (our sender) with the
 % Uni (m:n):
 %   - rx: same
 %   - tx: ssh into each client and do the same as 1:n
-To conduct IP Unicast measurements for UC3 (\gls{ptp}), we employed one
+To conduct IP Unicast measurements for UC3 (\gls{p2p}), we employed one
     instance of Iperf in server mode on each client ($n$), along with $n-1$
     instances of Iperf in client mode, sending traffic to each other.
 % Multicast (m:n)
@@ -1186,21 +1197,111 @@ The procedure for \gls{p2p} MEADcast measurements is similar to the 1:n
 % paragraph RX/TX (end)
 
 % MEADcast
+%   - Sender Configuration
+%       - UC1-2 1-5 Clients per Router
+%       - Max grouping 10, 15, 20, 32
 %   - with and without discovery phase
-%   - various sender configurations
-%   - various network support levels
+%   - Network support
+%       - 100%, L2-L3, L1
+\paragraph{MEADcast configuration} % (fold)
+\label{par:MEADcast configuration}
+In each experiment, we conducted measurements for a variety of MEADcast
+    configurations.
+
+To gain insides into both the performance of the data delivery phase itself and
+    the implications of the discovery phase, we measured MEADcasts' performance
+    with and without considering the discovery phase.
+To measure MEADcast's performance without discovery phase, we started the
+    sender with a discovery interval of zero, resulting in the sender
+    performing a single discovery phase during startup.
+After the discovery phase was completed, we conducted our measurement solely
+    collecting data from the data delivery phase.
+For measuring the performance of MEADcast with discovery phase, we initialized
+    the sender with the wait flag set, a delay of zero, a discovery timeout of
+    2 seconds, and a discovery interval of 5 seconds.
+By setting the wait flag, the sender delays the initial discovery until it
+    receives traffic from the TUN device.
+
+Furthermore, we conducted measurements with varying levels of network support,
+    encompassing scenarios such as 100\% support across all network layers
+    (distribution, access, and core), support solely on the distribution (L2)
+    and access layers (L3), support exclusively on the core layer (L1), and
+    MEADcast support limited to specific routers.
+
+To explore the performance implications of receiver grouping, we conducted
+    measurements with various sender configurations.
+These configurations involved different maximum numbers of addresses per
+    packet, ranging from 6, 10, 15, and 20, up to 32.
+Additionally, the \texttt{"--ok"} parameter was consistently set to 80\% of the
+    maximum.
+% paragraph MEADcast configuration (end)
 
 % - proved that MEADcast on/off flag has no impact
 
-% EX1
-% EX2
+\paragraph{UC1} % (fold)
+\label{par:UC1}
+% - As cartesian says 5 Mbit/s for a HD video stream, however since this turned
+%   out as unfeasible due to our resource limitations did base line experiment
+%   1 Mbit/s audio stream and 2.5 Mbit/s for a SD video stream
+% - 1-5 Clients per stub net (total 14-70)
+% - For high numbers still sometimes unreliable data
+Initially, we conducted experiments for UC1 with a data volume of 5 Mbit/s,
+    a common requirement for HD video streams \cite{cartesian_us_bw}.
+However, during the measurements, it became evident that our hardware resources
+    were insufficient to support this data volume as the group size increased.
+Consequently, we adjusted our experiments to use a baseline data volume of 1
+    Mbit/s (for audio stream) and 2.5 Mbit/s (for SD video stream)
+    \cite{cartesian_us_bw}.
+Additionally, we varied the number of receivers per router from 1 to 5.
+As a result, we conducted a  total of 10 experiments comprising 14 to 70
+    receivers, with data volumes of 1 and 2.5 Mbit/s.
+However, even the experiment with 70 clients and a data volume of 2.5 Mbit/s 
+    exceeded our resource capacities, resulting in unreliable data.
+% paragraph UC1 (end)
+
+\paragraph{UC2} % (fold)
+\label{par:UC2}
 % - BC iperf has no feature to MAX out bandwidth, went up until we reached
 %   packet loss of approx 1.5%
 % - started with data volume of 25 MB and 100 MB
 % - same relative savings --> omitted 100 MB
-% EX3
+To simulate recurring bursts of high traffic volume, we needed to maximize the
+    utilization of available bandwidth.
+Since \textit{``Iperf''} lacks a feature to send as much data as possible for
+    \gls{udp}, we increased the bandwidth parameter until we observed a packet
+    loss of approximately 1.5\%.
+Initially, we conducted experiments with a data volume of 25 MB and 100 MB.
+However, as shown in \autoref{tab:uc2_rel_savings}, the relative savings for 
+    25 MB and 100 MB were identical.
+Therefore we discontinued the 100 MB experiments.
+Subsequently, we conducted experiments with 1, 3, and 5 clients per router
+    (totaling 9, 27, 45), with a data volume of 25 MB.
+% paragraph UC2 (end)
+
+\paragraph{UC3} % (fold)
+\label{par:UC3}
 % - To high packet loss already in base experiment
-% EX4
+Initially, we conducted an experiment with 12 clients (1 per stub network) and
+    a data volume of 1 MB/s, a requirement commonly seen in video conferences
+    \cite{cartesian_us_bw}.
+However, even in this modest experiment, we observed packet loss rates of
+    50\%.
+Due to the unreliable data, resulting from our resource limitations we decided
+    to discontinue experiments for UC3.
+% paragraph UC3 (end)
+
+\paragraph{UC4} % (fold)
+\label{par:UC4}
+The primary objective of UC4 was to evaluate the potential impact of MEADcast
+    processing on latency and jitter.
+However, due to the constrained time frame of this thesis and the fact that 
+    latency and jitter metrics were collected throughout all previous
+    measurements without any discernible impact on jitter, we opted to exclude
+    this use case from our study.
+% paragraph UC4 (end)
+
+\paragraph{Dynamic network environments} % (fold)
+\label{par:Dynamic network environments}
 % Firewall
 %   - EX3
 %   - Sender: c1201
@@ -1213,6 +1314,50 @@ The procedure for \gls{p2p} MEADcast measurements is similar to the 1:n
 %   - Enable Firewall for 8 seconds
 % Routing Change
 % Link failure
+Dynamic network environments were explored to asses the impact of common
+    phenomena such as routing changes, network disruptions, and packet dropping
+    by intermediate nodes on MEADcast.
+The measurements were conducted within the topology of UC3, with C1201 acting
+    as the sender and three receivers located in the stub networks C33-C36
+    each.
+These effects were consequently induced on the link between R1 and R3.
 
+A route change was simulated by altering the link state on R3's
+    \textit{``enp2s0''} interface from ``up'' to ``down''.
+This action prompted the underlying routing protocol on R1 to immediately
+    switch to an alternative route via R4.
+
+To simulate a link failure, a firewall rule using \textit{``Iptables''} was
+    applied on R3 to drop any traffic received on the link towards R1.
+The corresponding commands are detailed in \autoref{lst:r3_link_failure}.
+Similar to the route alteration experiment, R1 adapted to an alternative route
+    via R4.
+
+For simulating packet dropping by an intermediate node, a firewall rule was
+    employed on R3 to drop packets containing an IPv6 routing header extension
+    on the link towards R1.
+First, MEADcast transmission with periodic discovery phase was initiated,
+    followed by enabling the firewall rule during MEADcast data transmission.
+The associated commands are provided in \autoref{lst:r3_fw}.
+After 8 seconds this rule was disabled again, to observe MEADcast reverting to
+    its initial grouping.
+This experiment was conducted with both 100\% network support and support only
+    on L2 and L3 in network domain 3 (R31, R310, R311).
+With 100\% network support, the implications of MEADcast falling back to
+    another router located in front of the firewall were measured.
+Network support only on L2 and L3 in network domain 3, enabled the
+    observation of MEADcast falling back to IP Unicast transmission.
+% paragraph Dynamic network environments (end)
+
+\paragraph{Anomaly handling} % (fold)
+\label{par:Anomaly handling}
+% - Injected handcrafted discovery responses via scappy
+% - Turn off MEADcast during data transmission
+MEADcast's anomaly handling was investigated by intentionally triggering
+    anomalies and observing the system's response.
+This involved sending manually crafted discovery responses to the sender using
+    the \textit{``Scappy''} tool.
+Furthermore, we simulated a router's failure to perform MEADcast processing by
+    disabeling MEADcast during the data transmission phase.
+% paragraph Anomaly handling (end)
 % subsection Conduction (end)
-% chapter Implementation (end)

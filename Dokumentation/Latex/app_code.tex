@@ -2,7 +2,7 @@
 \label{chap:Code}
 
 \begin{listing}
-\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{bash}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
 sudo python3 mk_topo.py \
     -t "template/testbed.json" \
     -o "out/" \
@@ -12,12 +12,91 @@ sudo python3 mk_topo.py \
     --client-run "template/run.sh template/run_client.sh" \
     --router-run "template/run.sh template/run_router.sh" \
     --backing-file "/var/lib/libvirt/images/templates/debian-12-nocloud-amd64.raw" \
-    -c template/chrony.conf \
-    -f template/frr.conf \
+    -c "template/chrony.conf" \
+    -f "template/frr.conf" \
     -k kernel=/var/lib/libvirt/images/kernel/vmlinuz-6.5.2-dirty, initrd=/var/lib/libvirt/images/kernel/initrd.img-6.5.2-dirty, kernel_args="root=/dev/vda1 ro console=ttyS0,115200" \
     --os-variant debian10
 \end{minted}
-\caption{Build topology start command.}
+\caption{Build topology start command}
 \label{lst:cmd_mk_topo_start}
+\end{listing}
+
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{text}
+Usage: mdc_send [OPTIONS...] [PEER ADDRESSES] [PEER PORT]
+MEADcast sender
+
+ Network:
+  -a, --address=ipv6         Specify source address.
+  -i, --interface=ifname     Specify interface to use.
+  -p, --port=port            Specify source port.
+      --tun-address=ipv6     Specify host route to send traffic to.
+  -t, --tun=ifname           Specify name of the created TUN device.
+
+ Discovery:
+  -d, --delay=secs           Specify delay until initial discovery phase.
+  -I, --interval=secs        Specify discovery interval.
+  -T, --timeout=secs         Specify discovery timeout.
+  -w, --wait                 If specified, sender waits for traffic before
+                             starting discovery phase.
+
+ Grouping:
+      --max=max              Specify the maximal number of addresses per
+                             MEADcast packet.
+      --min-leafs=leafs      Routers with less leafs than `leafs` and less
+                             routers than `routers` get removed from tree.
+      --min-routers=routers  See `min-leafs`.
+  -m, --merge=distance       Specify whether to merge leafs with distinct
+                             parent routers under an common ancestor.
+                             `distance` determines the range within which leafs
+                             will be merged. Assigning `distance` a value of 0
+                             disables this feature.
+      --ok=ok                Specify whether a packet can be finished
+                             prematurely if it contains an equal or greater
+                             number of addresses than `ok`. Assigning `ok` a
+                             value greater or equal than `max` disables this
+                             feature.
+  -s, --split                Specify whether leafs of same parent can be split
+                             into multiple packets. If a router has more leafs
+                             than the maximal number of addresses per packet,
+                             they will be split regardless of this flag.
+
+ Verbosity
+      --print-groups         Prints grouping to stdout
+      --print-tree           Prints topology tree to stdout
+
+  -?, --help                 Give this help list
+      --usage                Give a short usage message
+  -V, --version              Print program version
+
+Mandatory or optional arguments to long options are also mandatory or optional
+for any corresponding short options.
+\end{minted}
+\caption{MEADcast sender help prompt}
+\label{lst:send_help}
+\end{listing}
+
+
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
+sudo ip6tables -A INPUT -i enp2s0 -j DROP
+sudo ip6tables -A FORWARD -i enp2s0 -j DROP
+\end{minted}
+\caption{Simulate link failure between R1 and R3 by dropping all packets on R3}
+\label{lst:r3_link_failure}
+\end{listing}
+
+
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
+# enable
+sudo ip6tables -A INPUT -i enp2s0 -m ipv6header --header ipv6-route --soft -j DROP
+sudo ip6tables -A FORWARD -i enp2s0 -m ipv6header --header ipv6-route --soft -j DROP
+
+# disable
+sudo ip6tables -F
+\end{minted}
+\caption{Enable/Disable firewall on R3}
+\label{lst:r3_fw}
 \end{listing}
 % chapter Code (end)
