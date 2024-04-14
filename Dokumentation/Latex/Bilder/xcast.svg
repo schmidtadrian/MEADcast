@@ -1,0 +1,756 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   version="1.1"
+   width="1041px"
+   height="441px"
+   viewBox="-0.5 -0.5 1041 441"
+   id="svg48"
+   sodipodi:docname="xcast.svg"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   inkscape:export-filename="xcast.pdf"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <sodipodi:namedview
+     id="namedview48"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="1.3920083"
+     inkscape:cx="671.69137"
+     inkscape:cy="204.74015"
+     inkscape:window-width="1908"
+     inkscape:window-height="1042"
+     inkscape:window-x="5"
+     inkscape:window-y="31"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g47" />
+  <defs
+     id="defs1" />
+  <g
+     id="g47">
+    <g
+       id="g2">
+      <path
+         d="M 80 160 L 153.63 160"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path1" />
+      <path
+         d="M 158.88 160 L 151.88 163.5 L 153.63 160 L 151.88 156.5 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path2" />
+    </g>
+    <g
+       id="g3">
+      <ellipse
+         cx="40"
+         cy="160"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse2" />
+    </g>
+    <g
+       id="g5">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g4">
+        <switch
+           id="switch3">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 160px; margin-left: 1px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">S</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="40"
+             y="167"
+             fill="rgb(0, 0, 0)"
+             font-family="CMU Serif"
+             font-size="24px"
+             text-anchor="middle"
+             id="text3">S</text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g6">
+      <path
+         d="M 240 160 L 313.63 160"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path5" />
+      <path
+         d="M 318.88 160 L 311.88 163.5 L 313.63 160 L 311.88 156.5 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path6" />
+    </g>
+    <g
+       id="g7">
+      <ellipse
+         cx="200"
+         cy="160"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse6" />
+    </g>
+    <g
+       id="g9">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g8">
+        <switch
+           id="switch7">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 160px; margin-left: 161px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R1</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="200"
+             y="167"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text7">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan57">1</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g10">
+      <path
+         d="M 392 136 L 482.91 67.82"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path9" />
+      <path
+         d="M 487.11 64.67 L 483.61 71.67 L 482.91 67.82 L 479.41 66.07 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path10" />
+    </g>
+    <g
+       id="g12">
+      <path
+         d="M 392 184 L 482.91 252.18"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path11" />
+      <path
+         d="M 487.11 255.33 L 479.41 253.93 L 482.91 252.18 L 483.61 248.33 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path12" />
+    </g>
+    <g
+       id="g13">
+      <ellipse
+         cx="360"
+         cy="160"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse12" />
+    </g>
+    <g
+       id="g15">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g14">
+        <switch
+           id="switch13">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 160px; margin-left: 321px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R2</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="360"
+             y="167"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text13">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan56">2</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g16">
+      <path
+         d="M 560 40 L 633.63 40"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path15" />
+      <path
+         d="M 638.88 40 L 631.88 43.5 L 633.63 40 L 631.88 36.5 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path16" />
+    </g>
+    <g
+       id="g17">
+      <ellipse
+         cx="520"
+         cy="40"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse16" />
+    </g>
+    <g
+       id="g19">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g18">
+        <switch
+           id="switch17">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 40px; margin-left: 481px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R3</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="520"
+             y="47"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text17">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan54">3</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g20">
+      <path
+         d="M 560 280 L 633.63 280"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path19" />
+      <path
+         d="M 638.88 280 L 631.88 283.5 L 633.63 280 L 631.88 276.5 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path20" />
+    </g>
+    <g
+       id="g21">
+      <ellipse
+         cx="520"
+         cy="280"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse20" />
+    </g>
+    <g
+       id="g23">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g22">
+        <switch
+           id="switch21">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 280px; margin-left: 481px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R4</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="520"
+             y="287"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text21">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan53">4</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g24">
+      <ellipse
+         cx="680"
+         cy="40"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse23" />
+    </g>
+    <g
+       id="g26">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g25">
+        <switch
+           id="switch24">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 40px; margin-left: 641px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">E1</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="680"
+             y="47"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text24">E<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan55">1</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g27">
+      <path
+         d="M 712 304 L 802.91 372.18"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path26" />
+      <path
+         d="M 807.11 375.33 L 799.41 373.93 L 802.91 372.18 L 803.61 368.33 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path27" />
+    </g>
+    <g
+       id="g29">
+      <path
+         d="M 712 256 L 802.91 187.82"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path28" />
+      <path
+         d="M 807.11 184.67 L 803.61 191.67 L 802.91 187.82 L 799.41 186.07 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path29" />
+    </g>
+    <g
+       id="g30">
+      <ellipse
+         cx="680"
+         cy="280"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse29" />
+    </g>
+    <g
+       id="g32">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g31">
+        <switch
+           id="switch30">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 280px; margin-left: 641px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R5</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="680"
+             y="287"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text30">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan52">5</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g33">
+      <path
+         d="M 880 160 L 953.63 160"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path32" />
+      <path
+         d="M 958.88 160 L 951.88 163.5 L 953.63 160 L 951.88 156.5 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path33" />
+    </g>
+    <g
+       id="g34">
+      <ellipse
+         cx="840"
+         cy="160"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse33" />
+    </g>
+    <g
+       id="g36">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g35">
+        <switch
+           id="switch34">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 160px; margin-left: 801px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R6</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="840"
+             y="167"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text34">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan48">6</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g37">
+      <path
+         d="M 880 400 L 953.63 400"
+         fill="none"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="stroke"
+         id="path36" />
+      <path
+         d="M 958.88 400 L 951.88 403.5 L 953.63 400 L 951.88 396.5 Z"
+         fill="rgb(0, 0, 0)"
+         stroke="rgb(0, 0, 0)"
+         stroke-miterlimit="10"
+         pointer-events="all"
+         id="path37" />
+    </g>
+    <g
+       id="g38">
+      <ellipse
+         cx="840"
+         cy="400"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse37" />
+    </g>
+    <g
+       id="g40">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g39">
+        <switch
+           id="switch38">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 400px; margin-left: 801px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">R7</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="840"
+             y="407"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text38">R<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan51">7</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g41">
+      <ellipse
+         cx="1000"
+         cy="160"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse40" />
+    </g>
+    <g
+       id="g43">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g42">
+        <switch
+           id="switch41">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 160px; margin-left: 961px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">E2</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="1000"
+             y="167"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text41">E<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan49">2</tspan></text>
+        </switch>
+      </g>
+    </g>
+    <g
+       id="g44">
+      <ellipse
+         cx="1000"
+         cy="400"
+         rx="40"
+         ry="40"
+         fill="rgb(255, 255, 255)"
+         stroke="rgb(0, 0, 0)"
+         pointer-events="all"
+         id="ellipse43" />
+    </g>
+    <g
+       id="g46">
+      <g
+         transform="translate(-0.5 -0.5)"
+         id="g45">
+        <switch
+           id="switch44">
+          <foreignObject
+             style="overflow: visible; text-align: left;"
+             pointer-events="none"
+             width="100%"
+             height="100%"
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+            <xhtml:div
+               style="display: flex; align-items: unsafe center; justify-content: unsafe center; width: 78px; height: 1px; padding-top: 400px; margin-left: 961px;">
+              <xhtml:div
+                 style="box-sizing: border-box; font-size: 0px; text-align: center;"
+                 data-drawio-colors="color: rgb(0, 0, 0); ">
+                <xhtml:div
+                   style="display: inline-block; font-size: 24px; font-family: CMU Serif; color: rgb(0, 0, 0); line-height: 1.2; pointer-events: all; white-space: normal; overflow-wrap: normal;">E3</xhtml:div>
+              </xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             x="1000"
+             y="407"
+             fill="#000000"
+             font-family="'CMU Serif'"
+             font-size="24px"
+             text-anchor="middle"
+             id="text44">E<tspan
+   style="font-size:20px;baseline-shift:sub"
+   id="tspan50">3</tspan></text>
+        </switch>
+      </g>
+    </g>
+  </g>
+  <switch
+     id="switch48">
+    <g
+       requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+       id="g48" />
+    <a
+       transform="translate(0,-5)"
+       xlink:href="https://www.drawio.com/doc/faq/svg-export-text-problems"
+       target="_blank"
+       id="a48">
+      <text
+         text-anchor="middle"
+         font-size="10px"
+         x="50%"
+         y="100%"
+         id="text48">Text is not SVG - cannot display</text>
+    </a>
+  </switch>
+</svg>
