@@ -214,23 +214,23 @@ When the client side \glspl{dr} $R_3$, $R_6$, and $R_7$ receive the packet,
 % - Given an initial list of receivers, the sender commences to send data in
 %   unicast to each receiver while simultaneously probing the network for the
 %   presence of MEADcast routers and hence for the option to consolidate
-\gls{mead} is a sender-centric multicast protocol designed to support a smooth
-    transition from extensive unicast to multicast transmission
+\gls{mead} is a sender-centric multicast protocol designed to facilitate a
+    seamless transition from extensive unicast to multicast transmission
     \cite{meadcast2}.
 The sender is responsible for all group management tasks, while the receivers
-    consistently receive IP Unicast traffic, thus remaining agnostic to the use
+    consistently receive IP Unicast traffic, remaining agnostic to the use
     of MEADcast \cite{meadcast1}.
-\gls{mead} allows varying levels of network support, which facilitates a
+\gls{mead} endures across varying levels of network support, allowing for a
     gradual deployment of \gls{mead} router.
-The protocols design is inspired by \gls{xcast} \cite{meadcast1}.
+The protocol's design draws inspiration from \gls{xcast} \cite{meadcast1}.
 
 \gls{mead} operates in two phases: discovery and data delivery.
-On the sender this requires functionality such as transmission of unicast and
-    MEADcast packets and discovering \gls{mead} routers along the paths to
-    receivers.
-The \gls{mead} router functionality comprises forwarding and transformation
-    of \gls{mead} packets as well as responding and forwarding of discovery
-    requests.
+On the sender side, this entails functionalities such as transmitting unicast
+    and MEADcast packets as well as discovering \gls{mead} routers along the
+    paths to receivers \cite{meadcast2}.
+\gls{mead} routers, on the other hand, are responsible for forwarding and
+    transforming \gls{mead} packets, as well as responding to and forwarding
+    discovery requests \cite{meadcast2}.
 
 \autoref{fig:mead_seq_dia} illustrates the interaction among the \gls{mead}
     sender, routers, and receivers: \cite{meadcast2}
@@ -289,6 +289,293 @@ It might forward the packet, create replicas, and forward them to other
     \label{fig:mead_seq_dia}
 \end{figure}
 
+\paragraph{Protocol Header} % (fold)
+\label{par:Protocol Header}
+\gls{mead} is a multicast protocol based on IPv6 Unicast traffic.
+In reference to \gls{xcast}, a list of receivers and their responsible
+    \gls{mead} routers is encoded in the IPv6 routing header extension
+    \cite{meadcast2}.
+The Routing Header follows an IPv6 Hop-by-Hop extension header containing the
+    Router Alert option\cite{meadcast2}.
+Optionally, a port list encoded in the IPv6 Destination Option header may
+    follows the Routing Header.
+An optional port list encoded in the IPv6 destination option header may follows
+    the Routing Header \cite{meadcast2}.
+\autoref{fig:mead_hdr} attempts to illustrate the \gls{mead} header.
+However, the papers about \gls{mead} \cite{meadcast1, meadcast2} lack an
+    explicit specification of the header fields.
+For instance, the content of the Router Alter Option Value, the Routing Type,
+    and the Destination Option Header preamble are not specified.
+Additionally, the size of the discovery flags and the \gls{mead} hops fields
+    are not defined.
+A brief description of each field is provided in
+\autoref{tab:02_meadcast_header}.
+
+\begin{figure}
+\definecolor{lightgray}{gray}{0.8}
+\begin{bytefield}[bitformatting=\tiny,bitwidth=1.1em,boxformatting=\centering\small]{32}
+\bitheader{0-31} \\
+\begin{rightwordgroup}{\small IPv6}
+    % \bitbox{32}[bgcolor=lightgray]{} \\
+    \bitbox{4}{Version} &
+    \bitbox{8}{Traffic Class} &
+    \bitbox{20}{Flow Label} \\
+    \bitbox{16}{Payload Length} &
+    \bitbox{8}{Next Header\\ \tiny (Hop-by-Hop: 0)} &
+    \bitbox{8}{Hop Limit} \\
+    \bitbox{32}{Source Address} \\
+    \bitbox{32}{Destination Address}
+\end{rightwordgroup} \\
+\begin{rightwordgroup}{\small Hop-by-Hop}
+    \bitbox{8}{Next Header\\ \tiny (Routing: 43)} &
+    \bitbox{8}{Hdr Ext Len\\ \tiny (1)} &
+    \bitbox{8}{Option Type\\ \tiny (Router Alert: 5)} &
+    \bitbox{8}{Option Data Len\\ \tiny (2)} \\
+    \bitbox{32}{Option Data}
+    % \bitbox{16}[bgcolor=lightgray]{}
+\end{rightwordgroup} \\
+\begin{rightwordgroup}{\small MEADcast}
+    \bitbox{8}{Next Header \\\tiny (e.g. Dst Opt: 60)} &
+    \bitbox{8}{Hdr Ext Len} &
+    \bitbox{8}{Routing Type} &
+    \bitbox{8}{Num. Dst} \\
+    \bitbox{2}{\tiny Dcvr Flags} &
+    \bitbox{14}{Hops} &
+    \bitbox{16}{Reserved} \\
+    % \bitbox{16}[bgcolor=lightgray]{} \\
+    \bitbox{32}{Delivery Bitmap} \\
+    \bitbox{32}{Router Bitmap} \\
+    \wordbox[lrt]{2}{Address List \\ \scriptsize (variable length)} \\
+    \skippedwords\\
+    \wordbox[lrb]{1}{}
+    % \bitbox{32}{Destination Address 1} \\
+    % \bitbox{32}{Destination Address 2} \\
+    % \wordbox[]{1}{$\vdots$} \\[1ex]
+    % \bitbox{32}{Destination Address N} \\
+\end{rightwordgroup} \\
+\begin{rightwordgroup}{Dst. Opt}
+    \bitbox{8}{Next Header\\\tiny (e.g. UDP: 17)} &
+    \bitbox{8}{Hdr Ext Len} &
+    % \bitbox{16}[bgcolor=lightgray]{} \\
+    \bitbox{8}{Option Type} &
+    \bitbox{8}{Option Data Len} \\
+    \bitbox{16}{Port 1} &
+    \bitbox{16}{Port 2} \\
+    \wordbox[]{1}{$\vdots$} \\[1ex]
+    \bitbox{16}{Port N-1} &
+    \bitbox{16}{Port N}
+\end{rightwordgroup} \\
+\end{bytefield}
+    \caption[MEADcast Header]{MEADcast Header (based on \cite{meadcast2, meadcast1})}
+    \label{fig:mead_hdr}
+\end{figure}
+
+
+\bgroup
+\begin{table}[!htbp]
+\centering
+\def\arraystretch{1.35}%  1 is the default
+\setlength{\tabcolsep}{1.2em}
+\begin{tabularx}{\textwidth}{lX}
+\toprule
+\textbf{Field}& \textbf{Desciption} \\
+\midrule
+IPv6 src addr & A 32-bit field, carrying the senders IPv6 address
+                \cite{meadcast2}.\\
+IPv6 dst addr & A 32-bit field, carrying the IPv6 address of one receiver
+                \cite{meadcast2}.\\ \midrule
+Next Header   & An 8-bit selector, identifying the type of the immediately
+                following header \cite{rfc8200_ipv6_hdr}.
+                It employs identical values as the IPv4 Protocol field (e.g. 17
+                = UDP, 59 = No Next Header for IPv6) \cite{iana_prot_nums}.
+                The Hop-by-Hop header field carries 43, indicating the
+                following routing header.
+                The Routing Header field carries either 60 in cases of the
+                presence of the optional port list, and otherwise, it carries 
+                the number of the following Layer 3 protocol (e.g. 17 for
+                \gls{udp}). \\
+Hdr Ext Len   & An 8-bit unsigned integer representing the length of the
+                Routing header in 8-octet units, excluding the initial 8
+                octets \cite{rfc8200_ipv6_hdr}. \\
+Routing Type  & An 8-bit identifier denoting a specific Routing header variant
+                \cite{rfc8200_ipv6_hdr}.
+                The \gls{mead} papers \cite{meadcast1,meadcast2} lack a
+                specification of this field.\\
+Num. Dst.     & Denotes the number of IPv6 addresses encoded in the address
+                list.
+                The size of this field lacks a specification.\\
+Dcvr Flags    & Flags to mark a \gls{mead} packet as discovery request,
+                response or data message \cite{meadcast2}.
+                The size of the field lacks specification. \\
+Hops          & Specifies the distance between the sender and a router, denoted
+                in the number of MEADcast hops.
+                This field is utilized during the discovery phase. The sender
+                initializes the field with zero, and it is incremented by each
+                intermediate MEADcast router encountered.
+                The field size lacks specification.\\
+Reserved      & A reserved field of unspecified size \cite{meadcast2}. \\
+Delivery Map  & A 32-bit Bitmap, where each bit at position $i$ indicates
+                whether a router at index $i$ in the address list has already
+                been delivered (0 = delivered, 1 = not yet delivered)
+                \cite{meadcast2}. \\
+Router Map    & A 32-bit Bitmap, where each bit at position $i$ indicates
+                whether an address at index $i$ in the address list is a
+                router (0 = receiver, 1 = router) \cite{meadcast2}.\\
+Address List  & A variable-length list comprising the IPv6 addresses of
+                receivers and MEADcast routers \cite{meadcast2}. \\ \midrule
+Dst Opt Preamble & The values for the Destination Option Preamble such as
+                    Option Type and Option Data Len lack specification. \\
+Port List     & A variable-length list encompassing the Layer 3 ports for each
+                receiver in the address list \cite{meadcast2}.\\
+\bottomrule
+\end{tabularx}
+\caption{MEADcast header field description}
+\label{tab:02_meadcast_header}
+\end{table}
+\egroup
+% paragraph Protocol Header (end)
+
+\paragraph{Discovery Phase} % (fold)
+\label{par:Discovery Phase}
+The sender sends discovery requests of the form $req(E_i, d)$ ($E_i$ =
+    receiver, d = distance) to all endpoints \cite{meadcast1}.
+The routers respond to discovery requests with a disovery response
+    $res(E_i, d, R_i)$ ($R_i$ = router).
+Upon receiving a discovery response, the sender updates its topology tree in
+    the following format: $(R_j,d_j,E_1^j,E_2^j)$.
+For instance in the topology depicted in \autoref{fig:mead_delivery} the
+    discovery phase look as follows:
+
+\begin{enumerate}[label={(\arabic*)}]
+
+\item
+Sender $S$ start transmitting data to $E_1$, $E_2$, $E_3$, $E_4$, and $E_5$ via
+    IP Unicast.
+
+\item
+$S$ sends a discovery request to each receiver, initialized with a distance of
+    zero: $req(E_i, 0), i \in {1,2,3,4,5}$.
+
+\item
+Upon receiving the discovery requests, $R_1$ increments the hop counter and
+    forwards the discovery requests: $req(E_i, 1), i \in {1,2,3,4,5}$.
+    Additionally, for each discovery request $R_1$ sends a discovery response
+        back to $S$: $res(E_i, 1, R_1), i \in {1,2,3,4,5}$.
+
+\item
+Step (3) is repeated on every router.
+
+\item
+Upon receiving discovery responses the clients ignore them.
+
+\item
+Upon receiving discovery responses $S$ updates its topology tree finally
+        resulting in the following topology:
+        ($R_1$, 1, $E_1$, $E_2$, $E_3$, $E_4$, $E_5$),
+        ($R_2$, 2, $E_1$, $E_2$, $E_3$, $E_4$, $E_5$),
+        ($R_3$, 3, $E_1$),
+        ($R_4$, 3, $E_2$, $E_3$, $E_4$, $E_5$),
+        ($R_5$, 4, $E_2$, $E_3$),
+        ($R_6$, 4, $E_4$, $E_5$).
+
+\item
+After a predefined timeout is reached, the sender stops transmitting data and
+    switches to the data transmission phase.
+\end{enumerate}
+% paragraph Discovery Phase (end)
+
+\paragraph{Data Delivery} % (fold)
+\label{par:Data Delivery}
+During the data delivery phase, the receivers are grouped into \gls{mead}
+    packets based on the topology tree constructed during the previous
+    discovery phase \cite{meadcast1}.
+The sender composes \gls{mead} data packet with an address list of the format
+    $(R_j,E_1^j,E_2^j,\dots,R_k,E_1^k,E_2^k,\dots)$, with $R_j$ being the
+    closest \gls{mead} router to $E_1^j$ and $E_2^j$ and $R_k$ being the
+    closest router to $E_1^k$ and $E_2^j$.
+The destination field of the IP header is set to the first receiver in the
+    address list.
+
+For the topology illustrated in \autoref{fig:mead_delivery}, sender $S$ the
+    data delivery proceeds as follows:
+
+\begin{enumerate}[label={(\arabic*)}]
+
+\item
+Sender $S$ transmits a \gls{mead} packet with an address list of
+    $\{R_5,E_2,E_3,R_6,E_4,E_5\}$ and a destination IP address of $E_2$ to
+    $R_1$.
+The router bitmap is initialized to \texttt{"100100"}, indicating that the
+    addresses at index 0 and 3 are \gls{mead} routers and addresses at index 1,
+    2,4, and 5 are receivers.
+Moreover, the bitmap specifies, that $R_5$ is responsible for $E_2$ and $E_3$,
+    and $R_6$ is responsible or $E_4$ and $E_5$.
+The delivery bitmap is initialized with the same value as the router bitmap,
+    signaling no router has been delivered yet (1 = not delivered).
+During delivery, the router bitmap is never altered.
+Since $R_3$ is responsible only for one receiver, $E_1$ is served via IP
+    Unicast, to save header space.
+
+\item
+Upon receiving the \gls{mead} data packet, $R_1$ parses the router and delivery
+    bitmap.
+For each undelivered router, specified by a set bit in both bitmaps, the router
+    checks whether it is one of its own IP addresses.
+If not, it creates a replica for each undelivered router.
+For each replica, the bits of all other routers are set to zero in the delivery
+    bitmap, and the destination IP is set to the first address following the
+    router address.
+In this scenario, $R_1$ parses the header and identifies an undelivered router
+    address, which is $R_5$.
+Since it is not its own address, $R_1$ creates a replica for $R_5$.
+In the replica, the delivery bitmap is set to \texttt{"100000"}, and the
+    destination IP is set to $E_2$.
+Subsequently, $R_1$ identifies an undelivered router at index 3.
+As it is the last router in the address list, no replica generation is
+    necessary.
+Instead the original packet can be modified, and the delivery bitmap is set to
+    \texttt{"000100"}.
+Finally, $R_1$ forwards the two \gls{mead} packets and the IP Unicast packet to
+    $R_2$.
+Since \gls{mead} endures partial network support and $R_1$ lacks knowledge of
+    whether there is another \gls{mead} router along the path, which could
+    instead perform the packet replication for $R_5$ and $R_6$.
+For instance, $R_2$, $R_3$, and $R_4$ could be non-\gls{mead} routers.
+Consequently, $R_1$ sends separate replicas for $R_5$ and $R_6$, despite their
+    shared path of \gls{mead} routers until $R_4$.
+
+\item
+Upon receiving the \gls{mead} packets, $R_2$ parses the header of both packets.
+Since the only router address in each packet is not owned by $R_2$, it just
+    forwards both packets.
+The IP Unicast packet to $E_1$ is forwarded as usual.
+When $R_3$ receives the unicast packet, it delivers it to $E_1$.
+
+\item
+Upon receiving the \gls{mead} packets, $R_4$ parses the header of both packets.
+Since the only router address in each packet is not owned by $R_4$, it just
+    forwards both packets to $R_5$ and $R_6$ respectively.
+
+\item
+Upon receiving the \gls{mead} packet, $R_5$ and $R_6$ parse the header,
+    identifying their own address as the only undelivered router in the address
+    list.
+Consequently, both routers perform an \gls{m2u} transformation for each address
+    following their own address.
+This involves creating an IP packet for each receiver, with the destination
+    address set to the receiver's address.
+If the \gls{mead} packet includes the optional port list, the port in the Layer
+    3 header is set to the respective port from the list.
+If the Layer 3 protocol encompasses a checksum, it must be corrected, due to
+    the alteration of the IP pseudo-header.
+For $R_5$, this process continues until another router address is encountered
+at index 3, while for $R_6$, it continues until the last index of the list.
+Subsequently, they each send IP Unicast packets to their respective
+    destinations: $E_2$ and $E_3$ for $R_5$, and $E_4$ and $E_5$ for $R_6$.
+\end{enumerate}
+
+% paragraph Data Delivery (end)
+
 \begin{figure}
 \centering
 \begin{forest}
@@ -303,35 +590,35 @@ It might forward the packet, create replicas, and forward them to other
         [$R_1$,
             edge label={node[midway,above=3mm,font=\tiny,align=center]{
                 Unicast: \{$E_1$\}\\
-                \{$\underline{R_6}$,$E_2$,$E_3$,$\underline{R_7}$,$E_4$,$E_5$\}
+                \{$\underline{R_5}$,$E_2$,$E_3$,$\underline{R_6}$,$E_4$,$E_5$\}
             }}
             [$R_2$,
             edge label={node[midway,above=3mm,font=\tiny,align=center]{
                 Unicast: \{$E_1$\}\\
-                \{$\underline{R_6}$,$E_2$,$E_3$,$\underline{\cancel{R_7}}$,
+                \{$\underline{R_5}$,$E_2$,$E_3$,$\underline{\cancel{R_6}}$,
                     $\cancel{E_4}$,$\cancel{E_5}$\}\\
-                \{$\underline{\cancel{R_6}}$,$\cancel{E_2}$,$\cancel{E_3}$,
-                    $\underline{R_7}$,$E_4$,$E_5$\}
+                \{$\underline{\cancel{R_5}}$,$\cancel{E_2}$,$\cancel{E_3}$,
+                    $\underline{R_6}$,$E_4$,$E_5$\}
             }}
                 [$R_4$,
             edge label={node[midway,above,sloped,font=\tiny,align=left]{
-                \{$\underline{R_6}$,$E_2$,$E_3$,$\underline{\cancel{R_7}}$,
+                \{$\underline{R_5}$,$E_2$,$E_3$,$\underline{\cancel{R_6}}$,
                     $\cancel{E_4}$,$\cancel{E_5}$\}\\
-                \{$\underline{\cancel{R_6}}$,$\cancel{E_2}$,$\cancel{E_3}$,
-                    $\underline{R_7}$,$E_4$,$E_5$\}
+                \{$\underline{\cancel{R_5}}$,$\cancel{E_2}$,$\cancel{E_3}$,
+                    $\underline{R_6}$,$E_4$,$E_5$\}
             }}
-                    [$R_7$,
+                    [$R_6$,
                         edge label={node[midway,below=2mm,sloped,font=\tiny,align=center]{
-                            \{$\underline{\cancel{R_6}}$,$\cancel{E_2}$,$\cancel{E_3}$,
-                                $\underline{R_7}$,$E_4$,$E_5$\}
+                            \{$\underline{\cancel{R_5}}$,$\cancel{E_2}$,$\cancel{E_3}$,
+                                $\underline{R_6}$,$E_4$,$E_5$\}
                         }}
                         [$E_5$,
                             edge label={node[midway,above=1mm,align=center,font=\tiny]{unicast}}
                         ][$E_4$]
                     ]
-                    [$R_6$,
+                    [$R_5$,
                         edge label={node[midway,above,sloped,font=\tiny,align=center]{
-                            \{$\underline{R_6}$,$E_2$,$E_3$,$\underline{\cancel{R_7}}$,
+                            \{$\underline{R_5}$,$E_2$,$E_3$,$\underline{\cancel{R_6}}$,
                                 $\cancel{E_4}$,$\cancel{E_5}$\}\\
                         }}
                         [$E_3$,
@@ -351,7 +638,12 @@ It might forward the packet, create replicas, and forward them to other
         ]
     ]
 \end{forest}
-\caption{MEADcast data delivery}
+\caption[MEADcast data delivery]{
+    MEADcast Data Delivery:
+    An underscored address signifies a set bit in the router bitmap, while a
+        stroked-through address indicates that the corresponding router bit is
+        set to ``delivered'' (0) in the delivery bitmap.
+    }
 \label{fig:mead_delivery}
 \end{figure}
 
