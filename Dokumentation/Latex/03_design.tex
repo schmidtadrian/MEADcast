@@ -7,250 +7,29 @@
 % 5) Parameters
 \chapter{Experiment Design} % (fold)
 \label{chap:Design}
-This chapter addresses the design of a series of experiments to evaluate
-    MEADcast.
-To ensure the quality of the experiments \autoref{sec:Measurements} discusses
-    research questions driving our design process.
-Subsequently, \autoref{sec:Scenarios} elaborates on motivations for employing
-    multicast, potential application domains and their characteristics.
-This chapter deals with the selection of measurements, design of experiments
-    and the design of a testbed based on requirements derived from the
-    experiments.
+This chapter delves into the design of a series of use cases to evaluate
+    \gls{mead}.
+To ensure, an comprehensive examination of \gls{mead} across a diverse range of
+    use cases \autoref{sec:Application Domains} initially elaborates on
+    application domains that may benefit from multicast communication.
+Subsequently, \autoref{sec:Application Characteristics} discusses the specific
+    composition of characteristics that distinguish these domains.
+To maintain the quality of our study, \autoref{sec:Measurements} discusses
+    research questions and measurements derived from the previously elaborated
+    application domains and characteristics, guiding our research process.
+Following this, a selection of specific use cases is presented in
+    \autoref{sec:Use cases}, aimed at addressing our research
+    questions.
+Next \autoref{sec:Testing parameters} introduces several testing parameters
+    shared across all use cases.
+Finally, \autoref{sec:Requirement_Analysis} elaborates on the requirements for our
+    implementation, specifically regarding the topology, sender, and router
+    software.
 
-Based on thesis goal we first formulate overarching research questions we
-    endeavour to answer with our experiments. 
-Therefore, these questions guide our design process of the experiments.
-% Feasibility:
-% - How robust is the current MEADcast specification?
-% - Are there any issues or opportunities for improvement with the current 
-%   protocol specification
-
-% Performance:
-% - How does MEADcast perfom compared to unicast and IP-Multicast
-% - How big is the overhead of the discovery phase?
-% - How does the degree of deployed MEADcast routers impact the results?
-
-% Scenarios:
-% - Under which conditions is the usage of MEADcast sensible?
-% - Which applications and characteristics are well served by MEADcast?
-
-
-\section{Measurements} % (fold)
-\label{sec:Measurements}
-% Based on the thesis goal we first formulate overarching research questions we
-%     endeavor to answer with our experiments. 
-% Therefore, these questions guide our design process for the experiments.
-% Following, this section depicts how we answer these questions.
-Aligned with the goal of this thesis, we begin by formulating  overarching
-    research questions, guiding the design of the experiments.
-Additionally, this section outlines our approach to answering these questions.
-
-\begin{enumerate}
-    \item[\textit{RQ1}]
-        \textit{How robust is the current MEADcast specification?}\par
-        While prior research on MEADcast has primarily taken place in simulated
-            environments \cite{meadcast1, meadcast2} and small stub networks
-            \cite{sdn_ba}, this thesis endeavors to assess MEADcast in a more
-            realistic setting.
-        To achieve this, we perform a stress test to evaluate the protocol's
-            behavior in a less ``clinical'' environment.
-        During this test we observe MEADcast's reaction to deliberate routing
-            changes, to evaluate its adaptivity and suitability for dynamic
-            network environments.
-        Further, we simulate network disruptions by inducing router outages, to
-            assess MEADcast's resilience and recovery capabilities.
-        The stress test also examines MEADcast anomaly handling by injecting
-            modified discovery responses.
-        Additionally, a firewall is employed to intentionally drop MEADcast
-            packets during the data delivery phase, enabling us to evaluate the
-            efficacy of the fallback mechanism.
-        The results of the stress test shed light on the robustness of the
-            current MEADcast specification, especially in diverse network
-            conditions.
-        This investigation aims to provide valuable insights into the
-            real-world applicability and resilience of MEADcast.
-    \item[\textit{RQ2}]
-        % typical metrics: throughput, latency, jitter, resource utilization,
-        %   ... in different scenarios
-        % impact of the discovery phase
-        \textit{How does MEADcast perform compared to IP-Unicast and
-        IP-Multicast?}\par
-        In addition to assessing the robustness of a protocol, its performance,
-            especially in comparison to existing alternatives, is a pivotal
-            factor influencing its adoption.
-        To address this research question, comparative performance measurements
-            for MEADcast, IP-Unicast, and IP-Multicast are conducted across a
-            series of experiments elaborated in \autoref{sec:Scenarios}.
-        These measurements encompass metrics such as throughput, latency,
-            jitter, and resource utilization.
-        Special attention is given to the impact of MEADcast's discovery phase
-            on its performance.
-        This encompasses assessing the overhead produced by the discovery
-            mechanism.
-        Furthermore, we evaluate how the protocol's shift from extensive
-            unicast to MEADcast delivery affects the performance metrics.
-        The outcomes contribute not only to evaluating MEADcast performance but
-            also to drawing conclusions for subsequent research questions.
-    \item[\textit{RQ3}]
-        \textit{Which applications and characteristics are well served by
-        MEADcast?}\par
-        % first look at motivations, application domains and characteristics
-        % for multicast. Then select scenarios to portray a variety
-        Addressing this research question involves designing a series of 
-            experiments depicting a diverse range of applications with distinct
-            characteristics (see \autoref{sec:Scenarios}).
-        The selection of scenarios is guided by an initial exploration of
-            motivations for employing multicast communication, and more
-            specifically, MEADcast.
-        These motivations lay the groundwork for identifying a range of
-            potential application domains where MEADcast deployment could prove
-            beneficial.
-        Subsequently, we formulate application characteristics distinguishing
-            these domains.
-        Based on the gathered insights, various scenarios are chosen to
-            represent different application domains and their unique set of
-            characteristics.
-        This comprehensive selection ensures a throughout examination of
-            MEADcast's suitability across a diverse spectrum of use cases.
-        The results aim to delineate MEADcast's application space by
-            identifying its strengths and limitations.
-    \item[\textit{RQ4}] \label{itm:RQs}
-        \textit{In which conditions is the usage of MEADcast sensible?}\par
-        % testing parameters based on scenarios
-        % Number of EPs
-        % Number of MEADcast routers
-        % EP distribution
-        % Available Bandwidth
-        The viability of employing MEADcast is influenced not only by
-            application domains and their characteristics but also by
-            prevailing circumstances.
-        To investigate this aspect, the experiments are executed with various
-            parameter configurations.
-        For instance, the level of network control and the number of available
-            MEADcast routers affect the performance and thus the viability of
-            MEADcast.
-        This applies equally to testing parameters like available bandwidth,
-            number of endpoints, and their distribution.
-        % Further testing parameters are the available bandwidth, the number of
-        %     receivers, and their distribution.
-        The goal is to provide insights into the conditions under which
-            deploying MEADcast is advantageous compared to existing
-            alternatives.
-        The results aim to offer guidance for making informed decisions
-            regarding the adoption of MEADcast in specific circumstances.
-        % The results aims to provide guidance, under which circumstances
-        %     employing MEADcast is favorable in comparison to existing
-        %     alternatives.
-\end{enumerate}
-
-
-
-
-\section{Scenarios} % (fold)
-\label{sec:Scenarios}
-% Questions
-% Motivation
-% Characteristics
-% Domains
-% Experiments
-% Parameters
-
-% Char -> Domain
-% To design comparable experiments we have to elaborate characteristics of 
-%     applications that may benefit from Multicast-Communication.
-% Based on these characteristics, we formulate potential application domains for
-%     Multicast-Communication.
-% Lastly, a series of experiments is depicted.
-
-To design comparable experiments we have to elaborate on application domains
-    that may benefit from Multicast-Communication.
-Following, we formulate application characteristics distinguishing these
-    domains.
-This knowledge enables us to design a series of experiments representing
-    a variety of application domains with differing characteristics.
-Thereby we aim to answer RQX.
-
-\subsection{Motivations for employing Multicast} % (fold)
-\label{sub:MotivationsForMulticast}
-To select appropriate measurements and experiments, it is essential to delve
-    into the \textit{motivations} for employing multicast communication and,
-    specifically, MEADcast as a protocol.
-
-% Motivations to use Multicast:
-% Efficient resource usage, to...
-%   - Overcome resource limitation (technical or financial cause)
-%       Technical: no more upstream available,
-%           ip cam can't handle streaming to multiple receivers
-%       Financial: don't want to pay more for: IPS upstream, cloud egress, VPN, ...
-%                   or just reduce costs
-%   - use traffic intense services, despite ones bandwidth limitation
-%   - facilitate new services or improve existing ones
-%   - Emissions
-In a broader context, the decision to utilize multicast often resolves around
-    optimizing resource usage.
-In the absence of resource constraints, one might question opting for multicast
-    rather than ubiquitous unicast communication.
-However, several compelling reasons advocate for the adoption of a multicast
-    protocol.
-A predominant motive is overcoming \textit{resource limitations}, which can
-    manifest technically, such as a network connection incapable of providing
-    the required bandwidth, or \gls{iot} devices like IP cameras struggling
-    to handle numerous unicast connections requesting identical content.
-
-Financial considerations are also a driving reason for employing multicast,
-since most internet services operate on a subscription or pay-as-you-go pricing
-    model (pay per usage).
-\glspl{isp}, mobile phone operators, and VPN providers structure their services
-    based on factors like monthly available traffic volume, upstream and
-    downstream bandwidth.
-Subscribed service levels can thus become the financial cause of resource
-    limitations.
-Cloud providers, in particular, heavily rely on pay-as-you-go pricing, often
-    contending their customers with expensive ``egress costs''.
-Deploying multicast emerges as a strategic approach to not only overcome
-    technical and financial constraints but also to reduce operational costs.
-
-Another motivation for multicast adoption is to facilitate new services or 
-    enhance existing ones.
-For example, employing multicast for delivering multimedia content enables
-    service providers to offer higher-quality audio or video without the need
-    to either increase operational costs or overcome prevailing resource
-    limitations.
-Moreover, multicast can empower individuals to access bandwidth-intensive
-    services despite their limited bandwidth.
-For instance, \gls{p2p} conferencing services could leverage multicast to
-    bridge the asymmetric access link common in most households (high
-    downstream and low upstream bandwidth) \cite{xcast_rfc,cartesian_us_bw}.
-Additionally, network operators may strategically deploy multicast within their
-    domain to decrease overall network load, concurrently reducing operational
-    costs and mitigating emissions caused by \gls{ct} (see
-    \autoref{sec:Motivation}).
-
-% Motivations for choosing MEADcast as Multicast protocol:
-% - IP Multicast often no real option
-% - Limited network control (fallback)
-% - No deployment of specialized client software
-% - Protect receiver privacy
-% - Access control to multicasted content
-As constituted in \autoref{sec:Challenges of Multicast} and
-    \autoref{sub:IP Multicast}, in many scenarios, the usage of IP-Multicast
-    is not a viable option.
-This creates a potential application space for MEADcast, particularly in
-    circumstances with limited network control and an uncertain degree of
-    IP-Multicast support.
-Another potential domain for MEADcast is in facilitating access control-based
-    multicast communication, addressing the absence of a receiver authorization
-    mechanism in IP-Multicast \cite{diot2000deployment}.
-In comparison to alternatives like Xcast or \gls{alm}, MEADcast might be
-    favored in situations where the disclosure of receiver information, such as
-    IP addresses, among other group members, is deemed unacceptable.
-% subsection Motivations (end)
-
-
-\subsection{Application Domains} % (fold)
-\label{sub:Application Domains}
-As highlighted in the preceding section, numerous motivations support the
-    adoption of multicast communication.
+\section{Application Domains} % (fold)
+\label{sec:Application Domains}
+As highlighted in the \autoref{sec:Motivation}, numerous motivations support
+    the adoption of multicast communication.
 Additionally, various types of applications have the potential to benefit
     from multicast communication.
 % Furthermore, there are various kinds of applications, which potentially benefit
@@ -270,7 +49,7 @@ Conversely, Video on Demand services such as YouTube present a less favorable
 The advantages of multicast become particularly evident in bandwidth-intense
     applications, where its potential to significantly reduce the total
     communication volume is most pronounced.
-Real-time multimedia services, therefore, emerge as a particularly well-suited
+Real-time multimedia services therefore emerge as a particularly well-suited
     domain for the application of multicast.
 In the following, we introduce the formulated application domains, illustrating
     them with specific examples as detailed in \autoref{tab:mcappdom}.
@@ -421,10 +200,10 @@ The last domain is \textit{Distributed Simulation}, with exemplary applications
     \caption{Multicast application domains}
     \label{tab:mcappdom}
 \end{table}
-% subsection Application Domains (end)
+% section Application Domains (end)
 
-\subsection{Application Characteristics} % (fold)
-\label{sub:Application Characteristics}
+\section{Application Characteristics} % (fold)
+\label{sec:Application Characteristics}
 This section delineates various characteristics derived from the application
     domains, categorized into three groups, as detailed in
     \autoref{tab:appscenarios}.
@@ -519,10 +298,135 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
     \caption{Characteristics of the application domains}
     \label{tab:appscenarios}
 \end{table}
+% section Application Characteristics (end)
+
+% Feasibility:
+% - How robust is the current MEADcast specification?
+% - Are there any issues or opportunities for improvement with the current 
+%   protocol specification
+
+% Performance:
+% - How does MEADcast perfom compared to unicast and IP-Multicast
+% - How big is the overhead of the discovery phase?
+% - How does the degree of deployed MEADcast routers impact the results?
+
+% Scenarios:
+% - Under which conditions is the usage of MEADcast sensible?
+% - Which applications and characteristics are well served by MEADcast?
 
 
-\subsection{Application Scenarios} % (fold)
-\label{sub:Application Scenarios}
+\section{Measurements} % (fold)
+\label{sec:Measurements}
+% Based on the thesis goal we first formulate overarching research questions we
+%     endeavor to answer with our experiments. 
+% Therefore, these questions guide our design process for the experiments.
+% Following, this section depicts how we answer these questions.
+Aligned with the goal of this thesis, this section formulates overarching
+    research questions derived from the previously introduced potential
+    application domains, guiding the design of the experiments.
+Additionally, this section outlines our approach to answering these questions.
+
+\begin{enumerate}
+    \item[\textit{RQ1}]\label{rq1}
+        \textit{How robust is the current MEADcast specification?}\par
+        While prior research on MEADcast has primarily taken place in simulated
+            environments \cite{meadcast1, meadcast2} and small stub networks
+            \cite{sdn_ba}, this thesis endeavors to assess MEADcast in a more
+            realistic setting.
+        To achieve this, we perform a stress test to evaluate the protocol's
+            behavior in a less ``clinical'' environment.
+        During this test we observe MEADcast's reaction to deliberate routing
+            changes, to evaluate its adaptivity and suitability for dynamic
+            network environments.
+        Further, we simulate network disruptions by inducing router outages, to
+            assess MEADcast's resilience and recovery capabilities.
+        The stress test also examines MEADcast anomaly handling by injecting
+            modified discovery responses.
+        Additionally, a firewall is employed to intentionally drop MEADcast
+            packets during the data delivery phase, enabling us to evaluate the
+            efficacy of the fallback mechanism.
+        The results of the stress test shed light on the robustness of the
+            current MEADcast specification, especially in diverse network
+            conditions.
+        This investigation aims to provide valuable insights into the
+            real-world applicability and resilience of MEADcast.
+        \item[\textit{RQ2}]\label{rq2}
+        % typical metrics: throughput, latency, jitter, resource utilization,
+        %   ... in different scenarios
+        % impact of the discovery phase
+        \textit{How does MEADcast perform compared to IP-Unicast and
+        IP-Multicast?}\par
+        In addition to assessing the robustness of a protocol, its performance,
+            especially in comparison to existing alternatives, is a pivotal
+            factor influencing its adoption.
+        To address this research question, comparative performance measurements
+            for MEADcast, IP-Unicast, and IP-Multicast are conducted across a
+            series of experiments elaborated in \autoref{sec:Scenarios}.
+        These measurements encompass metrics such as throughput, latency,
+            jitter, and resource utilization.
+        Special attention is given to the impact of MEADcast's discovery phase
+            on its performance.
+        This encompasses assessing the overhead produced by the discovery
+            mechanism.
+        Furthermore, we evaluate how the protocol's shift from extensive
+            unicast to MEADcast delivery affects the performance metrics.
+        The outcomes contribute not only to evaluating MEADcast performance but
+            also to drawing conclusions for subsequent research questions.
+        \item[\textit{RQ3}]\label{rq3}
+        \textit{Which applications and characteristics are well served by
+        MEADcast?}\par
+        % first look at motivations, application domains and characteristics
+        % for multicast. Then select scenarios to portray a variety
+        Addressing this research question involves designing a series of 
+            experiments depicting a diverse range of applications with distinct
+            characteristics (see \autoref{sec:Scenarios}).
+        The selection of scenarios is guided by an initial exploration of
+            motivations for employing multicast communication, and more
+            specifically, MEADcast.
+        These motivations lay the groundwork for identifying a range of
+            potential application domains where MEADcast deployment could prove
+            beneficial.
+        Subsequently, we formulate application characteristics distinguishing
+            these domains.
+        Based on the gathered insights, various scenarios are chosen to
+            represent different application domains and their unique set of
+            characteristics.
+        This comprehensive selection ensures a throughout examination of
+            MEADcast's suitability across a diverse spectrum of use cases.
+        The results aim to delineate MEADcast's application space by
+            identifying its strengths and limitations.
+    \item[\textit{RQ4}] \label{rq4}
+        \textit{In which conditions is the usage of MEADcast sensible?}\par
+        % testing parameters based on scenarios
+        % Number of EPs
+        % Number of MEADcast routers
+        % EP distribution
+        % Available Bandwidth
+        The viability of employing MEADcast is influenced not only by
+            application domains and their characteristics but also by
+            prevailing circumstances.
+        To investigate this aspect, the experiments are executed with various
+            parameter configurations.
+        For instance, the level of network control and the number of available
+            MEADcast routers affect the performance and thus the viability of
+            MEADcast.
+        This applies equally to testing parameters like available bandwidth,
+            number of endpoints, and their distribution.
+        % Further testing parameters are the available bandwidth, the number of
+        %     receivers, and their distribution.
+        The goal is to provide insights into the conditions under which
+            deploying MEADcast is advantageous compared to existing
+            alternatives.
+        The results aim to offer guidance for making informed decisions
+            regarding the adoption of MEADcast in specific circumstances.
+        % The results aims to provide guidance, under which circumstances
+        %     employing MEADcast is favorable in comparison to existing
+        %     alternatives.
+\end{enumerate}
+
+
+\section{Use cases} % (fold)
+\label{sec:Use cases}
 % Why theses scenarios?
 % Real-life example?
 
@@ -548,75 +452,128 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
 % - Deploy an software update
 
 Based on the previously exhibited application domains and characteristics this
-    chapter formulates several application scenarios.
+    chapter formulates several use cases.
 
-The primary goal is, to develop a series of experiments encompassing various
-    domains and characteristics.
+The primary goal is, to develop a series of use cases encompassing various
+    domains and characteristics, aimed at answering our research questions.
 This comprehensive selection ensures a throughout examination of MEADcast's
     suitability across a diverse spectrum of use cases.
-Therefore, the results from the experiments are pivotal to answer \textit{RQ3}.
-The characteristics of each experiment are illustrated in
+Therefore, the results from the use cases are pivotal to answer \textit{RQ3}.
+The specific characteristics of each use case are illustrated in
     \autoref{tab:ex_char}.
 
-\paragraph{EX1: Live Stream} % (fold)
+\paragraph{UC1: Live Stream} % (fold)
 \label{par:EX1: Live Stream}
-The first experiment is a video live stream, representing the multimedia stream
-    domain.
-As stated by \citeauthor{cartesian_us_bw} \cite{cartesian_us_bw}, multimedia 
+The first use case involves a video live stream, representing the multimedia
+    stream domain.
+As reported by \citeauthor{cartesian_us_bw} \cite{cartesian_us_bw}, multimedia 
     traffic is accountable for more than half of the bandwidth consumed in
     2020.
-Therefore, this experiment is representative for a major application space.
-Conceivable scenarios are, that a major streaming provider wants to lower their
-    egress costs, or an aspiring platform has to overcome preserving resource
-    limitations to satisfy rapidly growing bandwidth demands.
-Since, multimedia streams produce a high traffic volume on the sender it is
-    of particular interest, how much MEADcast can reduce the occupied
+Therefore, this experiment is indicative of a major application space, with the
+    potential for significant bandwidth savings.
+% Conceivable scenarios are, that a major streaming provider wants to lower their
+%     egress costs, or an aspiring platform has to overcome preserving resource
+%     limitations to satisfy rapidly growing bandwidth demands.
+A conceivable scenario involves organizations such as universities or companies
+    streaming events across multiple buildings on a campus or even across
+    various locations.
+Typical campus layouts encompass both \textit{local clustering} at certain
+    offices or areas like the library, as well as a \textit{low receiver
+    density} for remote offices, resulting in \textit{varying distances}
+    between sender and receivers.
+Live streams usually endure \textit{multiple hours}, attracting a \textit{large
+    number} of viewers who may \textit{join or leave at any time}.
+Additionally, a common requirement for HD video streams is a \textit{downstream
+    bandwidth of 5 Mbit/s} \cite{cartesian_us_bw}.
+This use case is well-suited to showcase \gls{mead}'s suitability for
+    long-running constant data streams, highlighting the effects of different
+    receiver distributions.
+Given that multimedia streams generate both high traffic volume both at the
+    sender and the network, it is of particular interest to explore the extend
+    to which \gls{mead} can reduce the occupied sender upstream and network
     bandwidth.
-Moreover, it is examined if this comes with trade-offs like, increased
-    latency/jitter or an increased CPU utilization of the sender.
+Moreover, we examine whether this reduction is accompanied by trade-offs
+    such as increased latency/jitter or higher CPU utilization at the sender.
 % How much reduce the traffic volume on the sender
 % paragraph EX1: Live Stream (end)
 
-\paragraph{EX2: File tranfer} % (fold)
+\paragraph{UC2: File transfer} % (fold)
 \label{par:EX2: File tranfer}
-The second experiment imitates a file distribution, thus representing the
+The second use case emulates a file distribution, thus representing the
     file transfer domain.
-Especially software updates and file backups share major characteristics with
-    this scenario.
-The primary focus of this experiment is to investigate, how well MEADcast copes
-    with recurring burst of a high traffic volume.
-The characteristics of this experiment are predestined to measure the effects
-    of the discover phase on metrics such as bandwidth and latency.
-By adjusting parameters like communication interval and group size, this
-    experiment can be conducted analogous to \textit{EX1}.
+Especially scenarios such as software updates and file backups share major
+    characteristics with this use case.
+Our use case simulates the distribution of a software update for a server
+    \gls{os}.
+Servers are usually located within a single network domain, leading to high
+    receiver clustering.
+Additionally, updates are commonly obtained from an external source, often
+    residing in another network domain.
+% During the transmission, receivers fully utilize the available downstream
+%     bandwidth.
+A software update is characterized by the utilization of all available
+    downstream bandwidth on the receivers for a limited duration.
+Although mechanisms exist to limit bandwidth consumption, we only consider 
+    scenarios of full downstream bandwidth utilization.
+The number of receivers varies significantly, ranging from a few servers to
+    entire data centers.
+The primary objective of this experiment is to investigate how well MEADcast
+    handles recurring bursts of high traffic volume.
+Additionally, we aim to asses the reduction in total network bandwidth
+    consumption, sender upstream bandwidth consumption, and total transfer time 
+    compared to IP Unicast.
+The characteristics of this use case are predestined to highlight \gls{mead}'s
+    performance under ideal conditions.
+% The characteristics of this experiment are predestined to measure the effects
+%     of the discover phase on metrics such as bandwidth and latency.
+% By adjusting parameters like communication interval and group size, this
+%     experiment can be conducted analogous to \textit{EX1}.
 % paragraph EX2: File tranfer (end)
 
-\paragraph{EX3 Video conference} % (fold)
+\paragraph{UC3 Video conference} % (fold)
 \label{par:EX3 Video conference}
-The third experiment simulates a \gls{p2p} video conference.
-This experiment is designed to investigate, whether MEADcast is capable of
+The third use case simulates a \gls{p2p} video conference.
+Video Conferences commonly involve small to medium-sized groups and require a
+    steady communication of 1-3 Mbit/s downstream and 0.5-1 Mbit/s upstream
+    bandwidth \cite{cartesian_us_bw}, lasting from several minutes to a few hours.
+Our use case represents a video conference commonly  seen in modern distributed
+    work culture, involving locally clustered sub-teams (e.g. office) and some
+    isolated participants (e.g. customer or service provider), with varying
+    distances between sender and receivers.
+Furthermore, the inherent characteristic of \gls{p2p} communication facilitates
+    an environment in which the effects of high \gls{mead} traffic volume on
+    \gls{mead} routers can be examined.
+This experiment is designed to investigate, whether \gls{mead} is capable of
     bridging asymmetric access link bandwidth \cite{xcast_rfc,cartesian_us_bw}.
-Furthermore, the characteristics of this scenario facilitate an environment
-    in which the effects of an high MEADcast traffic volume on the MEADcast 
-    routers can be examined.
-Since, video conferences usually have a significant lower number of group
-    members it is analyzed, how MEADcast copes with a small number of
-    recipients.
-Since, this experiment is conducted for smaller group sizes the overhead of 
-    MEADcast is also analysed.
+Additionally, we examine the suitability of \gls{mead} for \gls{p2p}
+    communication.
+Lastly, we evaluate \gls{mead}'s network bandwidth and sender upstream
+    bandwidth utilization for small to medium-sized groups in comparison to IP
+    Unicast and IP Multicast.
 % paragraph EX3 Video conference (end)
 
-\paragraph{EX4 Online game} % (fold)
+\paragraph{UC4 Online game} % (fold)
 \label{par:EX4 Online game}
-The last experiment is an online multiplayer game, representing the application
+% Latency and Jitter, requires long distances
+% Test MEADcast in suboptimal setting in terms of distribution
+The last use case is an online multiplayer game, representing the application
     domain distributed simulation.
-This experiment has two primary goals.
-First since, online games are highly sensitive to Latency and Jitter we examine
-    MEADcast's effect on these metrics.
-Secondly, the overhead of the protocol can be analyzed, hence online games have
-    low bandwidth requirements.
-By adjusting parameters such as packet size and communication interval, this
-    experiment can be conducted analogous to \textit{EX3}.
+Online games commonly encompass small to medium-sized groups, and require a
+    steady downstream bandwidth of 0.5-1 Mbit/s \cite{cartesian_us_bw},
+    enduring for several minutes to a few hours.
+Most online games are highly sensitive to Latency and Jitter.
+To asses \gls{mead}'s implications on these metrics, multiple \gls{mead}
+    hops are essential.
+Consequently, this experiment has two primary objectives.
+First, to measure \gls{mead}'s effect on latency and jitter.
+Secondly, to evaulate \gls{mead}'s performance in suboptimal settings,
+    particularly with a high receiver distribution.
+% First since, online games are highly sensitive to Latency and Jitter we examine
+%     MEADcast's effect on these metrics.
+% Secondly, the overhead of the protocol can be analyzed, hence online games have
+%     low bandwidth requirements.
+% By adjusting parameters such as packet size and communication interval, this
+%     experiment can be conducted analogous to \textit{EX3}.
 
 % paragraph EX4 Online game (end)
 
@@ -650,10 +607,10 @@ By adjusting parameters such as packet size and communication interval, this
     \caption{Show diff scenarios meeting}
     \label{tab:ex_char}
 \end{table}
-% subsection Application Scenarios (end)
+% section Use cases (end)
 
-\subsection{Testing parameters} % (fold)
-\label{sub:Testing parameters}
+\section{Testing parameters} % (fold)
+\label{sec:Testing parameters}
 % - number of clients
 % - distribution & clustering of clients
 % - number & location of MEADcast routers
@@ -710,133 +667,160 @@ Shorter intervals facilitate quicker adaption to topology changes,
 However, shorter intervals also result in higher traffic volume, which may
     impede data delivery.
 
+% section Testing parameters (end)
 
-% subsection Testing parameters (end)
+\section{Requirement analysis} % (fold)
+\label{sec:Requirement_Analysis}
+Expanding upon on the formulated measurements and use cases, this section
+    provides detailed insights into the requirements for our implementation.
+\autoref{sub:Topology} discusses the requirements for the network topology
+    necessary for conducting our experiment, while \autoref{sub:Software}
+    examines requirements for the router and sender implementation.
 
-% \paragraph{Application Scenarios} % (fold)
-% \label{par:Application Scenarios}
-% Deploy service in cloud and minimize the egress costs
-% Use a multimedia app in public limited WiFi
-% File transfer/distribution from limited network
-% % paragraph Application Scenarios (end)
-%
-% \paragraph{Testing} % (fold)
-% \label{par:Testing}
-% Subsequently deploy more MEADcast routers
-% % paragraph Testing (end)
-
-% - Steady stream (e.g. Live Stream, IPTV, Radio, Podcast)
-%     - medium to large packets
-%     - constant stream 
-%     - latency sensitive and bw intense (don't consider buffering)
-%     - server based or cdn
-%     - Radio \& Public broadcast services using multicast: %https://en.wikipedia.org/wiki/IP_multicast#Commercial_deployment
-% - File distribution/Patch management (e.g. Deploy large security update or new application on all EPs in company)
-%     - large packets
-%     - burst (high throughput till transmission is finished)
-%     - bw intense
-% - Pay by used bw (e.g. cloud, vpn provider)
-% - Limited network capacity
-% - Restrict access to content (not possible via IP Multicast)
-% - Ticker (Stock Exchange)
-\section{Testbed} % (fold)
-\label{sec:Testbed_Design}
-
-\subsection{Requirements} % (fold)
-% wanted characteristics:
-% - power law degree distribution (access routers low connectivity,
-%                                  some routers high connectivity)
-% - small-world characteristics in access areas (high clustering, low distance)
-
-
-
-% - Topology
-%   - connected non trivial graph (no bus or simple ring)
-%   - "realistic" layout
-%   - medium size (200 nodes)
-%   - alternative paths (routing changes & failures)
-%   - sufficient depth
-
-% - Flexibility
-%   - facilitate diff experiments (generic, modular)
-%   - depict various receiver distributions (clustering & even distribution)
-%   - Adjustable degree of MEADcast support
-%   - divers sender, receiver and router placement
-
-% - Connectivity
-%   - Multiple subnets to facilitate routing
-%   - Ability to deploy firewall mechanism
-%   - Ability to use IP-Multicast and MEADcast
-
-% - Non functional
-%   - Measure network traffic volume
-%   - Measure Latency
-%   - Software based routing (no hardware circuites)
-\label{sub:Requirements}
-Based on the previously introduced experiments this section elaborates on 
-    requirements for the testbed.
-We structure the requirements into 3 categories:
-
-% Topology
-% - non trivial connected
-% - medium sized 200 nodes
-% - proportional mix of clients and routers
-% - realistic
-% - alternative paths
-% - sufficient depth (multiple hops)
-% - flexible & modular
-%   - various sender, receiver and router placements
-%   - local clustering and uniformly spread
-%   - Adjustable number of routers
-% - Connectivity
-%   - multiple subnets
-%   - IP routing
-%   - IP multicast routing
-%   - Adjustable firewall mechanism
-\paragraph{Topology} % (fold)
-\label{par:Topology}
-% graph
-First, the topology must transcend basic structures like plain bus or simple
+\subsection{Topology} % (fold)
+\label{sub:Topology}
+Initially, the topology must transcend basic structures like plain bus or simple
     ring setups, ensuring a \textit{non-trivial connected graph}.
 A graph is termed connected when there exists a path between every pair of
-    vertices, which in this context represents clients and routers.
+    vertices, representing clients and routers in this context.
 In order to thoroughly evaluate a multicast protocol, the topology needs to
     encompass a substantial number of nodes.
 Therefore, a \textit{medium-sized topology} comprising around 200 nodes
-    \cite{cisco_net_size},
-    featuring a proportional mix of clients and routers, is pivotal.
-In line with \textit{RQ1}, the graph should reflect a \textit{realistic
-    network topology} of this size.
-The following section discusses characteristics of a realistic topology.
-Moreover, assessing the resilience of MEADcast in dynamic network environments
-    necessitates the inclusion of \textit{alternative paths} to simulate
-    routing alterations and network disruptions.
-Additionally, a thorough evaluation of MEADcast's performance across 
-    diverse levels of network support and various grouping strategies, requires
-    the topology to incorporate paths of \textit{sufficient length}.
-This allows packets to traverse multiple MEADcast routers, ensuring a
-    comprehensive assessment.
+    \cite{cisco_net_size}, featuring a proportional mix of clients and routers,
+    is pivotal.
 
-% flexibility
-Another important requirement is the flexibility of the testbed.
-Diverse experiments and network conditions demand a modular and adaptable
+\paragraph{Realistic topology} % (fold)
+\label{par:Realistic topology}
+Aligned with \textit{RQ1}, the graph should reflect a realistic medium-sized
+    network topology.
+As discussed in \autoref{sec:Hierachical Three-Layer Internet Model}, a
+    realistic topology comprises three network layers: Core, Distribution, and
+    Access Layer.
+The Core Layer interconnects different network domains, facilitating high-speed
+    and high-volume data transmission.
+Additionally, this layer is characterized by a relatively simple design and
+    should offer high availability and redundancy.
+The Distribution Layer is required to aggregate traffic from multiple Access
+    Layers and to provide connectivity to the rest of the network by
+    transmitting packets to the core layer.
+The Access Layer layer is required to facilitate network access for end
+    devices, encompassing PCs and smartphones.
+This layer must establish connectivity between end devices and serves as the
+    demarcation point between the network infrastructure and computing devices.
+% paragraph Realistic topology (end)
+
+\paragraph{Endpoint distribution} % (fold)
+\label{par:Endpoint distribution}
+The use cases require various numbers of endpoints and their distribution.
+The topology must accommodate group sizes ranging from small to medium-sized
+    (UC3, UC4) up to medium to large-sized groups (UC1, UC2).
+Moreover, UC1, UC2, and UC3 require areas of \textit{high receiver clustering}.
+Additionally, UC1, UC3, and UC4 mandate areas characterized by \textit{low
+    receiver density}.
+Since UC1 and UC3 require both local clustering and low receiver density, the
+    topology must facilitate \textit{varying distances} between sender and
+    receivers.
+All use cases require the integration of \textit{multiple network domains}.
+UC1, UC3, and UC4 employ isolated remote hosts, necessitating the incorporation
+    of paths of \textit{sufficient length}.
+Additionally, the comprehensive evaluation of \gls{mead}'s performance across
+    diverse levels of network support and various grouping strategies, also
+    requires paths of sufficient length, allowing packets to traverse multiple
+    \gls{mead} routers for a thorough assessment, particularly of latency and
+    jitter.
+% paragraph Endpoint distribution (end)
+
+\paragraph{Flexibility} % (fold)
+\label{par:Flexibility2}
+Another crucial requirement is the flexibility of the topology.
+Diverse use cases and network conditions demand a modular and adaptable
     topology.
 Various placements of senders, receivers, and routers are necessary.
-Moreover, the testbed should encompass receiver distributions ranging from
-    highly clustered to uniformly spread.
-Additionally, the ability to adjust the quantity of MEADcast-capable routers is
-    crucial for evaluating various levels of MEADcast support.
+Moreover, the use cases encompass receiver distributions ranging from highly
+    clustered to uniformly spread.
+Additionally, the ability to adjust the quantity of \gls{mead}-capable routers
+    is crucial for evaluating various levels of \gls{mead} support.
+% paragraph Flexibility (end)
 
-% connectivity
-Finally, several prerequisites pertain to the connectivity of our testbed.
+\paragraph{Connectivity} % (fold)
+\label{par:Connectivity}
+Finally, several prerequisites pertain to the connectivity of the topology.
 Given the evaluation of a Layer 3 IPv6-based protocol, the presence of multiple
     subnets and IP routing is mandatory.
-Beyond that, IP multicast routing is indispensable for a comparison of MEADcast
+Beyond that, IP multicast routing is indispensable for a comparison of \gls{mead}
     and IP multicast.
-Moreover, to pursue \textit{RQ1} the capability to deploy firewall mechanisms
-    is required.
-% paragraph Topology (end)
+Furthermore, our use cases mandate various up and downstream capacities.
+UC3 and UC4 require moderate downstream requirements of 1-3 Mbit/s and 0.5-1
+    Mbit/s, respectively.
+UC1 and UC2 demand a downstream bandwidth of at least 5 Mbit/s.
+Moreover, UC1, UC2, and UC3 also mandate an upstream bandwidth of multiple
+    Mbit/s on the sender side.
+Additionally, assessing the resilience of MEADcast in dynamic network
+    environments necessitates the inclusion of \textit{alternative paths} to
+    simulate routing alterations and network disruptions.
+Furthermore, to pursue \textit{RQ1} the incorporation of an intermediate node,
+    capable dropping packets is required.
+% paragraph Connectivity (end)
 
+% paragraph Network Links (end)
+
+% bw 5Mbit/s, 1-3 Mbit/s, 0.5-1Mbit/s
+% multiple 
+% subsection Topology (end)
+
+\subsection{Software} % (fold)
+\label{sub:Software}
+\label{sub:Requirements}
+% Based on the previously introduced experiments this section elaborates on 
+%     requirements for the testbed.
+% We structure the requirements into 3 categories:
+
+% \paragraph{Topology} % (fold)
+% \label{par:Topology}
+% % graph
+% First, the topology must transcend basic structures like plain bus or simple
+%     ring setups, ensuring a \textit{non-trivial connected graph}.
+% A graph is termed connected when there exists a path between every pair of
+%     vertices, which in this context represents clients and routers.
+% In order to thoroughly evaluate a multicast protocol, the topology needs to
+%     encompass a substantial number of nodes.
+% Therefore, a \textit{medium-sized topology} comprising around 200 nodes
+%     \cite{cisco_net_size},
+%     featuring a proportional mix of clients and routers, is pivotal.
+%
+% In line with \textit{RQ1}, the graph should reflect a \textit{realistic
+%     network topology} of this size.
+% Moreover, assessing the resilience of MEADcast in dynamic network environments
+%     necessitates the inclusion of \textit{alternative paths} to simulate
+%     routing alterations and network disruptions.
+% Additionally, a thorough evaluation of MEADcast's performance across 
+%     diverse levels of network support and various grouping strategies, requires
+%     the topology to incorporate paths of \textit{sufficient length}.
+% This allows packets to traverse multiple MEADcast routers, ensuring a
+%     comprehensive assessment.
+%
+% % flexibility
+% Another important requirement is the flexibility of the testbed.
+% Diverse experiments and network conditions demand a modular and adaptable
+%     topology.
+% Various placements of senders, receivers, and routers are necessary.
+% Moreover, the testbed should encompass receiver distributions ranging from
+%     highly clustered to uniformly spread.
+% Additionally, the ability to adjust the quantity of MEADcast-capable routers is
+%     crucial for evaluating various levels of MEADcast support.
+%
+% % connectivity
+% Finally, several prerequisites pertain to the connectivity of our testbed.
+% Given the evaluation of a Layer 3 IPv6-based protocol, the presence of multiple
+%     subnets and IP routing is mandatory.
+% Beyond that, IP multicast routing is indispensable for a comparison of MEADcast
+%     and IP multicast.
+% Moreover, to pursue \textit{RQ1} the capability to deploy firewall mechanisms
+%     is required.
+% % paragraph Topology (end)
+
+This section discusses requirements for the router and sender software
+    implementation.
 % Sender
 % - Send discovery requests, receive discovery responses
 % - Adjustable discovery interval
@@ -905,181 +889,109 @@ For instance, comparing software-based MEADcast routing with hardware-based IP
 % paragraph Non-functional (end)
 % subsection Requirements (end)
 
-\subsection{Topology} % (fold)
-\label{sub:03_Topology}
-First, this section introduces state-of-the-art characteristics of medium to
-    large-sized network architectures.
-Subsequently, we delve into the network topology of our testbed.
-
-Several fundamental design principles must be met by any network, irrespective
-    of its size \cite{cisco_net_size}.
-These principles are mutually interdependent and also tightly coupled to the
-    overall design \cite{cisco_campus_net}.
-
-\textit{Hierarchy}: A hierarchical network model serves as a crucial high-level
-    tool for crafting a reliable network topology \cite{cisco_net_size}.
-This abstraction dissects the complex challenge of network design into smaller
-    and more manageable areas.
-A significant advantage of a hierarchical topology is that local traffic
-    is confined to the local network \cite{cisco_campus_net}.
-Only traffic destined for other networks is transferred to a higher layer.
-
-\textit{Modularity}:
-Dividing the network into components provides numerous benefits.
-First, each component or module can be designed with a level of independence
-    from the overall structure \cite{cisco_net_size}.
-All modules can operate as semi-independent elements, contributing to higher
-    overall system availability and facilitating simpler management and
-    operations \cite{cisco_campus_net}.
-Furthermore, network changes and upgrades can be applied in a controlled and
-    staged manner, enhancing flexibility in maintaining and operating the
-    network \cite{cisco_net_size}.
-This principle has also been leveraged in software architecture for many years,
-    by separating the application into presentation, logic, and data layers
-    \cite{sw_arch}.
-Another benefit is a higher degree of isolation, confining problems and
-    failures to their component, leaving the overall network unaffected
-    \cite{cisco_design_guide}.
-In summary, dividing a network into a set of assembled building blocks
-    facilitates increased stability, flexibility, and manageability for both
-    the individual components and the network as a whole.
-    \cite{cisco_campus_net}
-
-\textit{Resiliency}: The network is expected to sustain availability for both
-    regular and irregular scenarios.
-Typical scenarios encompass anticipated traffic flows, expected traffic
-    patterns, and scheduled events like maintenance windows
-    \cite{cisco_net_size}.
-Abnormal scenarios involve hardware or software failures, high traffic loads,
-    anomalous traffic patterns, \gls{dos} events, and other unforeseen
-    circumstances \cite{cisco_campus_net}.
-
-\textit{Flexibility}:
-As the operational lifespan of networks extends, it becomes imperative for
-    their design to facilitate enhanced adaptability and flexibility
-    \cite{cisco_campus_net}.
-Adapting to evolving business environments and their associated communication
-    requirements is a practical business and operational necessity.
-Flexibility is the capacity to modify specific sections of the network,
-    introduce new services, or enhance capacity without necessitating a
-    substantial overhaul or replacement of major hardware devices
-    \cite{cisco_net_size}.
-
-To meet these ubiquitous network requirements, \citeauthor{cisco_3_tier}
-    \cite{cisco_3_tier} first proposed the \textit{hierarchical three-layer
-    internetworking model} in \citeyear{cisco_3_tier}.
-This model has evolved into an industry-wide standard for designing reliable,
-    scalable, and cost-efficient networks \cite{cisco_net_size}.
-Leading networking and telecommunication providers like Cisco and Huawei
-    recommend the implementation of the hierarchical three-layer
-    internetworking model.
-    \cite{cisco_campus_net,huawei_campus_net}.
-The model divides networks into three layers: core, distribution, and access
-    as illustrated in \autoref{fig:three-layer} \cite{cisco_3_tier}.
-
-\textit{Access Layer}:
-The access layer facilitates network access for end devices, encompassing PCs,
-    smartphones, printers, and IP cameras \cite{cisco_net_size}.
-Operating commonly at layer 2, it establishes connectivity between end devices.
-Given the diverse range of end devices, this layer incorporates an array of
-    network devices such as switches, access points, and routers
-    \cite{cisco_campus_net}.
-Serving as the demarcation point between the network infrastructure and
-    computing devices \cite{cisco_campus_net}, the access layer acts as the
-    initial security boundary, safeguarding other users, application resources,
-    and the network itself \cite{cisco_design_guide}.
-
-\textit{Distribution Layer}:
-The distribution layer aggregates traffic from multiple access layer devices
-    and provides connectivity to the rest of the network by transmitting
-    packets to other access layer devices or the core layer
-    \cite{cisco_campus_net}.
-In a typical scenario, connected routers at the distribution layer aggregate
-    data originating from a building or a floor and establish connections to
-    the core layer.
-For instance, in \autoref{fig:three-layer}, the two interconnected routers on
-    the left and the two on the right could each symbolize a distinct building.
-This layer often serves as the demarcation between layer 2 domains and the
-    layer 3 routed network \cite{cisco_net_size}, creating fault domains
-    containing failures and network changes to the directly affected areas
-    \cite{cisco_design_guide}.
-The distribution layer performs essential network functions such as routing,
-    traffic filtering, and policy enforcement \cite{cisco_campus_net}.
-
-
-\textit{Core Layer}:
-The core layer functions as the backbone interconnecting the numerous modules
-    of the network \cite{cisco_campus_net}.
-It facilitates connectivity among end devices, servers, data storage, different
-    locations, and the internet.
-This layer represents the most critical component of the network, characterized
-    by a relatively simple design \cite{cisco_design_guide}.
-Given that a significant portion of network traffic passes through the
-    backbone, it is responsible for high-speed and high-volume data
-    transmission \cite{cisco_campus_net}.
-Additionally, this layer should offer high availability and redundancy.
-CPU-intensive packet manipulations resulting from security measures,
-    inspections, and \gls{qos} should be avoided \cite{cisco_campus_net}.
-
-
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=.6\textwidth]{three_layer_model.pdf}
-    \end{center}
-    \caption{Hierarchical three-layer internetworking model (based on
-    \cite{cisco_3_tier})}
-    \label{fig:three-layer}
-\end{figure}
-
-
-The architecture of our testbed aligns with the previously design goals,
-    achieved through the implementation of the hierarchical three-layer model.
-
-% less clinical / more variety so sometimes two routers on access layer
-The testbed comprises 205 nodes consisting of 40 routers and 165 end devices.
-The network is divided into 4 domains, each potentially representing distinct
-    buildings on a university campus.
-All 4 domains encompass 7-9 client networks, accommodating 5 end devices each.
-The access layer of each domain comprises up to 7 routers (3-digit router IDs
-    in \autoref{fig:topology}).
-Since this thesis evaluates a transport protocol, we waive the application of
-    switches on the access layer, deploying solely  layer 3 devices.
-The distribution layer of each domain encompasses 2-3 interconnected routers
-    (2-digit router IDs), aggregating the access layers within its respective
-    domain and facilitating the connection to the core layer.
-The testbed's core consists of 4 routers (1-digit router IDs) interconnecting
-    the 4 network domains.
-Additionally, the backbone possesses a high connectivity, ensuring both high
-    availability and redundancy.
-To reduce management and operational overhead, the testbed incorporates fewer
-    redundant links from the access to the distribution layer and from the
-    distribution to the core layer compared to the recommendations provided by
-    Cisco and Huawei \cite{cisco_design_guide,huawei_campus_net}.
-This trade-off is considered acceptable, as this thesis does not delve into the
-    details of the availability and fault tolerance of the network
-    architecture.
-Additionally, router and link failures are artificially induced in any case.
-
-The chosen architecture represents a realistic medium-sized network topology.
-The application of the hierarchical three-layer model ensures the required
-    flexibility of the testbed.
-Various placements of senders, receivers, and routers are possible, allowing
-    experiments with a receiver distribution ranging from high clustering
-    within a single domain to a uniform spread across all four network domains.
-Moreover, the availability of alternative routes facilitates the representation
-    of dynamic network environments, encompassing scenarios such as deliberate
-    routing changes or router and link outages.
-
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=.9\textwidth]{testbed_topology.pdf}
-    \end{center}
-    \caption{Testbed Topology}
-    \label{fig:topology}
-\end{figure}
 
 % subsection Topology (end)
 % section T (end)
+
+% \section{Scenarios} % (fold)
+% \label{sec:Scenarios}
+% % Questions
+% % Motivation
+% % Characteristics
+% % Domains
+% % Experiments
+% % Parameters
+%
+% % Char -> Domain
+% % To design comparable experiments we have to elaborate characteristics of 
+% %     applications that may benefit from Multicast-Communication.
+% % Based on these characteristics, we formulate potential application domains for
+% %     Multicast-Communication.
+% % Lastly, a series of experiments is depicted.
+%
+% To design comparable experiments we have to elaborate on application domains
+%     that may benefit from Multicast-Communication.
+% Following, we formulate application characteristics distinguishing these
+%     domains.
+% This knowledge enables us to design a series of experiments representing
+%     a variety of application domains with differing characteristics.
+% Thereby we aim to answer RQX.
+%
+% \subsection{Motivations for employing Multicast} % (fold)
+% \label{sub:MotivationsForMulticast}
+% To select appropriate measurements and experiments, it is essential to delve
+%     into the \textit{motivations} for employing multicast communication and,
+%     specifically, MEADcast as a protocol.
+%
+% % Motivations to use Multicast:
+% % Efficient resource usage, to...
+% %   - Overcome resource limitation (technical or financial cause)
+% %       Technical: no more upstream available,
+% %           ip cam can't handle streaming to multiple receivers
+% %       Financial: don't want to pay more for: IPS upstream, cloud egress, VPN, ...
+% %                   or just reduce costs
+% %   - use traffic intense services, despite ones bandwidth limitation
+% %   - facilitate new services or improve existing ones
+% %   - Emissions
+% In a broader context, the decision to utilize multicast often resolves around
+%     optimizing resource usage.
+% In the absence of resource constraints, one might question opting for multicast
+%     rather than ubiquitous unicast communication.
+% However, several compelling reasons advocate for the adoption of a multicast
+%     protocol.
+% A predominant motive is overcoming \textit{resource limitations}, which can
+%     manifest technically, such as a network connection incapable of providing
+%     the required bandwidth, or \gls{iot} devices like IP cameras struggling
+%     to handle numerous unicast connections requesting identical content.
+%
+% Financial considerations are also a driving reason for employing multicast,
+% since most internet services operate on a subscription or pay-as-you-go pricing
+%     model (pay per usage).
+% \glspl{isp}, mobile phone operators, and VPN providers structure their services
+%     based on factors like monthly available traffic volume, upstream and
+%     downstream bandwidth.
+% Subscribed service levels can thus become the financial cause of resource
+%     limitations.
+% Cloud providers, in particular, heavily rely on pay-as-you-go pricing, often
+%     contending their customers with expensive ``egress costs''.
+% Deploying multicast emerges as a strategic approach to not only overcome
+%     technical and financial constraints but also to reduce operational costs.
+%
+% Another motivation for multicast adoption is to facilitate new services or 
+%     enhance existing ones.
+% For example, employing multicast for delivering multimedia content enables
+%     service providers to offer higher-quality audio or video without the need
+%     to either increase operational costs or overcome prevailing resource
+%     limitations.
+% Moreover, multicast can empower individuals to access bandwidth-intensive
+%     services despite their limited bandwidth.
+% For instance, \gls{p2p} conferencing services could leverage multicast to
+%     bridge the asymmetric access link common in most households (high
+%     downstream and low upstream bandwidth) \cite{xcast_rfc,cartesian_us_bw}.
+% Additionally, network operators may strategically deploy multicast within their
+%     domain to decrease overall network load, concurrently reducing operational
+%     costs and mitigating emissions caused by \gls{ct} (see
+%     \autoref{sec:Motivation}).
+%
+% % Motivations for choosing MEADcast as Multicast protocol:
+% % - IP Multicast often no real option
+% % - Limited network control (fallback)
+% % - No deployment of specialized client software
+% % - Protect receiver privacy
+% % - Access control to multicasted content
+% As constituted in \autoref{sec:Challenges of Multicast} and
+%     \autoref{sub:IP Multicast}, in many scenarios, the usage of IP-Multicast
+%     is not a viable option.
+% This creates a potential application space for MEADcast, particularly in
+%     circumstances with limited network control and an uncertain degree of
+%     IP-Multicast support.
+% Another potential domain for MEADcast is in facilitating access control-based
+%     multicast communication, addressing the absence of a receiver authorization
+%     mechanism in IP-Multicast \cite{diot2000deployment}.
+% In comparison to alternatives like Xcast or \gls{alm}, MEADcast might be
+%     favored in situations where the disclosure of receiver information, such as
+%     IP addresses, among other group members, is deemed unacceptable.
+% % subsection Motivations (end)
 
 
 % chapter Design (end)

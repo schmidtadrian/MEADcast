@@ -22,6 +22,58 @@ sudo python3 mk_topo.py \
 \end{listing}
 
 \begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{json}
+{
+    "stub_range": "fd14:0::/32",
+    "tran_range": "fd14:0::/32",
+    "mgm_gw": "10.10.0.1/8",
+    "stubs": [
+        {
+            "id": 10,
+            "mask": 112,
+            "area": 1,
+            "router": 10,
+            "clients": 5
+        }, {
+            "id": 11,
+            "mask": 112,
+            "area": 1,
+            "router": 10,
+            "clients": 5
+        }, {
+            "id": 20,
+            "mask": 112,
+            "area": 2,
+            "router": 20,
+            "clients": 5
+        }, {
+            "id": 21,
+            "mask": 112,
+            "area": 2,
+            "router": 20,
+            "clients": 5
+        }
+    ],
+    "trans": [
+        [[  1,   2], 0],  /* [[ <ROUTER ID>, <ROUTER ID>], <OSPF AREA>] */
+        [[  1,  10], 1],
+        [[  2,  20], 2],
+    ],
+    "area_boundary": [
+        /* { <ROUTER ID>, <OSPF AREA>, <PUBLISHED NET MASK> } */
+        { "id": 1, "area": 1, "mask": 96 },
+        { "id": 2, "area": 2, "mask": 96 },
+    ]
+}
+\end{minted}
+    \caption[Network topology configuration file format]{
+        Network topology configuration file format.
+        The resulting topology is illustrated in \autoref{fig:ex_topo}
+    }
+    \label{lst:topo_cfg_format}
+\end{listing}
+
+\begin{listing}
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{text}
 Usage: mdc_send [OPTIONS...] [PEER ADDRESSES] [PEER PORT]
 MEADcast sender

@@ -650,18 +650,159 @@ Subsequently, they each send IP Unicast packets to their respective
 % subsection MEADcast (end)
 % section Mutlicast (end)
 
-\section{Linux Kernel} % (fold)
-\label{sec:Linux Kernel}
+\section{Hierachical Three-Layer Internetworking Model} % (fold)
+\label{sec:Hierachical Three-Layer Internet Model}
+% First, this section introduces state-of-the-art characteristics of medium to
+%     large-sized network architectures.
+% Subsequently, we delve into the network topology of our testbed.
+Since, we this thesis we design a medium-sized network topology, this section 
+    introduces state-of-the-art characteristics of medium to large-sized
+    network architectures.
 
-\subsection{Fundamentals} % (fold)
-\label{sub:Fundamentals}
+Several fundamental design principles must be met by any network, irrespective
+    of its size \cite{cisco_net_size}.
+These principles are mutually interdependent and also tightly coupled to the
+    overall design \cite{cisco_campus_net}.
 
-% subsection Fundamentals (end)
+% \textit{Hierarchy}:
+\paragraph{Hierarchy} % (fold)
+\label{par:Hierarchy}
+A hierarchical network model serves as a crucial high-level
+    tool for crafting a reliable network topology \cite{cisco_net_size}.
+This abstraction dissects the complex challenge of network design into smaller
+    and more manageable areas.
+A significant advantage of a hierarchical topology is that local traffic
+    is confined to the local network \cite{cisco_campus_net}.
+Only traffic destined for other networks is transferred to a higher layer.
 
-\subsection{Network Stack} % (fold)
-\label{sub:Network Stack}
+% paragraph Hierarchy (end)
 
-% subsection Network Stack (end)
-% section Linux Kernel Network Internals (end)
+% \textit{Modularity}:
+\paragraph{Modularity} % (fold)
+\label{par:Modularity}
+Dividing the network into components provides numerous benefits.
+First, each component or module can be designed with a level of independence
+    from the overall structure \cite{cisco_net_size}.
+All modules can operate as semi-independent elements, contributing to higher
+    overall system availability and facilitating simpler management and
+    operations \cite{cisco_campus_net}.
+Furthermore, network changes and upgrades can be applied in a controlled and
+    staged manner, enhancing flexibility in maintaining and operating the
+    network \cite{cisco_net_size}.
+This principle has also been leveraged in software architecture for many years,
+    by separating the application into presentation, logic, and data layers
+    \cite{sw_arch}.
+Another benefit is a higher degree of isolation, confining problems and
+    failures to their component, leaving the overall network unaffected
+    \cite{cisco_design_guide}.
+In summary, dividing a network into a set of assembled building blocks
+    facilitates increased stability, flexibility, and manageability for both
+    the individual components and the network as a whole.
+    \cite{cisco_campus_net}
+% paragraph Modularity (end)
+
+% \textit{Resiliency}:
+\paragraph{Resiliency} % (fold)
+\label{par:Resiliency}
+The network is expected to sustain availability for both
+    regular and irregular scenarios.
+Typical scenarios encompass anticipated traffic flows, expected traffic
+    patterns, and scheduled events like maintenance windows
+    \cite{cisco_net_size}.
+Abnormal scenarios involve hardware or software failures, high traffic loads,
+    anomalous traffic patterns, \gls{dos} events, and other unforeseen
+    circumstances \cite{cisco_campus_net}.
+% paragraph Resiliency (end)
+
+% \textit{Flexibility}:
+\paragraph{Flexibility} % (fold)
+\label{par:Flexibility}
+As the operational lifespan of networks extends, it becomes imperative for
+    their design to facilitate enhanced adaptability and flexibility
+    \cite{cisco_campus_net}.
+Adapting to evolving business environments and their associated communication
+    requirements is a practical business and operational necessity.
+Flexibility is the capacity to modify specific sections of the network,
+    introduce new services, or enhance capacity without necessitating a
+    substantial overhaul or replacement of major hardware devices
+    \cite{cisco_net_size}.
+% paragraph Flexibility (end)
+
+To meet these ubiquitous network requirements, \citeauthor{cisco_3_tier}
+    \cite{cisco_3_tier} first proposed the \textit{hierarchical three-layer
+    internetworking model} in \citeyear{cisco_3_tier}.
+This model has evolved into an industry-wide standard for designing reliable,
+    scalable, and cost-efficient networks \cite{cisco_net_size}.
+Leading networking and telecommunication providers like Cisco and Huawei
+    recommend the implementation of the hierarchical three-layer
+    internetworking model.
+    \cite{cisco_campus_net,huawei_campus_net}.
+The model divides networks into three layers: core, distribution, and access
+    as illustrated in \autoref{fig:three-layer} \cite{cisco_3_tier}.
+
+% \textit{Access Layer}:
+\paragraph{Access Layer} % (fold)
+\label{par:Access Layer}
+The access layer facilitates network access for end devices, encompassing PCs,
+    smartphones, printers, and IP cameras \cite{cisco_net_size}.
+Operating commonly at layer 2, it establishes connectivity between end devices.
+Given the diverse range of end devices, this layer incorporates an array of
+    network devices such as switches, access points, and routers
+    \cite{cisco_campus_net}.
+Serving as the demarcation point between the network infrastructure and
+    computing devices \cite{cisco_campus_net}, the access layer acts as the
+    initial security boundary, safeguarding other users, application resources,
+    and the network itself \cite{cisco_design_guide}.
+% paragraph Access Layer (end)
+
+% \textit{Distribution Layer}:
+\paragraph{Distribution Layer} % (fold)
+\label{par:Distribution Layer}
+The distribution layer aggregates traffic from multiple access layer devices
+    and provides connectivity to the rest of the network by transmitting
+    packets to other access layer devices or the core layer
+    \cite{cisco_campus_net}.
+In a typical scenario, connected routers at the distribution layer aggregate
+    data originating from a building or a floor and establish connections to
+    the core layer.
+For instance, in \autoref{fig:three-layer}, the two interconnected routers on
+    the left and the two on the right could each symbolize a distinct building.
+This layer often serves as the demarcation between layer 2 domains and the
+    layer 3 routed network \cite{cisco_net_size}, creating fault domains
+    containing failures and network changes to the directly affected areas
+    \cite{cisco_design_guide}.
+The distribution layer performs essential network functions such as routing,
+    traffic filtering, and policy enforcement \cite{cisco_campus_net}.
+% paragraph Distribution Layer (end)
+
+
+% \textit{Core Layer}:
+\paragraph{Core Layer} % (fold)
+\label{par:Core Layer}
+Core LayerThe core layer functions as the backbone interconnecting the numerous modules
+    of the network \cite{cisco_campus_net}.
+It facilitates connectivity among end devices, servers, data storage, different
+    locations, and the internet.
+This layer represents the most critical component of the network, characterized
+    by a relatively simple design \cite{cisco_design_guide}.
+Given that a significant portion of network traffic passes through the
+    backbone, it is responsible for high-speed and high-volume data
+    transmission \cite{cisco_campus_net}.
+Additionally, this layer should offer high availability and redundancy.
+CPU-intensive packet manipulations resulting from security measures,
+    inspections, and \gls{qos} should be avoided \cite{cisco_campus_net}.
+% paragraph Core Later (end)
+
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=.6\textwidth]{three_layer_model.pdf}
+    \end{center}
+    \caption{Hierarchical three-layer internetworking model (based on
+    \cite{cisco_3_tier})}
+    \label{fig:three-layer}
+\end{figure}
+
+% section Hierachical Three-Layer Internetworking Model (end)
 
 % chapter Background Work (end)

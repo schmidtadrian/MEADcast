@@ -1,113 +1,52 @@
 \chapter{Implementation} % (fold)
 \label{chap:Implementation}
 This chapter introduces the employed protocol specification, the implementation
-    of the MEADcast router and sender, as well as the testbed.
+    of the \gls{mead} router and sender, as well as the testbed.
 
 \section{Protocol Specification} % (fold)
 \label{sec:Protocol Specification}
-Since the existing literature on MEADcast lacks specific details regarding the
-    header, such as the size of each field, we introduce the
+Since the existing literature on \gls{mead} \cite{meadcast1,meadcast2} lacks
+    specific details regarding the header, such as specific field sizes or
+    content (see \autoref{sub:MEADcast}), in this section we introduce the
     specifications utilized for our experiments.
 
 Firstly, we omit the usage of an empty Hop-by-Hop IPv6 extension header as
     introduced by \citeauthor{meadcast1} \cite{meadcast1, meadcast2}.
 We do this for several reasons:
-First, to reduce the overhead of MEADcast.
-Second, if a non-MEADcast router attempts to process Hop-by-Hop extension headers
-    the packet probably end up in the router's slow path \cite{rfc7045}, potentially
-    harming the protocol's performance.
-Third, since the MEADcast header is intended to be processed exclusively by
-    MEADcast routers, over which we maintain control, the Hop-by-Hop extension
-    header serves no purpose.
+First, to reduce the overhead of \gls{mead}.
+Second, if a non-\gls{mead} router attempts to process Hop-by-Hop extension
+    headers the packet probably ends up in the router's slow path
+    \cite{rfc7045}, potentially harming the protocol's performance.
+Third, since the \gls{mead} header is intended to be processed exclusively by
+    \gls{mead} routers, over which we maintain control, the Hop-by-Hop
+    extension header serves no purpose.
 Lastly, according to various research studies, packets containing a Hop-by-Hop
     extension header experience an increased drop rate of up to 40\% compared
     to packets without an extension header \cite{rfc7872_ext_hdrs_drop_rate},
-    especially across multiple \glspl{as} \cite{rfc9098_ext_hdrs_op_impl, rfc9288}.
+    especially across multiple \glspl{as}
+    \cite{rfc9098_ext_hdrs_op_impl, rfc9288}.
 
-Next, we introduce the detailed characteristics of the MEADcast header in our
+Next, we introduce the detailed characteristics of the \gls{mead} header in our
     implementation.
-The first four octets of the MEADcast header constitute the static Routing
+The first four octets of the \gls{mead} header constitute the static Routing
     extension header, which is shared by all routing variants.
-This differs from previous implementations of MEADcast, which omitted the
+This differs from previous implementations of \gls{mead}, which omitted the
     Segments Left field \cite{sdn_ba}.
 We decided to include this field to comply with RFC 8200
     \cite{rfc8200_ipv6_hdr}, reducing the likelihood that intermediate nodes
-    drop MEADcast packets due to a malformed Routing header.
-Since there is no existing Routing Type designated for MEADcast, we utilize the
+    drop \gls{mead} packets due to a malformed Routing header.
+Since there is no existing Routing Type designated for \gls{mead}, we utilize the
     experimental values of 253 and 254 in accordance with RFC3692
     \cite{rfc3692_ipv6_rt_type}.
 The Segments Left field remains fixed to zero and is never altered because,
     according to RFC 8200 \cite{rfc8200_ipv6_hdr}, intermediate nodes that do
     not recognize the employed Routing type value must ignore the Routing
     header and proceed to process the next header.
-An illustration of the MEADcast header layout can be found in
+An illustration of the \gls{mead} header layout can be found in
     \autoref{lst:meadcast_header}, along with an in-depth description of each
     field in \autoref{tab:meadcast_header}.
 Due to the time frame of this thesis, we omit the usage of the optional port
-    list as it does not affect the core MEADcast processing.
-
-% No exact definition (size of each field, bit for bit)
-% Removed IPv6 Hop-by-Hop header
-%   - Reduce Size
-%   - Often dropped (cite)
-%   - If processed end up in slow path
-%   - Only MEADcast router have to process the packet anyway
-% Adjusted Routing Header
-%   - Invalid routing header in BA (better use valid header)
-%   - reduced size
-%   - Omitted optional Port List for testing
-% python protocol "Next Header:8,Hdr Ext Len:8,Routing Type:8,Num. Dst:8,Flags:2,Hops:6,Reserved:24,Delivery Map:32,Router Map:32,Address List:128"
-% python protocol "Next Header:8,Hdr Ext Len:8,Routing Type:8,Segments Left:8,Num. Dst:8,Flags:2,Hops:6,Reserved:16,Delivery Map:32,Router Map:32,Address List:128"
-
-% \begin{figure}[h!]
-% \centering
-% \begin{lstlisting}[xleftmargin=.07\textwidth]
-%  0                   1                   2                   3
-%  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |  Next Header  |  Hdr Ext Len  |  Routing Type |    Num. Dst   |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |Fl.|    Hops   |                    Reserved                   |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |                          Delivery Map                         |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |                           Router Map                          |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |                                                               |
-% .                                                               .
-% .                          Address List                         .
-% .                                                               .
-% |                                                               |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% \end{lstlisting}
-% \caption{Python: MEADcast Header}
-% \end{figure}
-
-% \begin{figure}[!htbp]
-% \centering
-% \begin{lstlisting}[xleftmargin=.07\textwidth]
-%  0                   1                   2                   3
-%  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |  Next Header  |  Hdr Ext Len  |  Routing Type | Segments Left |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |    Num. Dst   |Fl.|    Hops   |            Reserved           |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |                          Delivery Map                         |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |                           Router Map                          |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-% |                                                               |
-% .                                                               .
-% .                          Address List                         .
-% .                                                               .
-% |                                                               |
-% +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-%
-% \end{lstlisting}
-% \caption{MEADcast header specification}
-% \label{lst:meadcast_header}
-% \end{figure}
+    list as it does not affect the core \gls{mead} processing.
 
 \begin{figure}[!htbp]
 \centering
@@ -131,7 +70,7 @@ Due to the time frame of this thesis, we omit the usage of the optional port
     \skippedwords \\
     \wordbox[lrb]{1}{} \\
 \end{bytefield}
-\caption{MEADcast header specification}
+\caption{\gls{mead} header specification}
 \label{lst:meadcast_header}
 \end{figure}
 
@@ -154,17 +93,17 @@ Hdr Ext Len   & An 8-bit unsigned integer representing the length of the
                 octets \cite{rfc8200_ipv6_hdr}. \\
 Routing Type  & An 8-bit identifier denoting a specific Routing header variant
                 \cite{rfc8200_ipv6_hdr}.
-                Given the absence of an existing Routing Type for MEADcast, we
+                Given the absence of an existing Routing Type for \gls{mead}, we
                 utilize the experimental values of 253 and 254 in accordance
                 with RFC3692 \cite{rfc3692_ipv6_rt_type}.\\
 Segments Left & An 8-bit unsigned integer representing the number of remaining
                 route segments, indicating the number of explicitly listed
                 intermediate nodes yet to be traversed before reaching the
                 final destination \cite{rfc8200_ipv6_hdr}.
-                Remains fixed to zero and is not modified by MEADcast routers.
+                Remains fixed to zero and is not modified by \gls{mead} routers.
                 Consequently, intermediate nodes that do not recognize the
                 employed Routing type value are required to disregard the
-                MEADcast header and proceed to process the subsequent header
+                \gls{mead} header and proceed to process the subsequent header
                 \cite{rfc8200_ipv6_hdr}.\\
 Num. Dst.     & An 8-bit unsigned integer denoting the number of IPv6
                 addresses encoded in the address list.
@@ -183,10 +122,10 @@ Num. Dst.     & An 8-bit unsigned integer denoting the number of IPv6
                 1 bit identifying the packet as a discovery request (0) or
                 response (1) \cite{meadcast2}.}\\
 Hops          & An 6-bit unsigned integer, specifying the distance between the
-                sender and a router, denoted in the number of MEADcast hops.
+                sender and a router, denoted in the number of \gls{mead} hops.
                 This field is utilized during the discovery phase. The sender
                 initializes the field with zero, and it is incremented by each
-                intermediate MEADcast router encountered.
+                intermediate \gls{mead} router encountered.
                 The field size sets a theoretical limit of 63 hops.\\
 Reserved      & A 16-bit reserved field.
                 Should be initialized to zero during transmission and
@@ -199,12 +138,12 @@ Router Map    & A 32-bit Bitmap, where each bit at position $i$ indicates
                 whether an address at index $i$ in the address list is a
                 router (0 = receiver, 1 = router) \cite{meadcast2}.\\
 Address List  & A variable-length list comprising the IPv6 addresses of
-                receivers and MEADcast routers.
+                receivers and \gls{mead} routers.
                 The field size of the Delivery and Router Bitmap imposes a
                 practical limit of 32 addresses.\\
 \bottomrule
 \end{tabularx}
-\caption{Employed MEADcast header field description}
+\caption{Employed \gls{mead} header field description}
 \label{tab:meadcast_header}
 \end{table}
 \egroup
@@ -213,22 +152,22 @@ Address List  & A variable-length list comprising the IPv6 addresses of
 
 \section{Router} % (fold)
 \label{sec:Router}
-This section provides an overview of the MEADcast router implementation in the
+This section provides an overview of the \gls{mead} router implementation in the
     Linux Kernel.
-The MEADcast routing software is developed and tested using the latest stable
+The \gls{mead} routing software is developed and tested using the latest stable
     Kernel release, version 6.5.3, at the time of development.
-MEADcast routing capabilities are tightly coupled to the flow of IPv6 packets
+\gls{mead} routing capabilities are tightly coupled to the flow of IPv6 packets
     through the Kernel network stack, making it infeasible to create a separate
     Kernel module loadable at runtime.
-Therefore, we decided to extend the IPv6 module with MEADcast capability.
+Therefore, we decided to extend the IPv6 module with \gls{mead} capability.
 This feature can be enabled or disabled at compile-time using the
     \inlinelst{CONFIG\_IPV6\_MEADCAST} flag.
 To avoid the burden of recompiling or switching the kernel to enable or disable
-    MEADcast support, we introduce a runtime configuration flag.
+    \gls{mead} support, we introduce a runtime configuration flag.
 This flag is managed through Sysctl, providing the virtual file
     \inlinelst{/proc/sys/net/ipv6/meadcast/enable}, which contains either 0 for
     disabled and 1 for enabled.
-For instance, the root user can enable MEADcast support by running the command
+For instance, the root user can enable \gls{mead} support by running the command
     \inlinelst{"echo 1 > /proc/sys/net/ipv6/meadcast/enable"}.
 However, it is crucial to ensure that this additional check does not adversely
     impact performance compared to a plain kernel, as it could potentially
@@ -238,12 +177,12 @@ As illustrated in \autoref{sub:Network Stack}, packets not designated to the
     router itself follow the ``forwarding'' packet flow in the Kernel.
 IPv6 extension headers of these packets are normally ignored by the Kernel
     (except for the Router Alert extension).
-Consequently, we embedded the entry point for MEADcast processing at the end of
+Consequently, we embedded the entry point for \gls{mead} processing at the end of
     the \inlinelst{ip6\_forward} method located in
     \inlinelst{net/ipv6/ipv6\_output.c}.
 If a packet contains the routing header extension the \inlinelst{mdc\_rcv}
     method located in \inlinelst{net/ipv6/mdcast.c} gets invoked.
-This method performs basic sanity checks on the MEADcast header and then
+This method performs basic sanity checks on the \gls{mead} header and then
     invokes \inlinelst{mdc\_dcv\_rcv} for discovery and
     \inlinelst{mdc\_data\_rcv} for data packets.
 
@@ -253,7 +192,7 @@ This method performs basic sanity checks on the MEADcast header and then
 % - clone socket buffer of incomming packet (discovery response)
 % - update dst and src ip of discovery response
 \textit{Discovery}: First, discovery packets get validated and the hop counter
-    in the MEADcast header is incremented.
+    in the \gls{mead} header is incremented.
 To create a discovery response the socket buffer struct of the incoming
     discovery request is cloned.
 By this, we solely have to update the IP source and destination field of the
@@ -266,9 +205,9 @@ Lastly, the \inlinelst{dst\_output} method is invoked, dispatching the packet to
 The processing of the original packet does not need further handling, as it is
     already correctly done by the default forwarding flow.
 
-\textit{Data}: Data packets undergo several steps upon arrival at the MEADcast
+\textit{Data}: Data packets undergo several steps upon arrival at the \gls{mead}
     router.
-Firstly, they are validated, and the hop counter in the MEADcast header is
+Firstly, they are validated, and the hop counter in the \gls{mead} header is
     incremented.
 Subsequently, the router iterates over the Delivery and Router Bitmap to
     identify undelivered routers (indices set in both bitmaps).
@@ -282,24 +221,24 @@ To determine whether to clone the packet, the routers monitors whether an
     router) at index $r2$, with $r1 < r2$.
 The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
 
-For each undelivered router $R_u$ specified in the MEADcast header, the
-    processing router $R_p$ decides whether to transmit the data via MEADcast
+For each undelivered router $R_u$ specified in the \gls{mead} header, the
+    processing router $R_p$ decides whether to transmit the data via \gls{mead}
     or IP unicast.
-If the IP address of $R_u$ in the MEADcast header belongs to the processing
+If the IP address of $R_u$ in the \gls{mead} header belongs to the processing
     router $R_p$ itself, all designated endpoints will be delivered via IP
     unicast.
 Additionally, if the number of endpoints assigned to the considered router
-    $R_u$ from the MEADcast header is below a certain threshold, the processing
-    router $R_p$ performs a premature MEADcast to IP unicast transformation.
+    $R_u$ from the \gls{mead} header is below a certain threshold, the processing
+    router $R_p$ performs a premature \gls{mead} to IP unicast transformation.
 For example, if $R_u$ has one designated endpoint, $R_p$ could execute a
-    premature MEADcast to IP unicast transformation, potentially enhancing
+    premature \gls{mead} to IP unicast transformation, potentially enhancing
     performance.
 The threshold can also be configured during runtime by setting the parameter
     \inlinelst{/proc/sys/net/ipv6/meadcast/min\_dsts}.
-Setting \inlinelst{min\_dsts} to 0 disables premature MEADcast to IP unicast
+Setting \inlinelst{min\_dsts} to 0 disables premature \gls{mead} to IP unicast
     transformation.
 
-If the packet is forwarded via MEADcast, the router updates both the delivery
+If the packet is forwarded via \gls{mead}, the router updates both the delivery
     bitmap and the destination field of the IPv6 header.
 In the delivery bitmap, all bits are set to zero except for the index
     corresponding to the considered router.
@@ -308,7 +247,7 @@ Additionally, the IP destination field is set to the address of the first
 Lastly, the router performs a routing table lookup for the new destination
     address and forwards the packet accordingly.
 
-In case of IP unicast transmission, the router converts the MEADcast packet
+In case of IP unicast transmission, the router converts the \gls{mead} packet
     into an IPv6 packet by copying the IPv6 header in front of the Layer 4
     header and adjusting the socket buffer pointers accordingly.
 Additionally, the L4 checksum is corrected due to the modified destination IP
@@ -341,7 +280,7 @@ Additionally, the L4 checksum is corrected due to the modified destination IP
     \begin{center}
         \includegraphics[width=\textwidth]{router_procedure.pdf}
     \end{center}
-    \caption{MEADcast router procedure}
+    \caption{\gls{mead} router procedure}
     \label{fig:router_procedure}
 \end{figure}
 % section Router (end)
@@ -349,21 +288,21 @@ Additionally, the L4 checksum is corrected due to the modified destination IP
 
 \section{Sender} % (fold)
 \label{sec:Sender}
-This section provides an overview of our MEADcast sender implementation.
+This section provides an overview of our \gls{mead} sender implementation.
 To ensure efficient processing that is comparable to existing network
     protocol implementations, we chose to implement the sender in the C
     language.
 The main tasks of the sender include sending periodical discovery requests to
     all group members, receiving discovery responses, constructing a topology
     tree based on the received discovery responses, grouping receivers into
-    MEADcast packets, and transmitting data to all group members either via
-    MEADcast or IP unicast.
+    \gls{mead} packets, and transmitting data to all group members either via
+    \gls{mead} or IP unicast.
 
 \paragraph{Startup} % (fold)
 \label{par:Startup}
 All receivers must be known at startup, dynamic runtime memberships are not
     supported.
-We regard this decision as justifiable, given that MEADcast does not define any
+We regard this decision as justifiable, given that \gls{mead} does not define any
     mechanism for joining or leaving a group, and the primary objective of this
     thesis is to compare the protocol with existing alternatives.
 On startup the sender initializes a topology tree with itself as the root and
@@ -371,18 +310,18 @@ On startup the sender initializes a topology tree with itself as the root and
 Moreover, a TUN interface is created representing the common interface to other
     applications.
 Any data, which is send to the TUN interface will be transmitted to the
-    MEADcast group (see \autoref{fig:tun_dev}.
-However, since MEADcast is a \textit{1:n} multicast protocol, the sender does not
-    handle traffic directed from the MEADcast receivers towards the sender.
+    \gls{mead} group (see \autoref{fig:tun_dev}.
+However, since \gls{mead} is a \textit{1:n} multicast protocol, the sender does not
+    handle traffic directed from the \gls{mead} receivers towards the sender.
 The \gls{mtu} of the TUN interface will be set to the MTU of the bind interface
-    minus the maximum allowed MEADcast header size.
+    minus the maximum allowed \gls{mead} header size.
 This ensures, that all packets read from the TUN interface can be transmitted
-    via MEADcast.
+    via \gls{mead}.
 Additionally, for convenience a host route to the TUN interface gets created 
     automatically (default: \inlinelst{fd15::1}).
 Next, a discovery and transmission thread is created.
 This is necessary to facilitate simultaneous data transmission and periodic
-    MEADcast discovery.
+    \gls{mead} discovery.
 
 \begin{figure}
     \begin{center}
@@ -396,8 +335,8 @@ This is necessary to facilitate simultaneous data transmission and periodic
 \paragraph{TX thread} % (fold)
 \label{par:TX thread}
 The transmission thread operates on a straightforward pattern.
-It reads data from the TUN device and transmits it to the MEADcast group either
-    via MEADcast or IPv6 unicast.
+It reads data from the TUN device and transmits it to the \gls{mead} group either
+    via \gls{mead} or IPv6 unicast.
 The key element for data transmission is the \inlinelst{tx\_group} structure,
     which includes three members: \inlinelst{*mdc}, \inlinelst{nuni}, and
     \inlinelst{uni} (as detailed in \autoref{lst:txg_struct}).
@@ -405,7 +344,7 @@ These members encompass all the necessary information for data transmission,
     rendering \inlinelst{tx\_group} as the only data structure required by the
     transmission thread.
 \inlinelst{*mdc} is a reference to a linked list of receivers grouped into
-    MEADcast headers ready for transmission.
+    \gls{mead} headers ready for transmission.
 \inlinelst{nuni} contains the count of unicast addresses stored in
     \inlinelst{uni[]}.
 Lastly, \inlinelst{uni[]} is an array of receivers served via IPv6 unicast.
@@ -426,13 +365,13 @@ Initially, it blockingly reads data from the TUN device.
 Second, the sender atomically reads the current \inlinelst{tx\_group}.
 This step is substantial because the \inlinelst{tx\_group} can be updated by
     the discovery thread at any time.
-Finally, the data read from the TUN device is transmitted to the MEADcast group
+Finally, the data read from the TUN device is transmitted to the \gls{mead} group
     by first transmitting it via IPv6 unicast to all addresses listed in
-    \inlinelst{uni[]} and subsequently transmitting it via MEADcast by copying
-    the MEADcast headers stored in \inlinelst{*mdc} in front of the Layer 4
+    \inlinelst{uni[]} and subsequently transmitting it via \gls{mead} by copying
+    the \gls{mead} headers stored in \inlinelst{*mdc} in front of the Layer 4
     header.
-The copying of the MEADcast header overwrites the IPv6 header, necessitating
-    the unicast transmission to occur before the MEADcast transmission.
+The copying of the \gls{mead} header overwrites the IPv6 header, necessitating
+    the unicast transmission to occur before the \gls{mead} transmission.
 
 \begin{listing}
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{c}
@@ -472,8 +411,8 @@ struct tx_group {
 The discovery thread operates on a more intricate pattern compared to the
     transmission thread.
 Its primary tasks include sending periodic discovery requests to all group
-    members, receiving discovery responses from intermediate MEADcast routers,
-    maintaining the topology tree, and grouping receivers into MEADcast
+    members, receiving discovery responses from intermediate \gls{mead} routers,
+    maintaining the topology tree, and grouping receivers into \gls{mead}
     headers.
 
 To manage the recurring discovery phase, the sender utilizes a discovery
@@ -495,22 +434,22 @@ This allows for efficient monitoring using \inlinelst{epoll}
 
 On startup, the discovery thread initializes the timers and adds the file
     descriptors to \inlinelst{epoll}.
-Besides the timers, \inlinelst{epoll} also monitors the MEADcast file
+Besides the timers, \inlinelst{epoll} also monitors the \gls{mead} file
     descriptor.
 Afterward, the discovery thread enters an infinite loop executing the following
     steps.
 Initially, the thread invokes \inlinelst{epoll\_wait} (level-triggered), waiting
     for an event from one of the three file descriptors.
-It either waits for one of the timers to expire or a MEADcast packet to arrive.
+It either waits for one of the timers to expire or a \gls{mead} packet to arrive.
 
 On expiration of the interval timer, the discovery thread sends discovery
     requests to all group members, disarms the interval timer, and starts the
     discovery timeout timer.
 
-Upon receiving a MEADcast packet, the sender performs basic sanity checks and
+Upon receiving a \gls{mead} packet, the sender performs basic sanity checks and
     validation.
 This includes verifying whether the address from the discovery response's
-    address list is a MEADcast group member.
+    address list is a \gls{mead} group member.
 To facilitate, a fast lookup of IPv6 addresses a Judy array is utilized.
 A Judy array is a sparse dynamic array with the key benefits of scalability,
     high performance, and memory efficiency \cite{web_judy}.
@@ -555,7 +494,7 @@ This procedure is required because complex structures can not be created
 
 \paragraph{Grouping} % (fold)
 \label{par:Grouping}
-To understand the grouping of receivers into MEADcast packets, one has to
+To understand the grouping of receivers into \gls{mead} packets, one has to
     understand the internal sender structures.
 
 % basic grouping algorithm:
@@ -703,188 +642,182 @@ To understand the grouping of receivers into MEADcast packets, one has to
 \section{Experiment} % (fold)
 \label{sec:Experiment}
 
-\subsection{Testbed} % (fold)
-\label{sub:Testbed_Implementation}
-% - python script reading json
-% - kvm, direct kernel boot, debian nocloud image
-% - chrony time sync (had to change boot param on host system)
-% - how measured
+\subsection{Network topology} % (fold)
+\label{sub:Network Topology}
+This section provides detailed insights into the designed experiment topology.
+Furthermore, it highlights the specific selection of sender, receivers, and
+    routers for each use case.
 
-\paragraph{EX1: Live Stream} % (fold)
-\label{par:impl EX1: Live Stream}
+\subsubsection{Topology} % (fold)
+\label{sec:Topology}
+The architecture of our testbed aligns with the in \autoref{sub:Topology}
+    formulated requirements, achieved through the implementation of the
+    hierarchical three-layer model.
 
-\begin{figure}[!htbp]
+% less clinical / more variety so sometimes two routers on access layer
+The testbed comprises 205 nodes consisting of 40 routers and 165 end devices.
+The network is divided into 4 domains, each potentially representing distinct
+    buildings on a university campus.
+All 4 domains encompass 7-9 client networks, accommodating 5 end devices each.
+The access layer of each domain comprises up to 7 routers (3-digit router IDs
+    in \autoref{fig:topology}).
+Since this thesis evaluates a transport protocol, we waive the application of
+    switches on the access layer, deploying solely  layer 3 devices.
+The distribution layer of each domain encompasses 2-3 interconnected routers
+    (2-digit router IDs), aggregating the access layers within its respective
+    domain and facilitating the connection to the core layer.
+The testbed's core consists of 4 routers (1-digit router IDs) interconnecting
+    the 4 network domains.
+Additionally, the backbone possesses a high connectivity, ensuring both high
+    availability and redundancy.
+To reduce management and operational overhead, the testbed incorporates fewer
+    redundant links from the access to the distribution layer and from the
+    distribution to the core layer compared to the recommendations provided by
+    Cisco and Huawei \cite{cisco_design_guide,huawei_campus_net}.
+This trade-off is considered acceptable, as this thesis does not delve into the
+    details of the availability and fault tolerance of the network
+    architecture.
+Additionally, router and link failures are artificially induced in any case.
+
+The chosen architecture represents a realistic medium-sized network topology.
+The application of the hierarchical three-layer model ensures the required
+    flexibility of the testbed.
+Various placements of senders, receivers, and routers are possible, allowing
+    experiments with a receiver distribution ranging from high clustering
+    within a single domain to a uniform spread across all four network domains.
+Moreover, the availability of alternative routes facilitates the representation
+    of dynamic network environments, encompassing scenarios such as deliberate
+    routing changes or router and link outages.
+
+\begin{figure}
+    \begin{center}
+        \includegraphics[width=.8\textwidth]{testbed_topology.pdf}
+    \end{center}
+    \caption{Testbed Topology}
+    \label{fig:topology}
+\end{figure}
+
+% subsubsection Topology (end)
+
+
+
+\subsubsection{UC1: Live Stream} % (fold)
+\label{par:impl UC1: Live Stream}
+The topology for UC1 is depicted in \autoref{fig:exp_live_stream}, consisting of
+    up to 96 nodes, comprising up to 70 receivers (max. 5 per client network) and
+    26 routers.
+The configuration encompasses four network domain each representing a building
+    on a campus or even an entire location.
+Client $C_{3001}$ is selected as the sender.
+In the areas of the client networks $C_{21}-C_{23}$, $C_{35}-C_{36}$, and
+    $C_{41}-C_{46}$ there is a high receiver distribution.
+In contrast, networks $C_{11}$, $C_{14}$, $C_{16}$, $C_{28}$, and $C_38$
+    possess a lower receiver density.
+The selection of client networks encompasses varying distances between sender
+    and receivers, ranging from four hops for $C_{35}$ and $C_{36}$ up to eight
+    hops for $C_{28}$.
+
+The chosen topology facilitates the measurement of \gls{mead}'s performance for
+    mid to large-sized groups, comprising a mixture of highly clustered and
+    isolated nodes, highlighting the protocol's potential in scenarios of
+    heterogen receiver distributions.
+
+\begin{figure}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_live_stream.pdf}
     \end{center}
-    \caption{Experiment: Live stream (\textit{sender is red})}
+    \caption[UC1: Live stream]{UC1: Live stream ($C_{3001}$ \textit{is sender})}
     \label{fig:exp_live_stream}
 \end{figure}
-
-\begin{itemize}\itemsep0em
-    \item \textbf{Goal:} Measure \textit{1:n} MEADcast performance for a
-        mid to large-sized, comprising a mixture of highly clustered and spread
-        members, highlighting the protocols potential for heterogen receiver
-        distribution.
-    \item[] \textbf{Characteristics}
-    \begin{itemize}\itemsep0em
-        \item Use case: streaming a campus or business event across multiple
-            locations/buildings (requires multiple network domains)
-        \item Requires both local clustering and spread, to depict typical
-            campus layout (e.g. library high clustering, low receiver density
-            for remote offices)
-        \item Requires varying distance of receivers
-        \item 26 routers, $14-70$ receivers
-        \item Recurring downstream peaks to buffer content
-            \cite{cartesian_us_bw}
-    \end{itemize}
-    \item[] \textbf{Expectations}
-    \begin{itemize}\itemsep0em
-        \item Strongly differing levels of bandwidth reduction for highly
-            clustered and widely distributed endpoints
-        \item E.g. Merging receivers under $R_{41}$ can significantly reduce
-            the utilized bandwidth 
-        \item E.g. Receivers in network $C_{28}$ can be used to measure
-            the effect of MEADcast processing on latency and jitter compared to
-            unicast delivery
-    \end{itemize}
-    \item[] \textbf{Testing Parameters}
-    \begin{itemize}\itemsep0em
-            \item Network: Degree of MEADcast support (e.g. 25\%, 50\%, \dots,
-                dist. layer only)
-        \item Sender: Max group size, merging range, splitting siblings
-        \item Router: Premature M2U
-    \end{itemize}
-\end{itemize}
-% paragraph EX1: Live Stream (end)
-\newpage
+% subsubsection UC1 Live Stream (end)
 
 
-\paragraph{EX2: File transfer} % (fold)
+\subsubsection{UC2: File transfer} % (fold)
 \label{par:implEX2: File transfer}
+The topology for UC2 includes up to 58 nodes, composed of 45 receivers (max. 5
+    per client network) and 13 routers.
+The node selection encompasses the entire network domain three, representing
+    a server network or even an entire data center, with the sender $C_{4001}$
+    representing the package source mirror. 
+The entire range of client networks ($C_{30}-C_{38}$) is located within one
+    highly clustered area.
+Furthermore, we have the flexibility to adjust the number of receivers by
+    scaling the number of active nodes within a client network within a range
+    of 1-5.
 
-\begin{figure}[!htbp]
+The chosen topology enables the measurement of \gls{mead}'s performance for
+    mid to large-sized groups of highly clustered nodes, demonstrating the
+    protocol's potential in scenarios with ideal conditions.
+
+\begin{figure}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_file_transfer.pdf}
     \end{center}
-    \caption{Experiment: File transfer (\textit{sender is red})}
+    \caption[UC2: File transfer]{UC2: File transfer ($C_{4001}$ \textit{is sender})}
     \label{fig:exp_file_transfer}
 \end{figure}
 
-\begin{itemize}\itemsep0em
-    \item \textbf{Goal:} Measure \textit{1:n} MEADcast performance for a
-        mid to large-sized, highly clustered group, highlighting the protocols
-        potential under ideal conditions.
-    \item[] \textbf{Characteristics}
-    \begin{itemize}\itemsep0em
-        \item Use case: Rollout of software update (e.g. server OS)
-        \item Requires high clustering since servers are usually located within
-            one network domain
-        \item 13 Router, $9-45$ Receivers
-        \item Max out all the available bandwidth for a short period of time
-            \cite{cartesian_us_bw}
-    \end{itemize}
-    \item[] \textbf{Expectations}
-    \begin{itemize}\itemsep0em
-        \item For a small number of receivers per router, minor reduction in
-            bandwidth is expected compared to unicast (bc the first MEADcast
-            router will split packets)
-        \item For bigger numbers of receivers per router, more significant
-            saving in bandwidth is expected
-        \item High bandwidth savings on sender link across all scenarios
-    \end{itemize}
-    \item[] \textbf{Testing Parameters}
-    \begin{itemize}\itemsep0em
-        \item similar to \autoref{par:impl EX1: Live Stream}
-    \end{itemize}
-\end{itemize}
-% paragraph EX2: File transfer (end)
-\newpage
-
-\paragraph{EX3 Video conference} % (fold)
+\subsubsection{UC3 Video conference} % (fold)
 \label{par:impl EX3 Video conference}
+As depicted in \autoref{fig:exp_video_conference}, the composition of nodes
+    includes a total of up to 78 nodes, comprising 60 clients (max. 5 per
+    client network)
+    and 18 routers.
+However, since this use case aims to asses \gls{mead}'s suitability for small
+    to medium-sized \gls{p2p} conferences, the number of clients is typically
+    lower.
+The topology encompasses local clustering in the area of $C_{33}-C_{36}$
+    and $C_{21}-C_{25}$ representing sub-teams in different office locations.
+Conversely, $C_{12}$, $C_{40}$, and $C_{46}$ exhibit a low receiver density
+    representing customers or service providers in remote areas.
+The selection of client networks encompasses varying distances between clients,
+    ranging from one hop within local clusters like between $C_{33}$ and
+    $C_{34}$, up to eight hops between $C_{25}$ and $C_{46}$.
+Since this use cases focuses on \gls{p2p} communication, all clients transmit
+    and receive traffic.
 
-\begin{figure}[!htbp]
+The chosen topology facilitates the investigation of \gls{mead}'s suitability
+    for \gls{p2p} communication and whether the protocol's application can
+    bridge the asymmetric access link bandwidth.
+Moreover, the topology enables the examination of the effect of high \gls{mead}
+    traffic volume on \gls{mead} routers.
+
+\begin{figure}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_video_conference.pdf}
     \end{center}
-    \caption{Experiment: P2P Video Conference
-        (\textit{all members are senders})}
+    \caption[UC3: P2P Video Conference]{UC3: P2P Video Conference (\textit{all members are senders})}
     \label{fig:exp_video_conference}
 \end{figure}
 
-\begin{itemize}\itemsep0em
-    \item \textbf{Goal:} Measure \textit{m:n} MEADcast performance for a
-        small to mid-sized group, comprising a mixture of highly clustered and
-        spread members, highlighting the protocols potential for heterogen
-        receiver distribution.
-    \item[] \textbf{Characteristics}
-    \begin{itemize}\itemsep0em
-        \item Video conference by a department or project team
-        \item Requires P2P connection and a steady stream of up and download
-            \cite{cartesian_us_bw}
-        \item Requires both local clustering and spread, to depict typical work
-            culture (e.g. high clustering in office, and a few members like
-            a customer or a colleague in home office being further away)
-        \item Requires varying distance of group members
-        \item 18 routers, $12-60$ senders/receivers
-    \end{itemize}
-    \item[] \textbf{Expectations}
-    \begin{itemize}\itemsep0em
-        \item Sheds light on, whether MEADcast is capable of bridging the
-            asymmetric access link \cite{xcast_rfc, cartesian_us_bw}
-        \item Demonstrates how expensive MEADcast processing is in comparison
-            to unicast
-        \item Highlights the differences in measurements between highly
-            clustered and wider distributed areas
-    \end{itemize}
-    \item[] \textbf{Testing Parameters}
-    \begin{itemize}\itemsep0em
-        \item similar to \autoref{par:impl EX1: Live Stream}
-    \end{itemize}
-\end{itemize}
-% paragraph EX3 Video conference (end)
-\newpage
-
-\paragraph{EX4 Online Gaming} % (fold)
+\subsubsection{UC4 Online Gaming} % (fold)
 \label{par:EX4 Online Gaming}
+The topology design for UC4 is illustrated in \autoref{fig:exp_online_gaming},
+    comprising up to 72 nodes, including 45 clients (max. 5 per client network)
+    and 27 routers.
+However, since this use case aims to asses \gls{mead}'s suitability for small
+    to medium-sized groups, the number of clients is typically lower.
+The design features an evenly spread distribution of client network with a low
+    receiver density.
+No router is directly connected to more than one client network.
+Client $C_{4501}$ is designated as the sender.
+The selection of client networks encompasses varying distances between sender
+    and receivers, ranging from four hops for $C_{43}$ up to eight hops for
+    $C_{24}$ and $C_{28}$.
 
-\begin{figure}[!htbp]
+The chosen topology design facilitates the evaluation of \gls{mead}'s
+    implication on latency and jitter.
+Moreover, the topology enables the investigation of \gls{mead}'s performance in
+    scenarios with suboptimal conditions, particularly with a high receiver
+    distribution.
+
+\begin{figure}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_online_gaming.pdf}
     \end{center}
-    \caption{Experiment: Online gaming}
+    \caption[UC4: Online Gaming]{UC4: Online Gaming ($C_{45}$ \textit{is sender})}
     \label{fig:exp_online_gaming}
 \end{figure}
-
-\begin{itemize}\itemsep0em
-    \item \textbf{Goal:} Measure MEADcast performance in disadvantageous
-        setting in terms of distribution.
-        Highlight the threshold at which the number of receivers per router
-        makes MEADcast favourable. 
-    \item[] \textbf{Characteristics}
-    \begin{itemize}\itemsep0em
-        \item Online multiplayer game with a high receiver distribution
-        \item Frequent, downstream peaks in intervals of $2-4$ seconds
-            \cite{cartesian_us_bw}
-        \item 27 routers, $9-45$ receivers
-        \item Requires long distances, to measure whether MEADcast processing
-            significantly impacts latency and jitter.
-    \end{itemize}
-    \item[] \textbf{Expectations}
-    \begin{itemize}\itemsep0em
-        \item Demonstrates at which number of receivers per router, MEADcast
-            shows advantageous performance (e.g. bandwidth).
-        \item Demonstrates how expensive MEADcast processing is compared to
-            unicast
-    \end{itemize}
-    \item[] \textbf{Testing Parameters}
-    \begin{itemize}\itemsep0em
-        \item similar to \autoref{par:impl EX1: Live Stream}
-    \end{itemize}
-\end{itemize}
-% paragraph EX4 Online Gaming (end)
-
 % subsection Testbed (end)
 
 
@@ -974,7 +907,7 @@ Apart from loading the \texttt{"kvm\_ptp"} Kernel module and configuring
     Kernel command line parameters to X was necessary.
 
 % Router, routing protocol,
-The router operates on our custom MEADcast Kernel version 6.5.2.
+The router operates on our custom \gls{mead} Kernel version 6.5.2.
 \textit{``Frr''} facilitates the routing stack, which supports a variety of
     routing protocols such as BGP, OSPF, RIP, and PIM \cite{frr_doc}.
 OSPF is utilized as the IP Unicast routing protocol and PIM for IP Multicast
@@ -983,60 +916,8 @@ Beyond the standard setup of \textit{``frr''}, manual alteration of the package
     manager source to \url{https://deb.frrouting.org/} was necessary, as the
     package from the default source misses the IPv6 PIM daemon.
 It is noteworthy while OSPF mandates routers to possess only a link-local
-    address, the MEADcast discovery phase necessitates each router to have at
+    address, the \gls{mead} discovery phase necessitates each router to have at
     least one global IPv6 address.
-
-\begin{listing}
-\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{json}
-{
-    "stub_range": "fd14:0::/32",
-    "tran_range": "fd14:0::/32",
-    "mgm_gw": "10.10.0.1/8",
-    "stubs": [
-        {
-            "id": 10,
-            "mask": 112,
-            "area": 1,
-            "router": 10,
-            "clients": 5
-        }, {
-            "id": 11,
-            "mask": 112,
-            "area": 1,
-            "router": 10,
-            "clients": 5
-        }, {
-            "id": 20,
-            "mask": 112,
-            "area": 2,
-            "router": 20,
-            "clients": 5
-        }, {
-            "id": 21,
-            "mask": 112,
-            "area": 2,
-            "router": 20,
-            "clients": 5
-        }
-    ],
-    "trans": [
-        [[  1,   2], 0],  /* [[ <ROUTER ID>, <ROUTER ID>], <OSPF AREA>] */
-        [[  1,  10], 1],
-        [[  2,  20], 2],
-    ],
-    "area_boundary": [
-        /* { <ROUTER ID>, <OSPF AREA>, <PUBLISHED NET MASK> } */
-        { "id": 1, "area": 1, "mask": 96 },
-        { "id": 2, "area": 2, "mask": 96 },
-    ]
-}
-\end{minted}
-    \caption[Network topology configuration file format]{
-        Network topology configuration file format.
-        The resulting topology is illustrated in \autoref{fig:ex_topo}
-    }
-    \label{lst:topo_cfg_format}
-\end{listing}
 
 \begin{figure}
     \begin{center}
@@ -1071,8 +952,8 @@ Each \textit{use case} is delineated by its compilation of routers, transit and
 An \textit{experiment} entails executing a series of measurements for a given
     use case, featuring a specific number of clients and data volume.
 This series comprises measurements for IP Unicast, IP Multicast, and various 
-    MEADcast configurations.
-A MEADcast configuration is composed of the sender parameterization and the 
+    \gls{mead} configurations.
+A \gls{mead} configuration is composed of the sender parameterization and the 
     network support level.
 For instance, \autoref{tab:usecase_experiment_measurement} provides an excerpt
     of two experiments conducted within UC1 (Live stream).
@@ -1081,7 +962,7 @@ For instance, \autoref{tab:usecase_experiment_measurement} provides an excerpt
 \centering
 \begin{tabular}{@{}ccccccccccc@{}}
 \toprule
-& & \multicolumn{3}{c}{\textbf{Experiment}} & \multicolumn{6}{c}{\textbf{MEADcast}} \\
+& & \multicolumn{3}{c}{\textbf{Experiment}} & \multicolumn{6}{c}{\textbf{\gls{mead}}} \\
 \cmidrule(lr){3-5}\cmidrule(lr){6-11}
 & &
 \multicolumn{2}{c}{Clients}
@@ -1164,12 +1045,12 @@ For the IP Multicast measurements, the procedure on the receiver side is
 On the sender side, one instance of Iperf is started to transmit traffic
     towards all multicast listeners.
 
-% MEADcast:
+% \gls{mead}:
 %   - rx: same as Unicast
 %   - tx: start MEADcast sender, and send IPerf into TUN dev
-To measure MEADcast, the procedure on the receiver side is identical to IP
+To measure \gls{mead}, the procedure on the receiver side is identical to IP
     Unicast.
-On the sender we started the MEADcast sender implementation and configured
+On the sender we started the \gls{mead} sender implementation and configured
     Iperf to send its traffic into the TUN device, as shown in
     \autoref{fig:tun_dev}.
 It is noteworthy, that we initiated the Iperf client (our sender) with the
@@ -1192,8 +1073,8 @@ To conduct IP Unicast measurements for UC3 (\gls{p2p}), we employed one
 % MEADcast (m:n)
 %   - rx: same as unicast
 %   - tx: start MEADcast on each client
-The procedure for \gls{p2p} MEADcast measurements is similar to the 1:n
-    measurement, except that the MEADcast sender is initiated on each client.
+The procedure for \gls{p2p} \gls{mead} measurements is similar to the 1:n
+    measurement, except that the \gls{mead} sender is initiated on each client.
 % paragraph RX/TX (end)
 
 % MEADcast
@@ -1205,18 +1086,18 @@ The procedure for \gls{p2p} MEADcast measurements is similar to the 1:n
 %       - 100%, L2-L3, L1
 \paragraph{MEADcast configuration} % (fold)
 \label{par:MEADcast configuration}
-In each experiment, we conducted measurements for a variety of MEADcast
+In each experiment, we conducted measurements for a variety of \gls{mead}
     configurations.
 
 To gain insides into both the performance of the data delivery phase itself and
-    the implications of the discovery phase, we measured MEADcasts' performance
+    the implications of the discovery phase, we measured \gls{mead}'s performance
     with and without considering the discovery phase.
-To measure MEADcast's performance without discovery phase, we started the
+To measure \gls{mead}'s performance without discovery phase, we started the
     sender with a discovery interval of zero, resulting in the sender
     performing a single discovery phase during startup.
 After the discovery phase was completed, we conducted our measurement solely
     collecting data from the data delivery phase.
-For measuring the performance of MEADcast with discovery phase, we initialized
+For measuring the performance of \gls{mead} with discovery phase, we initialized
     the sender with the wait flag set, a delay of zero, a discovery timeout of
     2 seconds, and a discovery interval of 5 seconds.
 By setting the wait flag, the sender delays the initial discovery until it
@@ -1226,7 +1107,7 @@ Furthermore, we conducted measurements with varying levels of network support,
     encompassing scenarios such as 100\% support across all network layers
     (distribution, access, and core), support solely on the distribution (L2)
     and access layers (L3), support exclusively on the core layer (L1), and
-    MEADcast support limited to specific routers.
+    \gls{mead} support limited to specific routers.
 
 To explore the performance implications of receiver grouping, we conducted
     measurements with various sender configurations.
@@ -1292,7 +1173,7 @@ Due to the unreliable data, resulting from our resource limitations we decided
 
 \paragraph{UC4} % (fold)
 \label{par:UC4}
-The primary objective of UC4 was to evaluate the potential impact of MEADcast
+The primary objective of UC4 was to evaluate the potential impact of \gls{mead}
     processing on latency and jitter.
 However, due to the constrained time frame of this thesis and the fact that 
     latency and jitter metrics were collected throughout all previous
@@ -1316,7 +1197,7 @@ However, due to the constrained time frame of this thesis and the fact that
 % Link failure
 Dynamic network environments were explored to asses the impact of common
     phenomena such as routing changes, network disruptions, and packet dropping
-    by intermediate nodes on MEADcast.
+    by intermediate nodes on \gls{mead}.
 The measurements were conducted within the topology of UC3, with C1201 acting
     as the sender and three receivers located in the stub networks C33-C36
     each.
@@ -1336,28 +1217,28 @@ Similar to the route alteration experiment, R1 adapted to an alternative route
 For simulating packet dropping by an intermediate node, a firewall rule was
     employed on R3 to drop packets containing an IPv6 routing header extension
     on the link towards R1.
-First, MEADcast transmission with periodic discovery phase was initiated,
-    followed by enabling the firewall rule during MEADcast data transmission.
+First, \gls{mead} transmission with periodic discovery phase was initiated,
+    followed by enabling the firewall rule during \gls{mead} data transmission.
 The associated commands are provided in \autoref{lst:r3_fw}.
-After 8 seconds this rule was disabled again, to observe MEADcast reverting to
+After 8 seconds this rule was disabled again, to observe \gls{mead} reverting to
     its initial grouping.
 This experiment was conducted with both 100\% network support and support only
     on L2 and L3 in network domain 3 (R31, R310, R311).
-With 100\% network support, the implications of MEADcast falling back to
+With 100\% network support, the implications of \gls{mead} falling back to
     another router located in front of the firewall were measured.
 Network support only on L2 and L3 in network domain 3, enabled the
-    observation of MEADcast falling back to IP Unicast transmission.
+    observation of \gls{mead} falling back to IP Unicast transmission.
 % paragraph Dynamic network environments (end)
 
 \paragraph{Anomaly handling} % (fold)
 \label{par:Anomaly handling}
 % - Injected handcrafted discovery responses via scappy
 % - Turn off MEADcast during data transmission
-MEADcast's anomaly handling was investigated by intentionally triggering
+\gls{mead}'s anomaly handling was investigated by intentionally triggering
     anomalies and observing the system's response.
 This involved sending manually crafted discovery responses to the sender using
     the \textit{``Scappy''} tool.
-Furthermore, we simulated a router's failure to perform MEADcast processing by
-    disabeling MEADcast during the data transmission phase.
+Furthermore, we simulated a router's failure to perform \gls{mead} processing by
+    disabeling \gls{mead} during the data transmission phase.
 % paragraph Anomaly handling (end)
 % subsection Conduction (end)
