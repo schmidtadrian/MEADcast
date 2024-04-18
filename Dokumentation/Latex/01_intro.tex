@@ -59,24 +59,24 @@ Multicast communication has the potential to lower energy consumption and
 
 
 % usage on local scope (examples!)
-The application of IP-Multicast has yielded mixed results.
-Practically all of today's devices support IP-Multicast
+The application of IP Multicast has yielded mixed results.
+Practically all of today's devices support IP Multicast
     \cite{ratnasamy2006revisiting}.
 Furthermore, it is utilized on a local scale, and various protocols like IPv6
     Neighbor Discovery \cite{rfc4861_ipv6_nd}, RIPv2 \cite{rfc2453_rip}, OSPF
     \cite{rfc2328_ospf} and mDNS \cite{rfc6762_mdns} rely on multicast.
 
-However, more than thirty years since the initial proposal of IP-Multicast, its
+However, more than thirty years since the initial proposal of IP Multicast, its
     global deployment and usage still lags far behind expectations
     \cite{diot2000deployment, ratnasamy2006revisiting}.
 Despite the potential advantages of Multicast, the majority of internet traffic
     continues to rely on point-to-point communication, known as
     \textit{unicast} \cite{universal_mc}.
-There are several reasons for the limited usage of IP-Multicast.
+There are several reasons for the limited usage of IP Multicast.
 
 \paragraph{Feasibility} % (fold)
 \label{par:Feasibility}
-Besides the aforementioned advantages, IP-Multicast entails various technical
+Besides the aforementioned advantages, IP Multicast entails various technical
     obstacles.
 Compared to unicast, it exhibits increased technical complexity, requiring
     the interaction of various protocols on multiple network layers
@@ -84,17 +84,17 @@ Compared to unicast, it exhibits increased technical complexity, requiring
 Furthermore, multipoint communication in general interferes with the
     application of today's widespread security mechanisms like encryption
     \cite{rafaeli2003group_key_mgm}.
-Moreover, IP-Multicast is based on a fixed address space \cite{rfc1112_ip4mc,
+Moreover, IP Multicast is based on a fixed address space \cite{rfc1112_ip4mc,
     rfc4291_ip6mc}, which has an insufficient number of addresses.
 This limitation makes it infeasible to map highly dynamic sessions, like
     conferences, onto this space \cite{meadcast2}.
 Additionally, the protocol involves a complex routing procedure, which requires
     all routers along the path to maintain a per-session state
     \cite{diot2000deployment, ratnasamy2006revisiting}.
-Consequently, global IP-Multicast availability is constrained, as successful
+Consequently, global IP Multicast availability is constrained, as successful
     packet delivery necessitates all routers to support the protocol.
 However, this scenario is unlikely since many commercial routers come
-    preconfigured with IP-Multicast disabled \cite{aruba_doc}.
+    preconfigured with IP Multicast disabled \cite{aruba_doc}.
 Moreover, the following paragraph describes, why Network Operators are probably
     not willing to enable it.
 % All involved network operators are required to support Intra-Domain,
@@ -115,7 +115,7 @@ Moreover, the following paragraph describes, why Network Operators are probably
 %   - billing harder
 %   - technical complexity not worth effort, unicast is "good enough" (there is a source)
 
-% IP-Multicast, formally known as \gls{igmp}, offers very limited security
+% IP Multicast, formally known as \gls{igmp}, offers very limited security
 %     features.
 So far, Network Operators and \glspl{isp} have shown limited efforts to deploy
     Multicast within their Administrative Domains
@@ -125,19 +125,19 @@ The increased technical complexity of Multicast requires more extensive
 Additionally, due to the complex routing procedure, infrastructure upgrades may
     be necessary.
 Despite its potential for significant bandwidth savings, \glspl{isp} seem to assess
-    the deployment of IP-Multicast as an unsuitable investment
+    the deployment of IP Multicast as an unsuitable investment
     \cite{ratnasamy2006revisiting}.
 Another reason is the more complex pricing model of multipoint communication.
 Charging for multicast services is non-trivial compared to existing unicast
     billing \cite{ratnasamy2006revisiting}.
-On top of that, IP-Multicast hampers Network Operators' ability to anticipate
+On top of that, IP Multicast hampers Network Operators' ability to anticipate
     network load.
 Forecasting the number of replicas generated from a multicast packet, entering
     the Network Operators Administrative Domain, is unfeasible
     \cite{diot2000deployment}.
-Combined with the limited security mechanisms of IP-Multicast, this represents
+Combined with the limited security mechanisms of IP Multicast, this represents
     a vulnerability, potentially exploited for amplification attacks.
-This fact makes intra-domain IP-Multicast even more unlikely.
+This fact makes intra-domain IP Multicast even more unlikely.
 
 Unless \glspl{isp} face pressure to expand their service offering, increasing
     multicast deployment is doubtful.
@@ -214,7 +214,7 @@ Further investigation examines the practicality of using MEADcast on the
 \paragraph{Performance Evaluation} % (fold)
 \label{par:Performance Evaluation}
 A comparative performance analysis is conducted to evaluate MEADcast in
-    comparison to both IP unicast and multicast.
+    comparison to both IP Unicast and multicast.
 This assessment provides insights into the efficiency and effectiveness of
     MEADcast as a multipoint communication solution.
 % paragraph Performance Evaluation (end)
@@ -262,7 +262,7 @@ Our measurements suggest that MEADcast's performance falls between uni- and
 To ensure the achievement of the previously defined goals, this thesis follows
     the procedure illustrated in \autoref{fig:method}.
 % First, we conduct a literature review to analyze the current challenges of
-%     IP-Multicast.
+%     IP Multicast.
 First, we conduct a literature review of several multicast protocols and
     analyze the current challenges of global multipoint communication.
 With a clear understanding of the relevant protocols and their limitations we
@@ -323,11 +323,11 @@ force/.style={rectangle, rounded corners, draw, fill=black!8, text width=2.75cm,
 The method employed in this thesis ensures a cohesive narrative, with each
     chapter building upon the knowledge acquired in the previous sections.
 \autoref{chap:Introduction} depicts the motivation for investigating multipoint
-    communication, highlights the current challenges of IP-Multicast, and
+    communication, highlights the current challenges of IP Multicast, and
     articulates the goal of this thesis.
 Moving forward, \autoref{chap:Background and Work} establishes the theoretical
     foundation for subsequent investigations, by examining several multicast
-    protocols, including IP-Multicast, Xcast, and MEADcast.
+    protocols, including IP Multicast, Xcast, and MEADcast.
 Additionally, the chapter provides a brief overview of Kernel development
     fundamentals and the network stack, laying the groundwork for the router
     implementation.

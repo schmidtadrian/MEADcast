@@ -95,12 +95,12 @@ MEADcast sender
  Grouping:
       --max=max              Specify the maximal number of addresses per
                              MEADcast packet.
-      --min-leafs=leafs      Routers with less leafs than `leafs` and less
+      --min-leaves=leaves    Routers with less leaves than `leaves` and less
                              routers than `routers` get removed from tree.
-      --min-routers=routers  See `min-leafs`.
-  -m, --merge=distance       Specify whether to merge leafs with distinct
+      --min-routers=routers  See `min-leaves`.
+  -m, --merge=distance       Specify whether to merge leaves with distinct
                              parent routers under an common ancestor.
-                             `distance` determines the range within which leafs
+                             `distance` determines the range within which leaves
                              will be merged. Assigning `distance` a value of 0
                              disables this feature.
       --ok=ok                Specify whether a packet can be finished
@@ -108,8 +108,8 @@ MEADcast sender
                              number of addresses than `ok`. Assigning `ok` a
                              value greater or equal than `max` disables this
                              feature.
-  -s, --split                Specify whether leafs of same parent can be split
-                             into multiple packets. If a router has more leafs
+  -s, --split                Specify whether leaves of same parent can be split
+                             into multiple packets. If a router has more leaves
                              than the maximal number of addresses per packet,
                              they will be split regardless of this flag.
 

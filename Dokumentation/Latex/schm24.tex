@@ -54,6 +54,7 @@
 \usepackage[toc,page]{appendix}
 \usepackage[edges]{forest}
 \usepackage{cancel}
+\usepackage{nameref}
 
 
 \usepackage[outputdir=out, newfloat]{minted}
@@ -95,6 +96,17 @@
 % \lstset{style=mystyle}
 
 \newcommand{\inlinelst}[1]{\lstinline[basicstyle=\ttfamily\normalsize]{#1}}
+% UC1, UC2, ... ref
+\newcommand{\uci}{\hyperref[par:EX1: Live Stream]{UC1}}
+\newcommand{\ucii}{\hyperref[par:EX2: File Transfer]{UC2}}
+\newcommand{\uciii}{\hyperref[par:EX3 Video conference]{UC3}}
+\newcommand{\uciv}{\hyperref[par:EX4 Online gam]{UC4}}
+
+% UC1: Live Stream, ... ref
+\newcommand{\nuci}{\nameref{par:EX1: Live Stream}}
+\newcommand{\nucii}{\nameref{par:EX2: File Transfer}}
+\newcommand{\nuciii}{\nameref{par:EX3 Video conference}}
+\newcommand{\nuciv}{\nameref{par:EX4 Online gam}}
 \begin{document}
 
 % ---------------------------------------------------------------

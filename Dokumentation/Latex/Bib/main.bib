@@ -38,6 +38,23 @@
     organization={Cloudflare}
 }
 
+% UDP checksum incremental Update
+@misc{rfc1624,
+    series =    {Request for Comments},
+    number =    1624,
+    howpublished =  {RFC 1624},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC1624},
+    url =       {https://www.rfc-editor.org/info/rfc1624},
+    author =    {Anil Rijsinghani},
+    title =     {{Computation of the Internet Checksum via Incremental Update}},
+    pagetotal = 6,
+    year =      1994,
+    month =     may,
+    abstract =  {This memo describes an updated technique for incremental computation of the standard Internet checksum. It updates the method described in RFC 1141. This memo provides information for the Internet community. This memo does not specify an Internet standard of any kind.},
+}
+
+
 
 %%%%%%%%%%%%%%%%%%% OSI Model %%%%%%%%%%%%%%%%%%%
 @article{osi1980,
@@ -253,6 +270,138 @@
     abstract =  {We propose simple rules for broadcasting Internet datagrams on local networks that support broadcast, for addressing broadcasts, and for how gateways should handle them. This RFC suggests a proposed protocol for the ARPA-Internet community, and requests discussion and suggestions for improvements.},
 }
 
+@misc{rfc3810_mld,
+    series =    {Request for Comments},
+    number =    3810,
+    howpublished =  {RFC 3810},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC3810},
+    url =       {https://www.rfc-editor.org/info/rfc3810},
+    author =    {Luis Costa and Rolland Vida},
+    title =     {{Multicast Listener Discovery Version 2 (MLDv2) for IPv6}},
+    pagetotal = 62,
+    year =      2004,
+    month =     jun,
+    abstract =  {This document updates RFC 2710, and it specifies Version 2 of the ulticast Listener Discovery Protocol (MLDv2). MLD is used by an IPv6 router to discover the presence of multicast listeners on directly attached links, and to discover which multicast addresses are of interest to those neighboring nodes. MLDv2 is designed to be interoperable with MLDv1. MLDv2 adds the ability for a node to report interest in listening to packets with a particular multicast address only from specific source addresses or from all sources except for specific source addresses. {[}STANDARDS-TRACK{]}},
+}
+
+@misc{rfc4443_icmp6,
+    series =    {Request for Comments},
+    number =    4443,
+    howpublished =  {RFC 4443},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC4443},
+    url =       {https://www.rfc-editor.org/info/rfc4443},
+    author =    {Mukesh Gupta and Alex Conta},
+    title =     {{Internet Control Message Protocol (ICMPv6) for the Internet Protocol Version 6 (IPv6) Specification}},
+    pagetotal = 24,
+    year =      2006,
+    month =     mar,
+    abstract =  {This document describes the format of a set of control messages used in ICMPv6 (Internet Control Message Protocol). ICMPv6 is the Internet Control Message Protocol for Internet Protocol version 6 (IPv6). {[}STANDARDS-TRACK{]}},
+}
+
+
+@inproceedings{cisco_mld_snoop,
+    title={Configuring MLD Snooping for IPv6 Multicast Traffic},
+    author={Cisco},
+    organization={Cisco},
+    chapter={30},
+    booktitle={Cisco IOS Software Configuration Guide},
+    pages={30\-1--30\-16},
+    volume={12.2},
+    url={https://www.cisco.com/en/US/docs/general/Test/dwerblo/broken_guide/snoopmld.html#wp1076709},
+    urldate={2024-04-11}
+}
+
+@misc{rfc3973_pimdm,
+    series =    {Request for Comments},
+    number =    3973,
+    howpublished =  {RFC 3973},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC3973},
+    url =       {https://www.rfc-editor.org/info/rfc3973},
+    author =    {Jonathan Nicholas and Andrew Adams and William Siadak},
+    title =     {{Protocol Independent Multicast - Dense Mode (PIM-DM): Protocol Specification (Revised)}},
+    pagetotal = 61,
+    year =      2005,
+    month =     jan,
+    abstract =  {This document specifies Protocol Independent Multicast - Dense Mode (PIM-DM). PIM-DM is a multicast routing protocol that uses the underlying unicast routing information base to flood multicast datagrams to all multicast routers. Prune messages are used to prevent future messages from propagating to routers without group membership information. This memo defines an Experimental Protocol for the Internet community.},
+}
+
+@misc{rfc7761_pimsm,
+    series =    {Request for Comments},
+    number =    7761,
+    howpublished =  {RFC 7761},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC7761},
+    url =       {https://www.rfc-editor.org/info/rfc7761},
+    author =    {Bill Fenner and Mark J. Handley and Hugh Holbrook and Isidor Kouvelas and Rishabh Parekh and Zhaohui (Jeffrey) Zhang and Lianshu Zheng},
+    title =     {{Protocol Independent Multicast - Sparse Mode (PIM-SM): Protocol Specification (Revised)}},
+    pagetotal = 137,
+    year =      2016,
+    month =     mar,
+    abstract =  {This document specifies Protocol Independent Multicast - Sparse Mode (PIM-SM). PIM-SM is a multicast routing protocol that can use the underlying unicast routing information base or a separate multicast-capable routing information base. It builds unidirectional shared trees rooted at a Rendezvous Point (RP) per group, and it optionally creates shortest-path trees per source. This document obsoletes RFC 4601 by replacing it, addresses the errata filed against it, removes the optional (*,*,RP), PIM Multicast Border Router features and authentication using IPsec that lack sufficient deployment experience (see Appendix A), and moves the PIM specification to Internet Standard.},
+}
+
+@misc{rfc1075_dvmrp,
+    series =    {Request for Comments},
+    number =    1075,
+    howpublished =  {RFC 1075},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC1075},
+    url =       {https://www.rfc-editor.org/info/rfc1075},
+    author =    {},
+    title =     {{Distance Vector Multicast Routing Protocol}},
+    pagetotal = 24,
+    year =      1988,
+    month =     nov,
+    abstract =  {This RFC describes a distance-vector-style routing protocol for routing multicast datagrams through an internet. It is derived from the Routing Information Protocol (RIP), and implements multicasting as described in RFC-1054. This is an experimental protocol, and its implementation is not recommended at this time.},
+}
+
+@misc{rfc1585_mospf,
+    series =    {Request for Comments},
+    number =    1585,
+    howpublished =  {RFC 1585},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC1585},
+    url =       {https://www.rfc-editor.org/info/rfc1585},
+    author =    {John Moy},
+    title =     {{MOSPF: Analysis and Experience}},
+    pagetotal = 13,
+    year =      1994,
+    month =     mar,
+    abstract =  {This memo documents how the MOSPF protocol satisfies the requirements imposed on Internet routing protocols by "Internet Engineering Task Force internet routing protocol standardization criteria" ({[}RFC 1264{]}). This memo provides information for the Internet community. This memo does not specify an Internet standard of any kind.},
+}
+
+@misc{rfc4760_mbgp,
+    series =    {Request for Comments},
+    number =    4760,
+    howpublished =  {RFC 4760},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC4760},
+    url =       {https://www.rfc-editor.org/info/rfc4760},
+    author =    {Ravi Chandra and Tony J. Bates and Yakov Rekhter and Dave Katz},
+    title =     {{Multiprotocol Extensions for BGP-4}},
+    pagetotal = 12,
+    year =      2007,
+    month =     jan,
+    abstract =  {This document defines extensions to BGP-4 to enable it to carry routing information for multiple Network Layer protocols (e.g., IPv6, IPX, L3VPN, etc.). The extensions are backward compatible - a router that supports the extensions can interoperate with a router that doesn't support the extensions.},
+}
+
+@misc{rfc3618_msdp,
+    series =    {Request for Comments},
+    number =    3618,
+    howpublished =  {RFC 3618},
+    publisher = {RFC Editor},
+    doi =       {10.17487/RFC3618},
+    url =       {https://www.rfc-editor.org/info/rfc3618},
+    author =    {David Meyer and Bill Fenner},
+    title =     {{Multicast Source Discovery Protocol (MSDP)}},
+    pagetotal = 19,
+    year =      2003,
+    month =     oct,
+    abstract =  {The Multicast Source Discovery Protocol (MSDP) describes a mechanism to connect multiple IP Version 4 Protocol Independent Multicast Sparse-Mode (PIM-SM) domains together. Each PIM-SM domain uses its own independent Rendezvous Point (RP) and does not have to depend on RPs in other domains. This document reflects existing MSDP implementations.},
+}
 
 
 %%%%%%%%%%%%%%%%%%% IPv6 Header %%%%%%%%%%%%%%%%%%%
@@ -364,7 +513,7 @@
 }
 
 
-%%%%%%%%%%%%%%%%%%% Protocols using IP-Multicast %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% Protocols using IP Multicast %%%%%%%%%%%%%%%%%%%
 @misc{rfc4861_ipv6_nd,
     series =    {Request for Comments},
     number =    4861,

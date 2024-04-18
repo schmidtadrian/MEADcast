@@ -53,42 +53,109 @@ Furthermore, Multicast packets can be delivered beyond the sender's broadcast
     \label{fig:multicast}
 \end{figure}
 
-
 \subsection{IP Multicast} % (fold)
 \label{sub:IP Multicast}
 Already in the late 1980s, \citeauthor{deering1990multicast}
     \cite{deering1990multicast} proposed an extension to the IP protocol, to
     facilitate efficient multipoint communication (\textit{1:n}, \textit{m:n}).
-This extension is known as IP-Multicast and was first standardized in RFC 988
+This extension is known as IP Multicast and was first standardized in RFC 988
     (\citeyear{rfc988_initmc}) \cite{rfc988_initmc}.
-IP-Multicast offers the advantage, to greatly reduce the bandwidth by condensing
-    identical traffic into a single stream targeted to a so called ``Host
-    Group'' \cite{rfc1112_ip4mc}.
-IP-Multicast operates on a separate address space and host groups are
-    identified based on an IP address within the designated address range.
-For instance, IPv4 host groups are identified by class D IP addresses starting
-    with ``\texttt{1110}'' as their \glspl{msb} \cite{rfc1112_ip4mc}.
+IP Multicast offers the advantage, to greatly reduce the bandwidth by condensing
+    identical traffic into a single stream targeted to a so called
+    \textit{``Host Group''} \cite{rfc1112_ip4mc}, which is identified by an IP
+    multicast address.
 This characteristic facilitates high scalability, such that host groups may
     encompass thousands of receivers, since senders are not required of any
-    knowledge about the number of receivers nor receivers identity or location.
+    knowledge about the number of receivers nor receivers identity or location
+    \cite{cisco_ipmc}.
 Intermediate nodes like IP routers replicate multicast packets addressed to an
     host group where the paths towards the receivers diverge.
-\begin{itemize}\itemsep0em
-    \item Separate address space
-    \item IGMP / MLD
-    \item Intra-Domain Routing: DVMRP, MOSPF, PIM dense/spare
-    \item Inter-Domain Routing: MBGP, MSDP
-\end{itemize}
+
+\paragraph{Addressing} % (fold)
+\label{par:Addressing}
+IP Multicast operates on a separate address space and host groups are
+    identified based on an IP address within the designated address range.
+IPv6 multicast addresses are defined within the range of \texttt{"fd00::/8"},
+    with the most significant octet being set to \texttt{"ff"}, indicating
+    multicast addressing \cite{rfc4291_ip6mc}.
+% paragraph Addressing (end)
+
+\paragraph{Group Management} % (fold)
+\label{par:Group Management}
+To join a host group, receivers express interest in receiving a particular data
+    stream \cite{cisco_ipmc}.
+In IPv4 networks \gls{igmp} is used to establish host group membership
+    \cite{rfc3376_igmp}, while group management in IPv6 networks is handled by
+    \gls{mld} \cite{rfc3810_mld}, being embedded into \gls{icmp6}
+    \cite{rfc4443_icmp6}.
+Hosts join IPv6 multicast groups either by sending an unsolicited \gls{mld}
+    report or by responding to a general query from an IPv6 multicast router
+    with an \gls{mld} report \cite{cisco_mld_snoop}.
+Similarly, when hosts wish to leave a multicast group, they have multiple
+    options:
+    they can disregard the periodic \gls{mld} general queries, a process
+        referred to as a ``silent leave'',
+    they can actively signal their departure by sending an \gls{mld} filter
+        mode change record, or
+    they can send so-called \texttt{"BLOCK\_OLD\_SOURCES"} messages with the
+    IPv6 multicast address identifying the host group they want to leave.
+    \cite{cisco_mld_snoop}.
+The latest standards \gls{igmp}v3 and \gls{mld}v2 enable receivers to filter
+    traffic sources, a process referred to as \gls{ssm}, by signaling their
+    connected router from which unicast address it wants to receive traffic
+    \cite{cisco_ipmc}, thereby hosts send a tuple of multicast and unicast
+    address to the router.
+% paragraph Group Management (end)
+
+\paragraph{Routing} % (fold)
+\label{par:Routing}
+Multicast routers create \textit{distribution trees} that determine the path
+    multicast packets traverse through the network \cite{cisco_ipmc}.
+The are two types of distribution trees: source and shared trees.
+
+The most basic form of a multicast distribution tree is a source tree, where
+    the root is located at the source and branches extend through the network
+    to reach the receivers, forming a spanning tree \cite{cisco_ipmc}.
+Given that this tree employs the shortest path through the network, is is
+    often referred to as \gls{spt}.
+
+In contrast, shared trees utilize a single common root positioned at a selected
+    location within the network \cite{cisco_ipmc}.
+This central shared root, is referred to as a \gls{rp}.
+% paragraph Routing (end)
+
+\paragraph{Forwarding} % (fold)
+\label{par:Forwarding}
+In unicast routing, traffic follows a singular path from the source to the
+    destination host within the network.
+A routers forwarding decision is solely based on the destination address
+    \cite{cisco_ipmc}.
+Contradictory, in multicast forwarding, the source transmits data to a
+    designated group of hosts identified by a multicast group address.
+At points of diverging path, routers replicate the packets and forward them
+    accordingly.
+The process of directing multicast traffic away from the source, rather than
+    toward the receiver, is referred to as \gls{rpf} \cite{cisco_ipmc}.
+\gls{rpf} stands as a pivotal concept in multicast forwarding, facilitating
+    routers to accurately route multicast traffic along the distribution tree
+    \cite{cisco_ipmc}.
+
+\paragraph{Protocols} % (fold)
+\label{par:Protocols}
+There is a variety of multicast protocols, which can be classified into intra
+    and inter-domain routing protocols.
+Common source tree based intra-domain routing protocols are
+    DVMRP \cite{rfc1075_dvmrp},
+    MOSPF \cite{rfc1585_mospf}, and
+    PIM-DM \cite{rfc3973_pimdm},
+    while PIM-SM \cite{rfc7761_pimsm} is a common shared tree based protocol.
+Well known inter-domain routing protocols are MBGP \cite{rfc4760_mbgp} and
+    MSDP \cite{rfc3618_msdp}.
+% paragraph Protocols (end)
+
+% paragraph Forwarding (end)
 % subsection IP Multicast (end)
 
-
-% \subsection{Multicast over Unicast} % (fold)
-% \label{sub:Multicast over Unicast}
-% \begin{itemize}\itemsep0em
-%     \item Xcast family (Xcast, Xcast+, GXcast, Xcast6 Treemap (island))
-%     \item MEADcast
-%     \item Bier
-% \end{itemize}
 
 \subsection{Explicit Multicast}
 \label{sub:Xcast}
@@ -139,10 +206,32 @@ Finally, routers $R_6$ and $R_7$ forward default IP Unicast packets to $E_2$
     and $E_3$, respectively.
 
 \begin{figure}
-    \centering
-    \includegraphics[width=.75\textwidth]{Bilder/xcast.pdf}
+\centering
+\begin{forest}
+    for tree={grow=east, circle, draw, font=\footnotesize, l sep=7ex},
+        where level=0{minimum size=2em}{},
+        where level=2{
+            s sep+=36pt
+        }{},
+        where level=4{
+            s sep+=36pt
+        }{},
+    [$S$
+        [$R_1$,
+            [$R_2$,
+                [$R_4$,
+                    [$R_5$,
+                        [$R_7$, [$E_3$] ]
+                        [$R_6$, [$E_2$] ]
+                    ]
+                ]
+                [$R_3$, [$E_1$] ]
+            ]
+        ]
+    ]
+\end{forest}
     \caption{Xcast processing (based on \cite{xcast_rfc})}
-    \label{fig:xcast}
+\label{fig:xcast}
 \end{figure}
 
 For IPv6 \gls{xcast} is encoded in the routing extension header, optionally
@@ -157,7 +246,7 @@ For a gradual deployment, tunnel connections must be established between
 Alternatively, a tunnel connection can assembled to one \gls{xcast}-aware
     receiver.
 This receiver has the capability to forward the packet either as an \gls{xcast}
-    or IP unicast packet to the remaining endpoints \cite{xcast_rfc}.
+    or IP Unicast packet to the remaining endpoints \cite{xcast_rfc}.
 % subsection Xcast (end)
 
 \subsection{Explicit Multicast Extension} % (fold)

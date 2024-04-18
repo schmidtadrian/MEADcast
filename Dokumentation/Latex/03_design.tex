@@ -306,7 +306,7 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
 %   protocol specification
 
 % Performance:
-% - How does MEADcast perfom compared to unicast and IP-Multicast
+% - How does MEADcast perfom compared to unicast and IP Multicast
 % - How big is the overhead of the discovery phase?
 % - How does the degree of deployed MEADcast routers impact the results?
 
@@ -354,13 +354,13 @@ Additionally, this section outlines our approach to answering these questions.
         % typical metrics: throughput, latency, jitter, resource utilization,
         %   ... in different scenarios
         % impact of the discovery phase
-        \textit{How does MEADcast perform compared to IP-Unicast and
-        IP-Multicast?}\par
+        \textit{How does MEADcast perform compared to IP Unicast and
+        IP Multicast?}\par
         In addition to assessing the robustness of a protocol, its performance,
             especially in comparison to existing alternatives, is a pivotal
             factor influencing its adoption.
         To address this research question, comparative performance measurements
-            for MEADcast, IP-Unicast, and IP-Multicast are conducted across a
+            for MEADcast, IP Unicast, and IP Multicast are conducted across a
             series of experiments elaborated in \autoref{sec:Scenarios}.
         These measurements encompass metrics such as throughput, latency,
             jitter, and resource utilization.
@@ -461,6 +461,8 @@ This comprehensive selection ensures a throughout examination of MEADcast's
 Therefore, the results from the use cases are pivotal to answer \textit{RQ3}.
 The specific characteristics of each use case are illustrated in
     \autoref{tab:ex_char}.
+The chosen implementation for each use case is provided in
+    \autoref{sub:Network Topology}.
 
 \paragraph{UC1: Live Stream} % (fold)
 \label{par:EX1: Live Stream}
@@ -497,8 +499,8 @@ Moreover, we examine whether this reduction is accompanied by trade-offs
 % How much reduce the traffic volume on the sender
 % paragraph EX1: Live Stream (end)
 
-\paragraph{UC2: File transfer} % (fold)
-\label{par:EX2: File tranfer}
+\paragraph{UC2: File Transfer} % (fold)
+\label{par:EX2: File Transfer}
 The second use case emulates a file distribution, thus representing the
     file transfer domain.
 Especially scenarios such as software updates and file backups share major
@@ -530,7 +532,7 @@ The characteristics of this use case are predestined to highlight \gls{mead}'s
 %     experiment can be conducted analogous to \textit{EX1}.
 % paragraph EX2: File tranfer (end)
 
-\paragraph{UC3 Video conference} % (fold)
+\paragraph{UC3: P2P Video Conference} % (fold)
 \label{par:EX3 Video conference}
 The third use case simulates a \gls{p2p} video conference.
 Video Conferences commonly involve small to medium-sized groups and require a
@@ -552,7 +554,7 @@ Lastly, we evaluate \gls{mead}'s network bandwidth and sender upstream
     Unicast and IP Multicast.
 % paragraph EX3 Video conference (end)
 
-\paragraph{UC4 Online game} % (fold)
+\paragraph{UC4: Online Gaming} % (fold)
 \label{par:EX4 Online game}
 % Latency and Jitter, requires long distances
 % Test MEADcast in suboptimal setting in terms of distribution
@@ -747,8 +749,8 @@ Additionally, the ability to adjust the quantity of \gls{mead}-capable routers
 Finally, several prerequisites pertain to the connectivity of the topology.
 Given the evaluation of a Layer 3 IPv6-based protocol, the presence of multiple
     subnets and IP routing is mandatory.
-Beyond that, IP multicast routing is indispensable for a comparison of \gls{mead}
-    and IP multicast.
+Beyond that, IP Multicast routing is indispensable for a comparison of \gls{mead}
+    and IP Multicast.
 Furthermore, our use cases mandate various up and downstream capacities.
 UC3 and UC4 require moderate downstream requirements of 1-3 Mbit/s and 0.5-1
     Mbit/s, respectively.
@@ -813,8 +815,8 @@ Furthermore, to pursue \textit{RQ1} the incorporation of an intermediate node,
 % Finally, several prerequisites pertain to the connectivity of our testbed.
 % Given the evaluation of a Layer 3 IPv6-based protocol, the presence of multiple
 %     subnets and IP routing is mandatory.
-% Beyond that, IP multicast routing is indispensable for a comparison of MEADcast
-%     and IP multicast.
+% Beyond that, IP Multicast routing is indispensable for a comparison of MEADcast
+%     and IP Multicast.
 % Moreover, to pursue \textit{RQ1} the capability to deploy firewall mechanisms
 %     is required.
 % % paragraph Topology (end)
@@ -869,7 +871,7 @@ Additionally, the router needs to receive, process, modify, replicate, and
     forward MEADcast data packets accordingly.
 For each receiver listed in the MEADcast header assigned to the router itself,
     the data should be transmitted the data to the respective recipient using
-    IP unicast.
+    IP Unicast.
 In case of a MEADcast to unicast transformation Layer 4 checksum correction is
     may required.
 Lastly, it is preferable, if MEADcast can be turned on and off, to ease the
@@ -882,7 +884,7 @@ Given that the performance evaluation of MEADcast encompasses time-sensitive
     metrics such as latency and jitter, it is imperative that the clocks of
     each node are synchronized.
 This synchronization is crucial for ensuring comparable measurements.
-Additionally, similar routing procedures must be employed for IP unicast, IP
+Additionally, similar routing procedures must be employed for IP Unicast, IP
     multicast, and MEADcast to maintain consistency in the evaluation.
 For instance, comparing software-based MEADcast routing with hardware-based IP
     routing would not yield meaningful results.
@@ -980,14 +982,14 @@ For instance, comparing software-based MEADcast routing with hardware-based IP
 % % - Protect receiver privacy
 % % - Access control to multicasted content
 % As constituted in \autoref{sec:Challenges of Multicast} and
-%     \autoref{sub:IP Multicast}, in many scenarios, the usage of IP-Multicast
+%     \autoref{sub:IP Multicast}, in many scenarios, the usage of IP Multicast
 %     is not a viable option.
 % This creates a potential application space for MEADcast, particularly in
 %     circumstances with limited network control and an uncertain degree of
-%     IP-Multicast support.
+%     IP Multicast support.
 % Another potential domain for MEADcast is in facilitating access control-based
 %     multicast communication, addressing the absence of a receiver authorization
-%     mechanism in IP-Multicast \cite{diot2000deployment}.
+%     mechanism in IP Multicast \cite{diot2000deployment}.
 % In comparison to alternatives like Xcast or \gls{alm}, MEADcast might be
 %     favored in situations where the disclosure of receiver information, such as
 %     IP addresses, among other group members, is deemed unacceptable.

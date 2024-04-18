@@ -1,8 +1,8 @@
 \chapter{Evaluation} % (fold)
 \label{chap:Evaluation}
 Following the implementation (see \autoref{chap:Implementation}) and conduction
-    of our experiment, \autoref{sec:Results} presents the results from our
-    measurements.
+    of our experiment, \autoref{sec:Results} presents the results obtained from
+    our measurements.
 Subsequently, \autoref{sec:Discussion} discusses the implication of our
     findings, aiming to address the research questions formulated in
     \autoref{sec:Measurements}.
@@ -10,36 +10,48 @@ Subsequently, \autoref{sec:Discussion} discusses the implication of our
 \section{Results} % (fold)
 \label{sec:Results}
 This section presents the results of our experiments.
-\autoref{sub:Results_Performance} provides a comparison of performance metrics among IP
-    Unicast, MEADcast, and IP Multicast, including total network bandwidth
-    utilization, sender upstream bandwidth utilization, and total transfer
-    time.
-\autoref{sub:Results_Grouping and Network support} delves into the impact of different
-    sender configurations and varying levels of MEADcast network support on
-    these performance metrics as well as link bandwidth utilization, and
-    latency.
-In \autoref{sub:Results_Effects of the Discovery phase}, we examine the effect of the
-    discovery phase on metrics such as bandwidth utilization, latency, and
-    packet loss.
-Lastly, \autoref{sub:Results_MEADcast in dynamic network environments} depicts the
-    effect of events such as route change, link outages, and intermediate nodes
-    dropping packets on MEADcast delivery.
+\autoref{sub:Results_Performance} provides a comparison of performance metrics
+    among IP Unicast, \gls{mead}, and IP Multicast, encompassing total network
+    bandwidth utilization, sender upstream bandwidth utilization, and total
+    transfer time.
+\autoref{sub:Results_Grouping and Network support} delves into the implications
+    of different sender configurations and varying levels of \gls{mead} network
+    support on these performance metrics, as well as link bandwidth
+    utilization, and latency.
+In \autoref{sub:Results_Effects of the Discovery phase}, we examine the effect
+    of the discovery phase on metrics such as bandwidth utilization, latency,
+    and packet loss.
+Lastly, \autoref{sub:Results_MEADcast in dynamic network environments} depicts
+    the impact of events commonly observed in dynamic network environments,
+    such as route change, link outages, and intermediate nodes dropping packets
+    on \gls{mead} delivery.
 \subsection{Performance Metrics} % (fold)
 \label{sub:Results_Performance}
-The experiments conducted consistently demonstrated that MEADcast outperformed
+The conducted experiments consistently demonstrated that \gls{mead} outperformed
     Unicast.
-Across all MEADcast configurations tested, there was a significant reduction in
+Across all \gls{mead} configurations tested, there was a significant reduction in
     total network bandwidth utilization, sender upstream bandwidth utilization,
     and transmission time.
 
-On average, the total network bandwidth was reduced by 50.29\% in EX1 Live
-    stream (1 MB for 45s), 58.78\% in EX1 Live stream (2.5 MB for 45s), and
-    58.93\% EX2 file transfer (25 MB) (see \autoref{tab:rel_save_net_bw}).
-Moreover, in both EX1 and EX2, the savings increased by approximately 30\%
-    when the number of clients per router increased from 1 to 5.
-The relative reduction stayed constant across varying data volumes.
-In comparison, IP Multicast achieved an average reduction of 80\%, with a
-    similar improvement observed as the number of receivers increased.
+\paragraph{Total Network Bandwidth} % (fold)
+On average, the total network bandwidth was reduced by
+    50.29\% in \nameref{par:EX1: Live Stream} (1 MB/s for 45s),
+    58.78\% in \nameref{par:EX1: Live Stream} (2.5 MB/s for 45s), and
+    58.93\% in \nameref{par:EX2: File Transfer} (25 MB)
+    compared to IP Unicast (see \autoref{tab:rel_save_net_bw}).
+Moreover, as the number of clients per router increased from one to five, the
+    savings for 
+    \uci{} and
+    \ucii{}
+    rose in total by 25\%  and 30\% respectively.
+The relative reduction remained constant across varying data volumes.
+% In comparison, IP Multicast achieved an average reduction of 80\%, with a
+%     similar improvement observed as the number of receivers increased.
+In comparison, IP Multicast achieved an average reduction of 80\% in network
+    bandwidth compared to IP Unicast.
+As the number of clients per router increased from one to five, the savings
+    rose in total by 30\%, from 60\% for one client per router up to over
+    90\% for five clients per router.
 
 \begin{table}
     \centering
@@ -71,14 +83,21 @@ In comparison, IP Multicast achieved an average reduction of 80\%, with a
     \label{tab:rel_save_net_bw}
 \end{table}
 
-Furthermore, we observed a substantial reduction of the sender upstream bandwidth
-    utilization.
-On average, it was reduced by 78.06\% in EX1 (1 MB/s for 45s), 81.03\% in EX1
-    (2.5 MB/s), and 84.61\% in EX2 (25 MB) (see \autoref{tab:rel_save_upstream}).
-Analog to the total network bandwidth reduction, the savings marginally
-    increased with an increasing number of clients and remained consistent
-    across various data volumes.
-IP Multicast, however, achieved a remarkable relative reduction of 96.15\%.
+\paragraph{Sender Upstream Bandwidth} % (fold)
+Furthermore, we observed a significant decrease of the sender upstream
+    bandwidth consumption compared to IP Unicast.
+On average, it was reduced by
+    78.06\% in \uci{} (1 MB/s),
+    81.03\% in \uci{} (2.5 MB/s), and
+    84.61\% in \ucii{} (25 MB)
+    (see \autoref{tab:rel_save_upstream}).
+In comparison, IP Multicast achieved relative reductions of 96.71\%, 97.33\%,
+    and 94.41\%, respectively.
+Similar to the findings for the total network bandwidth, the relative reduction
+    remained constant across various data volumes.
+As the number of clients per router increased from one to five, the savings
+    for \uci{} (1 MB/s) rose by 15\% from
+    64.61\% for one client per router up to 80.95\% for five clients.
 
 
 \begin{table}
@@ -111,22 +130,37 @@ IP Multicast, however, achieved a remarkable relative reduction of 96.15\%.
     \label{tab:rel_save_upstream}
 \end{table}
 
-In our experiments, MEADcast demonstrated notable reductions in the total
-    transfer time.
-On average MEADcast reduced the total transfer time by 8.94\% in EX1 (1 MB/s),
-    8.93\% in EX1 (2.5 MB/s), and 24.16\% in EX2 (25 MB).
-However, it is important to consider that the time savings observed in EX1 may
-    be influenced by resource limitations of the testbed, potentially causing
-    the fixed time period of 45 seconds to be exceeded during IP unicast
-    transmission.
-\autoref{fig:trans_time} illustrates a significantly lower growth rate of
-    MEADcast compared to IP Unicast.
-It rather scales more similar to IP Multicast in our experiments.
+\paragraph{Transfer Time}
+Our experiments revealed significant reductions in total transfer time with
+    \gls{mead}.
+On average, \gls{mead} reduced the total transfer time by
+    8.94\%  in \uci{} (1 MB/s),
+    8.93\%  in \uci{} (2.5 MB/s), and
+    24.16\% in \ucii{} (25 MB).
+This emphasizes that, given \gls{mead}'s lower bandwidth consumption,
+    transfer time can be significantly reduced in scenarios where network
+    or sender upstream bandwidth poses a bottleneck.
+
+However, it is crucial to acknowledge that the observed time savings in \uci{},
+    which is fixed to 45 seconds of data transmission, may be influenced by CPU
+    limitations.
+As the unicast transmission requires, one \textit{``Iperf''} instance per
+    receiver, scheduling significantly more \textit{``Iperf''} processes than
+    available CPUs is necessary for high numbers of receivers.
+The fact, that notable time savings in \uci{} only occur for a high number of
+    clients supports this hypothesis.
+In contrast, \ucii{} consistently exhibits reduced transfer times across all
+    numbers of clients.
+Consequently, our subsequent discussion will focus on the results from \ucii{}.
+
+\autoref{fig:trans_time} illustrates that \gls{mead} possesses a significantly
+    lower growth rate in transfer time, as the number of group members
+    increases compared to IP Unicast.
+It scales more similarly to IP Multicast in our experiments.
 For instance, with 5 clients per router, Multicast reduced the transfer time
-    by 77.97\%, from 2 minutes and 46 seconds to 36 seconds, while MEADcast 
+    by 77.97\%, from 2 minutes and 46 seconds to 36 seconds, while \gls{mead} 
     achieved a reduction of 57.46\%, resulting in a transfer time of 1 minute
-    and 11 seconds \autoref{tab:rel_save_time}.
-% section Performance (end)
+    and 11 seconds (see \autoref{tab:rel_save_time}).
 
 
 % In file transfer experiment we verified, that transfering different sizes (25
@@ -206,7 +240,13 @@ For instance, with 5 clients per router, Multicast reduced the transfer time
 
             \bottomrule
         \end{tabular}
-    \caption[Total transfer time reduction]{Total transfer time reduction \textit{(relative to unicast)}}
+    \caption[Total transfer time reduction]{
+        Total transfer time reduction \textit{(relative to unicast)}
+        The reduction observed in \uci{} is primarily attributed to CPU limitations.
+        This is because, in IP Unicast measurements with a high number of clients,
+        the sender schedules significantly more \textit{``Iperf''} processes than
+        available cores.
+    }
     \label{tab:rel_save_time}
 \end{table}
 
@@ -214,8 +254,8 @@ For instance, with 5 clients per router, Multicast reduced the transfer time
     \begin{center}
         \input{Bilder/line_ex2_25mb_tx_time.pgf}
     \end{center}
-    \caption[EX2 File transfer: Comparison of transfer time]{
-        EX2 File transfer: Comparison of transfer time for a data volume of 25MB.
+    \caption[UC2 File transfer: Comparison of transfer time]{
+        \nucii{} Comparison of total transfer time for a data volume of 25MB.
     }
     \label{fig:trans_time}
 \end{figure}
@@ -226,25 +266,25 @@ For instance, with 5 clients per router, Multicast reduced the transfer time
 % Upstream um  (87%, 92%)
 % Tansmit time (10%, 55%)
 % Initial discovery klar zu erkennen
-% EX1 stready, EX2 higher variation bc operating on limit
+% UC1 stready, UC2 higher variation bc operating on limit
 \autoref{fig:netload_upstream_cmp}, illustrates the performance enhancements in
-    two specific scenarios.
-In both cases, MEADcast substantially reduces network bandwidth utilization,
-    achieving reductions of over half compared to IP unicast (EX1: 64\%, EX2:
-    71\%).
-Moreover, MEADcast achieves even greater reductions in sender upstream
-    bandwidth utilization, reaching 87\% in EX1 and 92\% in EX2 compared to IP
-    unicast.
-At the start of the transmission, there is a discernible impact from the
+    two specific scenarios, with \uci{} on the left-hand side and \ucii{} on
+    the right.
+In both cases, \gls{mead} substantially reduces network bandwidth utilization,
+    achieving reductions of over half compared to IP Unicast (\uci{}: 64\%,
+    \ucii{}: 71\%) (see \autoref{fig:netload_upstream_cmp} (a) and (c)).
+Moreover, \gls{mead} achieves even greater reductions in sender upstream
+    bandwidth utilization, reaching 87\% in \uci{} and 92\% in \ucii{} compared
+    to IP unicast (see \autoref{fig:netload_upstream_cmp} (b) and (d)).
+At the start of \gls{mead} transmission, there is a discernible impact from the
     initial discovery phase.
 During this phase, both network and upstream bandwidth experience peaks for
-    approximately 2 seconds, reaching similar values as IP unicast, and even
-    surpassing them in EX2.
-The network and upstream bandwidth peaks for approximately 2 seconds to similar
-    values as IP unicast, even exceeding it in EX2.
-The bandwidth utilization in EX2 fluctuates more compared to EX1 because it
-    pushes the testbed's resource usage to its limits.
-MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
+    approximately 2 seconds, reaching similar values as IP Unicast, and even
+    surpassing them in \ucii{}.
+The bandwidth utilization in \ucii{} fluctuates more compared to \uci{} because
+    it pushes the testbed's resource usage to its limits.
+In \ucii{}, \gls{mead} significantly reduces transmission time by 55\% compared to
+    IP Unicast (see \autoref{fig:netload_upstream_cmp} (c) and (d)).
 
 \begin{figure}
     \begin{center}
@@ -254,87 +294,133 @@ MEADcast significantly reduces transmission time by 55\% compared to IP unicast.
         Comparison of network and sender upstream bandwidth utilization.
         On the left side, \textbf{(a)} depicts the total network bandwidth
         utilization and \textbf{(b)} the sender upstream bandwidth utilization
-        during the execution of EX1 Live stream (1 MB/s for 45s) with 56 clients
+        during the execution of \nuci{} (1 MB/s for 45s) with 56 clients
         (5 per router), a maximum of 20 addresses per packet, and a discovery
         interval of 5 seconds.
         On the right side, \textbf{(c)} represents the total network bandwidth
         utilization and \textbf{(d)} the sender upstream bandwidth utilization
-        during EX2 File transfer (25 MB) with 45 clients (5 per router), a
+        during \nucii{} (25 MB) with 45 clients (5 per router), a
         maximum of 24 addresses per packet and a discovery interval of 5
         seconds.
     }
     \label{fig:netload_upstream_cmp}
 \end{figure}
+% section Performance (end)
 
 
 
 \subsection{Grouping and Network support} % (fold)
 \label{sub:Results_Grouping and Network support}
 
-We conducted tests on MEADcast using various groupings and different levels of
-    MEADcast network support.
-As previously noted, MEADcast consistently outperformed IP Unicast across all
-    tested groupings and levels of network support.
+We conducted tests on \gls{mead} using various groupings and different levels of
+    \gls{mead} network support.
+As previously noted, \gls{mead} consistently achieved better results in all
+    metrics compared to IP Unicast across all tested groupings and levels of
+    network support.
+However, we observed variations in our findings depending on the \gls{mead}
+    configuration.
 
-Interestingly, we observed the most significant reduction in total network
-    bandwidth utilization with MEADcast support on the Distribution (L2) and
-    Access Layer (L3), as shown in \autoref{fig:netloadcmp}.
-This was closely followed by 100\% network support and MEADcast with a merge 
-    range of 2.
-In contrast, the experiments with MEADcast support only on the Core Layer (L1)
-    achieved the least improvement compared to IP unicast.
-Each of these experiments were conducted with a maximum address list length of
+\subsubsection{Bandwidth Utilization}
+Interestingly, the most significant reduction in total network bandwidth
+    utilization was not achieved with 100\% network support, but rather with
+    \gls{mead} support only on the Distribution (L2) and Access Layer (L3)\footnote{
+        \autoref{sec:Hierachical Three-Layer Internet Model} introduces the terms Core
+            (L1), Distribution (L2), and Access Layer (L3).
+        \autoref{sub:Network Topology} provides information about the corresponding
+            layers in our topology.
+    }, as shown in \autoref{fig:netloadcmp}.
+This was closely followed by measurements with a merge range of 2\footnote{
+        \autoref{sub:Grouping} provides information about the merge range parameter.
+    }.
+In contrast, experiments with \gls{mead} support only on the Core Layer (L1)
+    achieved the least improvement compared to IP Unicast.
+Each of these experiments was conducted with a maximum address list length of
     10 and 20.
-Notably, in all tested scenarios in EX1, a maximum address list of 20
+Notably, in all tested experiments in \uci{}, a maximum address list of 20
     consistently outperformed its counterpart with a limit of 10 addresses.
-The drop in total network bandwidth utilization in EX1 (2.5 MB/s) is caused by
-    an increased packet loss rate due to the resource limitations of the
+The drop in total network bandwidth utilization in \uci{} (2.5 MB/s) is caused
+    by an increased packet loss rate due to the resource limitations of the
     testbed.
 
 \begin{figure}
     \begin{center}
         \input{Bilder/line_ex1_netload.pgf}
     \end{center}
-    \caption[EX1 Live stream: Total network bandwidth utilization]{
-        EX1 Live stream: Total network bandwidth utilization.}
+    \caption[UC1 Live stream: Total network bandwidth utilization]{
+        \nuci{} Total network bandwidth utilization.
+        \textbf{(1)} Red lines depict measurements with a maximum address list length of 10.
+        \textbf{(2)} Blue lines depict measurements with a maximum address list length of 20.
+        \textbf{(3)} Line style indicates certain \gls{mead} configuration, for
+            instance dashed lines represent measurements with network support
+            on layer 2 and 3.
+        \textbf{(4)} \textit{Mead 10/20}:
+            Utilizes a maximum address list length of 10 and 20 respectively,
+            with 100\% network support.
+        \textbf{(5)} \textit{Mead 10/20 M2}:
+            Same as \textit{Mead 10/20} with a merge range of 2.
+        \textbf{(6)} \textit{Mead 10/20 L2L3/L1}:
+            Same as \textit{Mead 10/20} with network support limited to layer 2 and 3,
+            and layer 1, respectively.
+        }
     \label{fig:netloadcmp}
 \end{figure}
 
 \autoref{fig:upstreamcmp} illustrates, that all tested groupings and levels of
     network support exhibit significantly lower sender upstream bandwidth
-    requirements compared to IP unicast.
+    requirements compared to IP Unicast.
 Furthermore, as the number of receivers increases, the upstream bandwidth
-    demands of MEADcast grow at a much slower rate compared to IP unicast.
-Additionally, the higher the address list limit, the less packets with
-    identical payload are required, thus the greater the reduction in sender
+    demands of \gls{mead} grow at a much slower rate than IP Unicast.
+Additionally, the higher the address list limit, the fewer packets with
+    identical payloads are required, resulting in a greater reduction in sender
     upstream bandwidth utilization.
 For instance, configurations with an address limit of 20 consistently
-    outperformed all other configurations with a lower limit.
-In contrast to the results of the total network bandwidth reduction,
-    experiments with MEADcast support on L2 and L3 achieved the least
-    improvements.
-Experiments with 100\% MEADcast support and a merging range between 1 and 2
+    outperformed all configurations with a limit of 10.
+In contrast to the reductions in total network bandwidth, experiments with
+    \gls{mead} support exclusively on L2 and L3 achieved the least improvement.
+Experiments with 100\% \gls{mead} support and a merging range between 1 and 2
     yielded comparable results.
 
 \begin{figure}
     \begin{center}
         \input{Bilder/line_upstream.pgf}
     \end{center}
-    \caption[Total sender upstream bandwidth]{Total sender upstream bandwidth.}
+    \caption[Total sender upstream bandwidth]{
+        Total sender upstream bandwidth.
+        \textbf{(1)} Red lines depict measurements with a maximum address list length of 10.
+        \textbf{(2)} Blue lines depict measurements with a maximum address list length of 20.
+        \textbf{(3)} Line style indicates certain \gls{mead} configuration, for
+            instance dashed lines represent measurements with network support
+            on layer 2 and 3.
+        \textbf{(4)} \textit{Mead 10/20}:
+            Utilizes a maximum address list length of 10 and 20 respectively,
+            with 100\% network support.
+        \textbf{(5)} \textit{Mead 10/20 M2}:
+            Same as \textit{Mead 10/20} with a merge range of 2.
+        \textbf{(6)} \textit{Mead 10/20 L2L3/L1}:
+            Same as \textit{Mead 10/20} with network support only on layer 2 and 3,
+            and layer 1, respectively.
+    }
     \label{fig:upstreamcmp}
 \end{figure}
 
-Continuing with the examination of the bandwidth savings resulting from
-    MEADcast support solely on L2 and L3, \autoref{fig:link_bw_l2l3_100}
-    highlights the bandwidth usage per link in experiments with 100\% MEADcast
-    support versus protocol support exclusively on L2 and L3.
-In both EX1 and EX2, the lower level of MEADcast support notably decreases
-    the bandwidth usage on certain links by over 50\%.
+\autoref{fig:link_bw_l2l3_100} depicts a comparison of bandwidth usage per 
+    link between measurements with 100\% \gls{mead} support and network support
+    limited to L2 and L3.
+Consistent with the observations regarding total network bandwidth utilization,
+    \gls{mead} support exclusively on L2 and L3 leads to lower bandwidth
+    consumption per link compared to 100\% network support.
+% Continuing with the examination of the bandwidth savings resulting from
+%     MEADcast support solely on L2 and L3, \autoref{fig:link_bw_l2l3_100}
+%     highlights the bandwidth usage per link in experiments with 100\% MEADcast
+%     support versus protocol support exclusively on L2 and L3.
+In both \uci{} and \ucii{}, the lower level of \gls{mead} support notably
+    decreases bandwidth usage on certain links by over 50\%.
+
     
-In context of low levels of MEADcast support, we executed EX2 File transfer
-    (25 MB), with 27 receivers, a maximum of 30 addresses per packet, and only
-    $R_3$ supporting MEADcast.
-This experiment lead to a reduction in transfer time by 42.98\%, network
+Furthermore, we executed \ucii{} with 27 receivers (three per router), a
+    maximum of 30 addresses per packet, and \gls{mead} support limited to a
+    single router, $R_3$.
+This experiment resulted in a reduction in transfer time by 42.98\%, network
     bandwidth utilization by 53.14\%, and sender upstream bandwidth utilization
     by 94.55\%.
 
@@ -342,17 +428,17 @@ This experiment lead to a reduction in transfer time by 42.98\%, network
     \begin{center}
         \input{Bilder/hbar_link_bw_l2l3_100.pgf}
     \end{center}
-    \caption[EX2 File Transfer: Comparison of total link bandwidth]{
-        EX2 File Transfer: Comparison of total link bandwidth.
+    \caption[UC2 File Transfer: Comparison of total link bandwidth]{
+        \nucii{} Comparison of total link bandwidth.
         \textbf{(1)} Black bars denote results from experiments with 100\%
-            MEADcast support.
-        \textbf{(2)} Red bars denote results from experiments with MEADcast
+            \gls{mead} support.
+        \textbf{(2)} Red bars denote results from experiments with \gls{mead}
             support on the Distribution (L2) and Access Layer (L3).
-        \textbf{(a)} depicts the results from the execution of EX1 Live
-            stream (1 MB/s for 45 seconds), with 70 receivers (5 per router),
+        \textbf{(a)} depicts the results from the execution of UC1 Live
+            stream (1 MB/s for 45 seconds), with 70 receivers (five per router),
             and a maximum of 20 addresses per packet.
-        \textbf{(b)} depicts the results from the execution of EX2 File
-            transfer (25 MB), with 45 receivers (5 per router), and a maximum
+        \textbf{(b)} depicts the results from the execution of UC2 File
+            transfer (25 MB), with 45 receivers (five per router), and a maximum
             of 24 addresses per packet.
     }
     \label{fig:link_bw_l2l3_100}
@@ -371,35 +457,57 @@ This experiment lead to a reduction in transfer time by 42.98\%, network
 %   --> MEADcast can save resources and therefore work in settings where Uni is not feasible
 %   AVG latency for discovery rises mostly bc of uni cast usage during init discovery phase (see line latency)
 
-The grouping configuration and the level of MEADcast network support also
-    affects the latency.
-For small groups MEADcast leads to an increase in average latency compared to
-    IP unicast (see \autoref{fig:latency_cmp}).
-As the number of receivers growth the latency of IP unicast significantly
-    exceeds MEADcast's latency.
-We measured the lowest latency with MEADcast support on L2 and L3 followed by
-    100\% network support.
-Analog to IP unicast, for large group sizes, MEADcast with periodic discovery
-    phases yielded a higher average latency, however it is still lower than IP
-    unicast.
-The maximal latency shows similar results, besides that the latency of MEADcast
-    with discovery phase is similar or slightly higher than IP unicast.
+\subsubsection{Latency}
+Both the grouping configuration and the level of \gls{mead} network support
+    have implications for latency.
+For small group sizes, \gls{mead} leads to a slight increase in average latency
+    compared to IP Unicast (see \autoref{fig:latency_cmp} (a)).
+However, as the number of receivers grows to 42 (three clients per router), the
+    latency of IP Unicast significantly exceeds that of \gls{mead}.
+\gls{mead} support limited to L2 and L3 exhibits the lowest latency among all
+    tested \gls{mead} configurations, followed by 100\%.
+% We measured the lowest latency with \gls{mead} support on L2 and L3 followed by
+%     100\% network support.
+Similar to IP Unicast, as the group size increases, \gls{mead} with periodic
+    discovery phase exceeds the average latency of \gls{mead} without discovery.
+However, it still remains lower than IP Unicast.
+The maximal latency yields similar results, with the latency of \gls{mead} with
+    discovery phase being similar to or slightly higher than that of IP Unicast
+    (see \autoref{fig:latency_cmp} (c)).
+% Analogous to IP Unicast, for large group sizes, \gls{mead} with periodic discovery
+%     phases yielded a higher average latency compared to \gls{mead} without
+%     discovery, however, it is still lower than IP Unicast.
+% The maximal latency shows similar results, besides that the latency of \gls{mead}
+%     with discovery phase is similar to or slightly higher than IP Unicast (see
+%     \autoref{fig:latency_cmp} (c)).
 
-The minimal bandwidth of MEADcast is higher than IP unicast.
-The protocol rather achieved similar results to IP Multicast.
-All tested MEADcast configurations with a address list limit of 20 have a lower
-    minimal latency than any configuration with a limit of 10.
-The increase in latency, as the number of receivers growths, is the highest for
+The minimal latency of \gls{mead} is higher than that of IP Unicast (see
+    \autoref{fig:latency_cmp} (b)).
+\gls{mead} achieves results more akin to IP Multicast.
+All tested \gls{mead} configurations with an address list limit of 20 possess
+    lower minimal latency than any configuration with a limit of 10.
+The increase in latency, as the number of receivers grows, is the highest for
     the maximal latency and the lowest for the minimal latency.
-During our experiments we also measured average, minimal and maximal Jitter.
-However, the results indicate no measurable impact from MEADcast on Jitter.
+Throughout our experiments, we also measured average, minimal, and maximal
+    Jitter.
+However, the results indicate no measurable impact from \gls{mead} on Jitter.
 
 \begin{figure}
     \begin{center}
         \input{Bilder/line_ex1_1mb_latency.pgf}
     \end{center}
-    \caption[EX1 Live stream: Latency comparison]{
-        EX1 Live stream: Latency comparison.
+    \caption[UC1 Live stream: Latency comparison]{
+        \nuci{} Latency comparison.
+        \textbf{(1)} Red lines depict measurements with a maximum address list length of 10.
+        \textbf{(2)} Blue lines depict measurements with a maximum address list length of 20.
+        \textbf{(3)} Line style indicates certain \gls{mead} configuration, for
+            instance dashed lines represent measurements with network support
+            on layer 2 and 3.
+        \textbf{(4)} \textit{Mead 10/20}:
+            Utilizes a maximum address list length of 10 and 20 respectively,
+            with 100\% network support.
+        \textbf{(6)} \textit{Mead 10/20 L2L3}:
+            Same as \textit{Mead 10/20} with network support limited to layer 2 and 3.
     }
     \label{fig:latency_cmp}
 \end{figure}
@@ -413,39 +521,38 @@ However, the results indicate no measurable impact from MEADcast on Jitter.
 % higher latency for a large number of receivers
 % spikes in latency: for small number of receivers nearly no increase in avg latency
 % for larger number of receivers notable peaks in both avg and max latency
-As demonstrated previously, when dealing with a large number of receivers,
-    MEADcast with periodic discovery phase tends to exhibit higher latency
-    compared to MEADcast without discovery phase.
+As previously demonstrated, when dealing with a large number of receivers,
+    \gls{mead} with periodic discovery phase tends to exhibit higher latency
+    compared to \gls{mead} without discovery phase.
 
 \autoref{fig:dcvr_latency_effect}, illustrates spikes in maximum latency for
     both 28 and 70 receivers during discovery phases.
 Additionally, there is a noticeable increase in average latency for 70 clients
-    during the discovery phase, although the increase is marginal for 28
-    clients.
+    during these phases, although the increase is marginal for 28 clients.
 Especially the initial discovery phase results in a significant spike in
     total network bandwidth utilization, sender upstream bandwidth utilization,
-    % and latency, as depicted in \autoref{fig:netload_upstream_cmp} and
-    \autoref{fig:latency_cmp}).
-Moreover, if the network is already operating at its capacity limit, the
-    discovery phase can also result in increased packet loss, as shown in 
-    \autoref{fig:dcvr_loss_effect}.
-The initial discovery phase has also the most substantial effect on the packet
-    loss.
+    and latency (see \autoref{fig:netload_upstream_cmp} for total network and
+    sender upstream bandwidth utilization, and
+    \autoref{fig:dcvr_latency_effect} for latency).
+Moreover, if the network is already operating at its capacity limit, discovery
+    phases, accompanied by an increased traffic volume, can result in elevated
+    packet loss, as shown in \autoref{fig:dcvr_loss_effect}.
+Notably, the initial discovery phase, accompanied by IP Unicast data
+    transmission, has also the most substantial effect on packet loss.
 
 Consequently, \autoref{tab:init_dcvr_latency} demonstrates the latency increase
     caused by the discovery phase, particularly focusing on the initial
     discovery.
-In experiments with the discovery phase, the average latency increases by
-    39.57\%.
+In experiments with discovery phase, the average latency increases by 39.57\%.
 Excluding the initial discovery phase and the associated IP Unicast
-    transmission, the increase in latency is reduced by more than half to
+    transmission, the increase in latency is reduced by more than half, to
     15.69\%.
 Furthermore, the results emphasize a distinct increase in latency as the number
     of clients rises.
-For $\leq 3$ clients per router, the latency increase is 11.1\% with the
-    initial discovery and 3.9\% without it.
-However, for $>3$ clients per router, the latency increase grows to 75.16\%
-    with the initial discovery and to 30.83\% without it.
+For three or fewer clients per router, the latency increase is 11.1\% with 
+    initial discovery and 3.9\% without.
+However, for more than three clients per router, the latency increase grows to
+    75.16\% with initial discovery and to 30.83\% without.
 
 \autoref{tab:dcvr_net_up_effect} illustrates the impact of the discovery phase
     on network bandwidth utilization and sender upstream bandwidth utilization.
@@ -453,19 +560,18 @@ The discovery phase increases the network bandwidth utilization by an average
     of 4.69\%, while the sender upstream bandwidth utilization increases by
     18.36\% (compared to the corresponding experiment without discovery phase).
 Excluding the initial discovery phase and the associated IP Unicast
-    transmission, the increase in network bandwidth utilization is reduced to
-    0.62\%, and for sender upstream utilization, it is reduced to 0.42\%
-The theoretically calculated increase of the sender upstream bandwidth is
-    merely 0.04\%.
-The average increase in total transfer time is 0.88\% for EX2 File transfer
-    (25 MB).
+    transmission, the increase in network bandwidth utilization reduces to
+    0.62\%, and for sender upstream utilization, it decreases to 0.42\%.
+The theoretically calculated increase in sender upstream bandwidth is merely
+    0.04\%.
+The average increase in total transfer time is 0.88\% for \ucii{} (25 MB).
 
 \begin{figure}
     \begin{center}
         \input{Bilder/line_latency_cmp.pgf}
     \end{center}
     \caption[Effect of the discovery phase on latency]{
-        EX1 Live stream: Effect of the discovery phase on latency.
+        \nuci{} Effect of the discovery phase on latency.
         The vertical dashed line represents the periodic discovery phase.
         The green line depicts the maximal latency and the blue line the
         average latency.
@@ -542,9 +648,9 @@ The average increase in total transfer time is 0.88\% for EX2 File transfer
     \multicolumn{1}{c}{Network} &
     \multicolumn{1}{c}{Sender} &
     \multicolumn{1}{c}{Sender \textit{(Calc.)}\tnote{1}} \\ \midrule
-    EX1 \textit{(1 MB/s)}                   & 0.00\%  & 6.17\%  & 17.37\%   & 0.54\%    & -2.24\%   & 0.06\% \\
-    EX1 \textit{(2.5 MB/s)}                 & -0.03\% & 2.79\%  & 16.35\%   & 0.78\%    & 2.48\%    & 0.03\% \\
-    EX2 \textit{(25 MB)}                    & 0.88\%  & 5.11\%  & 21.37\%   & 0.55\%    & 1.01\%    & 0.02\% \\ \midrule
+    UC1 \textit{(1 MB/s)}                   & 0.00\%  & 6.17\%  & 17.37\%   & 0.54\%    & -2.24\%   & 0.06\% \\
+    UC1 \textit{(2.5 MB/s)}                 & -0.03\% & 2.79\%  & 16.35\%   & 0.78\%    & 2.48\%    & 0.03\% \\
+    UC2 \textit{(25 MB)}                    & 0.88\%  & 5.11\%  & 21.37\%   & 0.55\%    & 1.01\%    & 0.02\% \\ \midrule
     \multicolumn{1}{c}{\textbf{Average}}    & 0.28\%  & 4.69\%  & 18.36\%   & 0.62\%    & 0.42\%    & 0.04\% \\ \bottomrule
 \end{tabular}
     \caption[Bandwidth utilization increase caused by the discovery phase]{
@@ -573,12 +679,12 @@ However, we did not observe any performance implications of the change in
 %   the net bw goes up (bc longer time or whole path uni)
 % After disableing nothing happens in first place.
 %   But after next discovery netload reduces, bc sender switches back to MEADcast
-In EX3 P2P we evaluated MEADcasts resilience and recovery mechanisms required
-    for dynamic network environments.
+In \nuciii{} we evaluated \gls{mead}'s resilience and recovery mechanisms
+    required for dynamic network environments.
 
-We deployed a firewall to intentionally drop MEADcast packets during the
+We deployed a firewall to intentionally drop \gls{mead} packets during the
     transmission.
-\autoref{fig:dyn_net_env} (a) illustrates, that upon enabling the firewall,
+\autoref{fig:dyn_net_env} (a) and (b) illustrate, that upon enabling the firewall,
     the receiver bandwidth drops to zero, and the network bandwidth utilization
     decreases as well.
 After the next discovery phase, the sender tries to assign the clients to a
@@ -586,42 +692,44 @@ After the next discovery phase, the sender tries to assign the clients to a
 If this is not feasible, the sender falls back to IP Unicast transmission.
 Consequently, the packets traverse the firewall and the client receives the 
     traffic again.
-Fallback to IP unicast increases the total network bandwidth utilization from
-    15 MB/s to 50 MB/s, whereas falling back to another MEADcast router raises
+Fallback to IP Unicast increases the total network bandwidth utilization from
+    15 MB/s to 50 MB/s, whereas falling back to another \gls{mead} router raises
     the bandwidth only up to 28 MB/s.
 When the firewall is disabled again, initially, no change is observed.
 However, after the subsequent discovery phase, the sender switches back to the
-    initial MEADcast grouping.
+    initial \gls{mead} grouping.
 This results in the network bandwidth utilization returning to its previous
     value of 15 MB/s before the firewall was activated.
 
-Furthermore, we assessed MEADcast's resilience to route changes.
+Furthermore, we assessed \gls{mead}'s resilience to route changes.
 In our experiments, we observed that the receiver bandwidth remained consistent
-    despite altering a route during MEADcast transmission.
+    despite altering a route during \gls{mead} transmission (see
+    \autoref{fig:dyn_net_env} (d)).
 The only observed effect was a peak in latency.
 After the route change, packet delivery remained undisrupted because we
     adjusted the traffic from $R_1$ to $R_3$ (\textit{r1\_r3}) to traverse via
-    $R_4$ (\textit{r1\_r4}), ensuring the packet keeps traversing all MEADcast
-    routers from its address list.
-It is crucial to note that if a MEADcast packet does not pass through a router
+    $R_4$ (\textit{r1\_r4}), ensuring the packet keeps traversing all \gls{mead}
+    routers from its address list (see \autoref{fig:dyn_net_env} (c)).
+It is crucial to note that if a \gls{mead} packet does not pass through a router
     listed in its header, there is a risk of it not being processed correctly,
     potentially resulting in the packet not being delivered to its intended
     receivers. 
 
 
-Lastly, we evaluated MEADcast's recovery from a link outage.
+Lastly, we evaluated \gls{mead}'s recovery from a link outage.
 Immediately after the failure of the link between $R_1$ and $R_3$, the receiver
-    bandwidth dropped to zero.
+    bandwidth dropped to zero (see \autoref{fig:dyn_net_env} (f)).
 Following the subsequent discovery phase, the output bandwidth of $R_1$
-    (\textit{r1\_r3}) increased from 1.5 MB/s to 8 MB/s.
+    (\textit{r1\_r3}) increased from 1.5 MB/s to 8 MB/s (see
+    \autoref{fig:dyn_net_env} (e)).
 This increase occurred due to a new grouping, characterized by an earlier
-    MEADcast to IP Unicast transformation.
+    \gls{mead} to IP Unicast transformation.
 Once the underlying routing protocol detected the link failure and adjusted
     the route accordingly, the clients resumed receiving traffic.
 Similar to the route change experiment, the routing protocol adjusted the
     traffic from $R_1$ to $R_3$ (\textit{r1\_r3}) to traverse via $R_4$
     (\textit{r1\_r4}), ensuring that the packet resumed traversing all
-    MEADcast routers from its address list, resulting in correct packet
+    \gls{mead} routers from its address list, resulting in correct packet
     processing and delivery.
 After the next discovery phase, the sender reverted back to the initial
     grouping, lowering the link bandwidth utilization back to its previous
@@ -632,17 +740,17 @@ After the next discovery phase, the sender reverted back to the initial
         \input{Bilder/line_ex3_p2p_dyn_net_env.pgf}
     \end{center}
     \caption[MEADcast fallback and recovery mechanism]{
-        EX3 P2P MEADcast fallback and recovery mechanism:
+        \nuciii{} \gls{mead} fallback and recovery mechanism:
         \textbf{(1)} The left column illustrates the total network bandwidth
             \textbf{(a)} and receiver bandwidth \textbf{(b)} in a scenario
-            where MEADcast packets are dropped during transmission, for
+            where \gls{mead} packets are dropped during transmission, for
             instance, due to firewall intervention.
         The black line represents the results when falling back to IP Unicast
             transmission.
         The red line illustrates the results from scenarios where the clients
-            could be assigned to a MEADcast router located in front of the
+            could be assigned to a \gls{mead} router located in front of the
             firewall.
-        The triangular marker indicate the period during which MEADcast packets
+        The triangular marker indicate the period during which \gls{mead} packets
             are dropped and the square marker represent the discovery phase.
         \textbf{(2)} The middle column illustrates the bandwidth per link
             \textbf{(c)} and receiver bandwidth \textbf{(d)} in a scenario
@@ -659,19 +767,19 @@ After the next discovery phase, the sender reverted back to the initial
 
 % section MEADcast in dynamic network environments (end)
 Additionally, we observed that in cases where a router fails to perform the
-    MEADcast to IP Unicast transformation -- due to reasons such as an error,
-    MEADcast being disabled, or a routing change -- MEADcast packets are
+    \gls{mead} to IP Unicast transformation -- due to reasons such as an error,
+    \gls{mead} being disabled, or a routing change -- \gls{mead} packets are
     forwarded to the client whose address is specified in the IP destination
     field.
-% Furthermore we oberserved, that if the last router fails to execute the MEADcast to IP unicast transformation
+% Furthermore we oberserved, that if the last router fails to execute the MEADcast to IP Unicast transformation
 %     (due to reasons such as an error, MEADcast being disabled, or a routing
 %     change), the MEADcast packets are forwarded to the client whose address is
 %     indicated in the IP destination field.
 This scenario potentially results in a leakage of the addresses of other
     group members.
 However, in our experiments, we found that the client software (specifically
-    Iperf and Netcat) disregarded the MEADcast header and processed the packet
-    correctly.
+    \textit{``Iperf''} and \textit{``Netcat''}) disregarded the \gls{mead}
+    header and processed the packet correctly.
 
 % section Results (end)
 
@@ -688,7 +796,7 @@ However, in our experiments, we found that the client software (specifically
 % - 
 
 
-% How does MEADcast perform compared to IP-Unicast and IP-Multicast?
+% How does MEADcast perform compared to IP Unicast and IP Multicast?
 % - throughput, latency, jitter, and resource utilization
 % - Impact of discovery phase (Overhead, Shift from extensive unicast to MEADcast delivery)
 % - Couldn't measure resource utilization but we argue less processing bc of
@@ -717,7 +825,7 @@ This section evaluates the results from our experiments presented in
     \autoref{sec:Results} and aims to address the research questions
     formulated in \autoref{sec:Measurements}.
 As outlined in \autoref{sec:Contribution}, the primary goal of this thesis is
-    to conduct a real-world evaluation of MEADcast, focusing on the aspects of
+    to conduct a real-world evaluation of \gls{mead}, focusing on the aspects of
     \textit{feasibility}, \textit{performance}, and \textit{scenario
     identification}.
 Analogous, \autoref{sub:discussion_Feasibility} discusses the results regarding
@@ -733,22 +841,22 @@ Finally, \autoref{sub:MEADcast Revision Proposal} proposes several refinements
 \label{sub:discussion_Feasibility}
 \begin{itemize}
 \item[\textit{RQ1}]
-    \textit{How robust is the current MEADcast specification? (deployment
+    \textit{How robust is the current \gls{mead} specification? (deployment
         limitations \& structural issues of the protocol specification)}\par
     \paragraph{Deployment}
     The conducted series of experiments, encompassing deployment and evaluation,
-        effectively demonstrates the feasibility of employing MEADcast within a
+        effectively demonstrates the feasibility of employing \gls{mead} within a
         medium-sized network.
-    MEADcast deployment requires only the installation of sender and router
+        \gls{mead} deployment requires only the installation of sender and router
         software.
-    Additionally, the fallback mechanism enables MEADcast to operate even
+        Additionally, the fallback mechanism enables \gls{mead} to operate even
         without dedicated router support, presenting a distinct advantage over
         IP Multicast.
     In contrast to IP Multicast, which entails increased technical complexity
         and a compound routing procedure, necessitating all routers to support
-        the protocol (see \autoref{sub:IP Multicast}), MEADcast imposes no
+        the protocol (see \autoref{sub:IP Multicast}), \gls{mead} imposes no
         additional requirements beyond the sender and router software.
-    This characteristic facilitates a partial deployment of MEADcast,
+        This characteristic facilitates a partial deployment of \gls{mead},
         underscoring its superior feasibility compared to IP Multicast.
 
 % How robust is the current specification?
@@ -763,67 +871,67 @@ Finally, \autoref{sub:MEADcast Revision Proposal} proposes several refinements
 % - Anomaly handling mostly implementation dependent (no router authorization so far)
 % - Falling back to MEADcast if possible lead to way better results
     \paragraph{Robustness}
-    MEADcast has demonstrated resilience and recovery from deliberate routing
+    \gls{mead} has demonstrated resilience and recovery from deliberate routing
         changes, network disruptions such as link and router outages, and
         packet discarding by intermediate nodes.
-    As MEADcast operates based on IP Unicast routes, its adaptability to
+    As \gls{mead} operates based on IP Unicast routes, its adaptability to
         evolving network topologies primarily relies on the underlying routing
         protocol.
     However, if a packet's route is altered and it does not traverse the
         routers listed in its header, delivery disruption persists until the
         next discovery phase.
-    In the event of a firewall dropping packets during MEADcast transmission,
+        In the event of a firewall dropping packets during \gls{mead} transmission,
         disruptions endure until the sender detects the modified topology tree
         in the subsequent discovery phase.
-    Both MEADcast and IP Unicast fallback effectively address the presence of
+    Both \gls{mead} and IP Unicast fallback effectively address the presence of
         a firewall.
     However, reverting to a router positioned in front of the firewall results
         in 50\% less network bandwidth utilization compared to IP Unicast.
 
     \paragraph{Anomaly Handling}
-    In cases where a router fails to perform the MEADcast to IP Unicast
+    In cases where a router fails to perform the \gls{mead} to IP Unicast
         transformation, packets are forwarded to the client specified in the IP
         destination field, potentially exposing group member IP addresses.
     \autoref{sub:MEADcast Revision Proposal} discusses a potential mitigation
         preventing the exposure of group information.
     It is important to note that the handling of anomalous discovery responses
         is implementation-specific.
-    Since no authentication mechanism is specified for MEADcast, malicious
+    Since no authentication mechanism is specified for \gls{mead}, malicious
         discovery responses can be injected, potentially hindering transmission
         to multiple clients.
 
     % \textbf{Packet replication:}
     \paragraph{Packet Replication} % (fold)
     \label{par:Discussion Packet Replication}
-Packet Replication    The experiments have revealed an inefficiency within the MEADcast routing
+Packet Replication    The experiments have revealed an inefficiency within the \gls{mead} routing
         process.
     Specially, when multiple router addresses are included within a single
-        packet, sharing a common path of MEADcast routers, the first MEADcast
+        packet, sharing a common path of \gls{mead} routers, the first \gls{mead}
         hop generates a replica for each router in the address list.
     This behavior, while technically correct, arises from the stateless nature
         of routers, which lack information regarding whether routers from the
         address list share another intermediate router that could instead
         perform the replica generation.
     Although the sender possesses knowledge of how long routers within a packet
-        share the same path, the current MEADcast specification lacks a feature
+        share the same path, the current \gls{mead} specification lacks a feature
         to determine the point of packet replication, thus preventing previous
-        MEADcast routers from doing so.
+        \gls{mead} routers from doing so.
     As depicted in \autoref{fig:link_bw_l2l3_100} this inefficiency leads to a
         significant increase in bandwidth utilization.
     In \autoref{sub:MEADcast Revision Proposal} we propose a feature, which
         enables the sender to control the point of packet replication.
     % paragraph Packet replication (end)
 
-    These results emphasize the feasibility of employing MEADcast in
+    These results emphasize the feasibility of employing \gls{mead} in
         medium-sized networks.
-    Moreover, the experiments illustrate MEADcast's resilience to network
+    Moreover, the experiments illustrate \gls{mead}'s resilience to network
         disruptions and recovery capabilities.
     This highlights the protocol's adaptivity and suitability for dynamic
         network environments, offering promising initial insights into the
-        real-world applicability and resilience of MEADcast.
+        real-world applicability and resilience of \gls{mead}.
     However, anomaly handling is highly implementation-specific.
     Furthermore, in \autoref{sub:MEADcast Revision Proposal} we propose several
-        refinements to the MEADcast specification and further investigation of
+        refinements to the \gls{mead} specification and further investigation of
         their implications.
 \end{itemize}
 % subsesction Feasibility (end)
@@ -832,35 +940,35 @@ Packet Replication    The experiments have revealed an inefficiency within the M
 \label{sub:discussion_Performance}
 \begin{itemize}
 \item[\textit{RQ2}]
-    \textit{How does MEADcast perform compared to IP-Unicast and IP-Multicast?}
+    \textit{How does \gls{mead} perform compared to IP Unicast and IP Multicast?}
 % Performance Evaluation:
 % - Compare MEADcast with uni and multicast (efficiency and effectiveness)
 %%%%%
     
 % Resource utilization
-%   - Sender load (See increase in transfer time EX1 4-5 clients for unicast)
+%   - Sender load (See increase in transfer time UC1 4-5 clients for unicast)
 %   - Latency and Drop rates grow 
 
     % NET BW, UP BW, TIME
     % Performance falls always between Unicast and Multicast
     % AVG Netload Reduction: Mead 56%, Multi 82.87% --> 32.42%
     % AVG Upstream Reduction: Mead 81.23%, Multi 96.15% --> 15.51%
-    % AVG Transfer Time Reduction (EX2): Mead 49.18%, Multi 67.34% --> 26.97%
-    The experiments emphasize that MEADcast significantly enhances performance
+    % AVG Transfer Time Reduction (UC2): Mead 49.18%, Multi 67.34% --> 26.97%
+        The experiments emphasize that \gls{mead} significantly enhances performance
         metrics such as total network bandwidth utilization, sender upstream
         bandwidth utilization, and total transfer time compared to IP Unicast.
-    On average, MEADcast reduced network bandwidth utilization by more than
+    On average, \gls{mead} reduced network bandwidth utilization by more than
         half (56\%), sender upstream bandwidth utilization by 81.23\%, and
-        total transfer time by half (EX2: 49.18\%).
-    In contrast, compared to IP Multicast, MEADcast increased network bandwidth
+        total transfer time by half (UC2: 49.18\%).
+    In contrast, compared to IP Multicast, \gls{mead} increased network bandwidth
         utilization by 32.42\%, sender upstream bandwidth by 15.51\%, and total
-        transfer time by 26.97\% (EX2).
+        transfer time by 26.97\% (UC2).
 
     % Implications of the discovery phase
     \autoref{sub:Results_Effects of the Discovery phase} illustrates that the discovery
         phase produces an average overhead of 4.69\% in total network bandwidth
         utilization, 18.36\% in sender upstream bandwidth utilization, 0.88\%
-        (EX2) in total transfer time, and 39.57\% in average latency.
+        (UC2) in total transfer time, and 39.57\% in average latency.
     However, excluding the initial discovery phase significantly reduces the 
         average overhead to an increase of 0.62\% in total network bandwidth
         utilization, 0.42\% in sender upstream bandwidth utilization, and
@@ -877,7 +985,7 @@ Packet Replication    The experiments have revealed an inefficiency within the M
     %   discovery is ~11% and for high number, the overhead in latency is 75% with init discovery,
     %   showing Unicast processing utilizies the available resources.
     Although meaningful results for sender and router resource utilization were
-        not attainable, we contend that MEADcast results in reduced resource
+        not attainable, we contend that \gls{mead} results in reduced resource
         utilization compared to IP Unicast as the number of receivers
         increases.
     \autoref{fig:latency_cmp} illustrates a distinct increase in average
@@ -885,9 +993,9 @@ Packet Replication    The experiments have revealed an inefficiency within the M
         coinciding with the onset of packet loss.
     This suggests, that IP Unicast transmission exhausts the testbed's
         resources at this point.
-    In contrast, MEADcast maintains constant latency levels with little to no
+    In contrast, \gls{mead} maintains constant latency levels with little to no
         packet loss.
-    Moreover, the observed increase in average latency for MEADcast with
+    Moreover, the observed increase in average latency for \gls{mead} with
         discovery phase supports our hypothesis.
     As indicated in \autoref{tab:init_dcvr_latency}, the difference in latency
         increase with and without consideration of the initial discovery phase
@@ -902,7 +1010,7 @@ Packet Replication    The experiments have revealed an inefficiency within the M
     % Initial discovery causes major portion of the overhead produced by the
     % discovery mechanism, overhead of the recurrying disovery phase is negligible
     The results emphasize the feasibility of a graduate shift from extensive
-        IP Unicast to MEADcast delivery, highlighting significant performance
+        IP Unicast to \gls{mead} delivery, highlighting significant performance
         improvements, particularly in terms of reduced total network and sender
         upstream bandwidth utilization, as well as latency.
     Furthermore, the overhead generated by the discovery phase primarily
@@ -917,7 +1025,7 @@ Packet Replication    The experiments have revealed an inefficiency within the M
 \label{sub:discussion_scenario}
 \begin{itemize}
 \item[\textit{RQ3}]
-    \textit{Which applications and characteristics are well served by MEADcast?}
+    \textit{Which applications and characteristics are well served by \gls{mead}?}
     % File transfer
     % Stream
     % Discovery Phase can impede latency
@@ -934,15 +1042,15 @@ Packet Replication    The experiments have revealed an inefficiency within the M
     % - MEADcast could reduce latency, however may peak during discovery
     % - throughput intense is well-suited.
 
-    Across all experiments, MEADcast has consistently demonstrated its
+    Across all experiments, \gls{mead} has consistently demonstrated its
         benefits.
 
     % Group (Members, Distribution, Session length)
-    From small group sizes ($<10$) to groups with $\leq 70$ receivers, MEADcast
+    From small group sizes ($<10$) to groups with $\leq 70$ receivers, \gls{mead}
         has shown improvements in all metrics.
     As the total number of group members and the number of receivers per
         router increased, these enhancements became more pronounced.
-    Additionally, MEADcast exhibits performance improvements across all tested
+    Additionally, \gls{mead} exhibits performance improvements across all tested
         session durations.
     However, due to the overhead associated with the initial discovery phase,
         we recommend session durations of at least 5 seconds.
@@ -952,7 +1060,7 @@ Packet Replication    The experiments have revealed an inefficiency within the M
     % It is expected that there is an upper limit
 
     % Communication pattern (burst, steady, symmetric, asymmetric)
-    MEADcast is well-suited for communication patterns characterized by steady
+    \gls{mead} is well-suited for communication patterns characterized by steady
         flows (e.g. video/audio stream) and recurring bursts (e.g. file
         transfer).
     Although experiments with asymmetric communication patterns were not
@@ -961,19 +1069,19 @@ Packet Replication    The experiments have revealed an inefficiency within the M
         enlarged traffic volume inherent in \gls{p2p} communication.
 
     % Network
-    MEADcast proves beneficial across all group sizes, receiver distributions,
+    \gls{mead} proves beneficial across all group sizes, receiver distributions,
         session durations, and communication patterns.
     However, as group sizes, receiver clustering, and session duration
         increase, the performance improvements compared to IP Unicast become
         more pronounced.
-    MEADcast excels in throughput-intense scenarios, with no discernible impact
+    \gls{mead} excels in throughput-intense scenarios, with no discernible impact
         on jitter, making it suitable for applications sensitive to jitter
         fluctuations.
-    However, MEADcast may not be suitable for applications sensitive to initial
+    However, \gls{mead} may not be suitable for applications sensitive to initial
         startup latency.
 
 \item[\textit{RQ4}]
-    \textit{In which conditions is the usage of MEADcast sensible?}
+    \textit{In which conditions is the usage of \gls{mead} sensible?}
     % limited resources
     % - especially upstream
     % limited network control
@@ -985,26 +1093,26 @@ Packet Replication    The experiments have revealed an inefficiency within the M
     %   otherwise just falls back to Uni Cast
     % - If bandwidth should be reduced, but can not ensure Multicast support
 
-    The employment of MEADcast proves particularly beneficial when the
+    The employment of \gls{mead} proves particularly beneficial when the
         reduction of the total network bandwidth or sender upstream utilization
         is a major concern, especially in cases where IP Multicast support
         cannot be guaranteed.
-    Deploying a single MEADcast router at a strategic location can
+    Deploying a single \gls{mead} router at a strategic location can
         significantly reduce bandwidth utilization between the sender and
         router.
     However, it is important to note that the presence of a higher number of
-        MEADcast routers may not necessarily translate to performance
+        \gls{mead} routers may not necessarily translate to performance
         enhancements, as indicated in \autoref{sub:discussion_Feasibility}
         highlighting packet replication inefficiencies.
 
-    MEADcast excels in scenarios characterized by resource constraints and
+    \gls{mead} excels in scenarios characterized by resource constraints and
         limited network control.
-    Moreover, MEADcast empowers the sender to granularly tailor the traffic
+    Moreover, \gls{mead} empowers the sender to granularly tailor the traffic
         pattern according to specific requirements and prevailing network
         conditions.
     Given the protocol's support for partial deployment and resilient fallback
         mechanism, coupled with the absence of any major performance
-        disadvantages, we advocate for the adoption of MEADcast whenever
+        disadvantages, we advocate for the adoption of \gls{mead} whenever
         multicast communication is applicable.
     However, in scenarios where IP Multicast usage can be assured, it remains
         the preferred choice.

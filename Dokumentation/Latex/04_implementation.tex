@@ -223,19 +223,19 @@ The algorithm's specifics are depicted in \autoref{fig:router_hdr_parsing}.
 
 For each undelivered router $R_u$ specified in the \gls{mead} header, the
     processing router $R_p$ decides whether to transmit the data via \gls{mead}
-    or IP unicast.
+    or IP Unicast.
 If the IP address of $R_u$ in the \gls{mead} header belongs to the processing
     router $R_p$ itself, all designated endpoints will be delivered via IP
     unicast.
 Additionally, if the number of endpoints assigned to the considered router
     $R_u$ from the \gls{mead} header is below a certain threshold, the processing
-    router $R_p$ performs a premature \gls{mead} to IP unicast transformation.
+    router $R_p$ performs a premature \gls{mead} to IP Unicast transformation.
 For example, if $R_u$ has one designated endpoint, $R_p$ could execute a
-    premature \gls{mead} to IP unicast transformation, potentially enhancing
+    premature \gls{mead} to IP Unicast transformation, potentially enhancing
     performance.
 The threshold can also be configured during runtime by setting the parameter
     \inlinelst{/proc/sys/net/ipv6/meadcast/min\_dsts}.
-Setting \inlinelst{min\_dsts} to 0 disables premature \gls{mead} to IP unicast
+Setting \inlinelst{min\_dsts} to 0 disables premature \gls{mead} to IP Unicast
     transformation.
 
 If the packet is forwarded via \gls{mead}, the router updates both the delivery
@@ -247,11 +247,11 @@ Additionally, the IP destination field is set to the address of the first
 Lastly, the router performs a routing table lookup for the new destination
     address and forwards the packet accordingly.
 
-In case of IP unicast transmission, the router converts the \gls{mead} packet
+In case of IP Unicast transmission, the router converts the \gls{mead} packet
     into an IPv6 packet by copying the IPv6 header in front of the Layer 4
     header and adjusting the socket buffer pointers accordingly.
-Additionally, the L4 checksum is corrected due to the modified destination IP
-    address.
+Additionally, in alignment with RFC 1624 \cite{rfc1624}, the L4 checksum is
+    incrementally updated due to the modified destination IP address.
 
 % Search for first router
 %
@@ -296,7 +296,7 @@ The main tasks of the sender include sending periodical discovery requests to
     all group members, receiving discovery responses, constructing a topology
     tree based on the received discovery responses, grouping receivers into
     \gls{mead} packets, and transmitting data to all group members either via
-    \gls{mead} or IP unicast.
+    \gls{mead} or IP Unicast.
 
 \paragraph{Startup} % (fold)
 \label{par:Startup}
@@ -306,7 +306,7 @@ We regard this decision as justifiable, given that \gls{mead} does not define an
     mechanism for joining or leaving a group, and the primary objective of this
     thesis is to compare the protocol with existing alternatives.
 On startup the sender initializes a topology tree with itself as the root and
-    all receivers as direct attached leafs.
+    all receivers as direct attached leaves.
 Moreover, a TUN interface is created representing the common interface to other
     applications.
 Any data, which is send to the TUN interface will be transmitted to the
@@ -492,11 +492,142 @@ This procedure is required because complex structures can not be created
 \end{figure}
 % paragraph Discovery Thread (end)
 
-\paragraph{Grouping} % (fold)
-\label{par:Grouping}
-To understand the grouping of receivers into \gls{mead} packets, one has to
-    understand the internal sender structures.
+\subsection{Grouping} % (fold)
+\label{sub:Grouping}
+This section illustrates the receiver grouping algorithm, utilizing an exemplary
+    topology tree depicted in \autoref{fig:mead_rcvr_grp}.
+Initially, \hyperref[sec:Max 5]{Example 1} and \hyperref[sec:Max 10]{Example 2}
+    outline the procedural steps of the algorithm for fundamental configurations.
+\hyperref[sec:Max 10 Merge 1]{Example 3}, demonstrates the impact of the \textit{``Merge
+    Range''} parameter (see \texttt{"--merge"} in \autoref{lst:send_help}).
+\hyperref[sec:Max 12 Ok 7]{Example 4}, depicts the implication of the \textit{``OK Address
+    List Length''} parameter (see \texttt{"--ok"} in \autoref{lst:send_help}).
+\hyperref[sec:Max 10 Min Leaf 3]{Example 5} highlights the effect of the \textit{``Minimum
+    Leaf Count''} parameter (see \texttt{"--min-leaves"} in \autoref{lst:send_help}).
+A comprehensive description of all sender parameters is provided in \autoref{lst:send_help}.
+Furthermore, \autoref{alg:sender_grouping} demonstrates the core grouping
+    algorithm.
 
+\subsubsection{Example 1:\quad Max. Address List Length: 5} % (fold)
+\label{sec:Max 5}
+In this example, we examine the topology depicted in \autoref{fig:mead_rcvr_grp},
+    with a maximum address list length of five.
+Initially, the sender $S$ conducts a \gls{dfs} to locate a router with unvisited
+    leaves, yielding $R_2$ in our scenario.
+Subsequently, a new \gls{mead} header is generated, encompassing $R_2$ along
+    with its unvisited leaves, which are then marked as visited.
+As the size of the address list is greater or equal to $\max-1$, no further
+    addresses can be added, resulting in a header of \{$R_2$,$E_1$,$E_2$,$E_3$\}.
+Another \gls{dfs} is initiated to identify the next router with unvisited leaves,
+    resulting in $R_3$.
+The procedure at $R_3$ mirrors that at $R_2$, resulting in
+    \{$R_3$,$E_6$,$E_7$,$E_8$\}.
+The subsequent \gls{dfs} yields $R_1$, and the procedure an identical procedure
+    to that at $R_2$ is followed resulting in \{$R_1$,$E_4$,$E_5$\}.
+As no unvisited leaves remain, the final grouping is \{$R_2$,$E_1$,$E_2$,$E_3$\},
+    \{$R_3$,$E_6$,$E_7$,$E_8$\}, \{$R_2$,$E_1$,$E_2$,$E_3$\}.
+
+\subsubsection{Example 2:\quad Max. Address List Length: 10} % (fold)
+\label{sec:Max 10}
+In this example, we analyze the topology depicted in \autoref{fig:mead_rcvr_grp},
+    with a maximum address list length of ten.
+The initial \gls{dfs} returns $R_2$.
+Subsequently, a new \gls{mead} header is generated, encompassing $R_2$ along its
+    unvisited leaves, which are then marked as visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$\}.
+If $R_2$ has a child router with unvisited leaves, we explore it.
+However, given that $R_2$ has no child router, we ascend to $R_2$'s parent, $R_1$.
+As the address list of the current header has sufficient space left for $R_1$
+    and its unvisited leaves, they are appended, while the leaves are marked as
+    visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$,$R_1$,$E_4$,$E_5$\}.
+If $R_1$ has a child router with unvisited leaves, we explore it, leading us to
+    $R_3$.
+As the address list of the current header cannot accommodate $R_3$ and its
+    leaves, a new packet is created, resulting in \{$R_3$,$E_6$,$E_7$,$E_8$\}.
+As no unvisited leaves remain, the final grouping is
+    \{$R_2$,$E_1$,$E_2$,$E_3$,$R_1$,$E_4$,$E_5$\}, \{$R_3$,$E_6$,$E_7$,$E_8$\}.
+
+\subsubsection{Example 3:\quad Max. Address List Length: 10, Merge Range: 1} % (fold)
+\label{sec:Max 10 Merge 1}
+In this instance, we examine the topology illustrated in \autoref{fig:mead_rcvr_grp},
+    with a maximum address list length of ten and a merge range of one.
+A merge range of one allows the sender $S$ to to merge leaves from distinct parent 
+    routers under a common ancestor within a distance (\gls{mead} hops) of one.
+The initial \gls{dfs} returns $R_2$.
+Subsequently, a new \gls{mead} header is generated, encompassing $R_2$ along its
+    unvisited leaves, which are then marked as visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$\}.
+If $R_2$ has a child router with unvisited leaves, we explore it.
+However, given that $R_2$ has no child router, we ascend to $R_2$'s parent, $R_1$.
+As the address list of the current header has sufficient space left for $R_1$'s
+    unvisited leaves, they are merged, while the leaves are marked as visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$,$E_4$,$E_5$\}.
+If the currently considered router ($R_1$) is closer to the sender $S$ than the
+    router in the address list ($R_2$), we set $R_1$ as the designated
+    router, resulting in \{$R_1$,$E_1$,$E_2$,$E_3$,$E_4$,$E_5$\}.
+If $R_1$ has a child router with unvisited leaves, we explore it, leading us to
+    $R_3$.
+As the address list of the current header has sufficient space left for $R_3$'s
+    unvisited leaves, they are merged, while the leaves are marked as visited.
+The current state of the header is
+    \{$R_1$,$E_1$,$E_2$,$E_3$,$E_4$,$E_5$,$E_6$,$E_7$,$E_8$\}.
+Since the currently considered router ($R_3$) is not closer to the sender $S$ than
+    the router in the address list ($R_1$), there is no need to update the
+    designated router in the address list.
+As no unvisited leaves remain, the final grouping is
+    \{$R_1$,$E_1$,$E_2$,$E_3$,$E_4$,$E_5$,$E_6$,$E_7$,$E_8$\}.
+
+\subsubsection{Example 4:\quad Max. Address List Length: 12, OK Addres List Length: 7}
+\label{sec:Max 12 Ok 7}
+In this example, we examine the topology demonstrated in \autoref{fig:mead_rcvr_grp},
+    with a maximum address list length of twelve and a ``OK'' address list length
+    of seven.
+A ``OK'' address list length of seven allows the sender $S$ to prematurely finish
+    a packet, if it contains an equal or greater number of addresses than seven.
+The initial \gls{dfs} returns $R_2$.
+Subsequently, a new \gls{mead} header is generated, encompassing $R_2$ along its
+    unvisited leaves, which are then marked as visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$\}.
+If $R_2$ has a child router with unvisited leaves, we explore it.
+However, given that $R_2$ has no child router, we ascend to $R_2$'s parent, $R_1$.
+As the address list of the current header has sufficient space left for $R_1$
+    and its unvisited leaves, they are appended, while the leaves are marked as
+    visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$,$R_1$,$E_4$,$E_5$\}.
+As the length of the address list is greater or equal to ``OK'' address list
+    length, no further addresses are added to the list, even though $R_3$ and
+    its unvistited leaves could be acommendated.
+Another \gls{dfs} is initiated to identify the next router with unvisited leaves,
+    resulting in $R_3$.
+The procedure at $R_3$ mirrors that at $R_2$, resulting in
+    \{$R_3$,$E_6$,$E_7$,$E_8$\}.
+As no unvisited leaves remain, the final grouping is
+    \{$R_2$,$E_1$,$E_2$,$E_3$,$R_1$,$E_4$,$E_5$\}, \{$R_3$,$E_6$,$E_7$,$E_8$\}.
+
+\subsubsection{Example 5:\quad Max. Address List Length: 10, Min. Leaf Count: 3}
+\label{sec:Max 10 Min Leaf 3}
+In this instance, we examine the topology illustrated in \autoref{fig:mead_rcvr_grp},
+    with a maximum address list length of ten and a merge range of one.
+With a minimum leaf count of three the sender $S$ marks all leaves of routers with
+    less than 3 leaves for unicast delivery.
+The initial \gls{dfs} returns $R_2$.
+Subsequently, a new \gls{mead} header is generated, encompassing $R_2$ along its
+    unvisited leaves, which are then marked as visited.
+The current state of the header is \{$R_2$,$E_1$,$E_2$,$E_3$\}.
+If $R_2$ has a child router with unvisited leaves, we explore it.
+However, given that $R_2$ has no child router, we ascend to $R_2$'s parent, $R_1$.
+As $R_1$ has less than three leaves, its leaves are appended to the unicast
+    delivery list, and marked as delivered.
+If $R_1$ has a child router with unvisited leaves, we explore it, leading us to
+    $R_3$.
+As the address list of the current header has sufficient space left for $R_3$'s
+    unvisited leaves, they are merged, while the leaves are marked as visited.
+The current state of the header is
+    \{$R_2$,$E_1$,$E_2$,$E_3$,$R_3$,$E_6$,$E_7$,$E_8$\}.
+As no unvisited leaves remain, the final grouping is
+    \textit{MEADcast}: \{\{$R_2$,$E_1$,$E_2$,$E_3$,$R_3$,$E_6$,$E_7$,$E_8$\}\},
+    \textit{Unicast}: \{$E_6$,$E_7$\}.
 % basic grouping algorithm:
 %   - search start (dfs)
 %   - while free leaf:
@@ -534,7 +665,7 @@ To understand the grouping of receivers into \gls{mead} packets, one has to
 
 % Grouping:
 % 1) Reduce tree
-%   - Remove routers with less leafs or routers than X. Childs are adopted by parent
+%   - Remove routers with less leaves or routers than X. Childs are adopted by parent
 % 2) Grouping
 %   - search start (dfs)
 % paragraph Grouping (end)
@@ -550,37 +681,30 @@ To understand the grouping of receivers into \gls{mead} packets, one has to
 % - grouping algorithm
 % section Sender (end)
 
-% \begin{algorithm}
-% \caption{An algorithm with caption}
-% \label{alg:two}
-% \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-% \SetKw{KwGoTo}{go to}
-%
-% \Input{Router (s) to start grouping at}
-% $n\gets 0$\;
-% $m\gets 0$\;
-% $r\gets getStart(s)$\;
-% \While{r}{
-% \texttt{start:}\\
-%     \While{$r.freeLeafs < 0$}{
-%         $m\gets n + r.freeLeafs + 1$\;
-%         \uIf{$m>max$}{
-%             \KwGoTo next\;
-%         }
-%         \uElseIf{$m\geq max-1}{
-%             addRouterToGroup()\;
-%             recursiveBackpropergate(r)\;
-%             \KwGoTo next\;
-%         }
-%         \ElseIf{$m<max$}{
-%             addRouterToGroup()\;
-%             break\;
-%         }
-%     }
-%
-% \KwGoTo start\;
-% }
-% \end{algorithm}
+\begin{figure}
+\centering
+\begin{forest}
+    for tree={grow=south, circle, draw, align=center, font=\footnotesize, l sep=7ex},
+        where level=0{minimum size=2.3em, l sep-=3.5ex}{},
+        where level=1{
+            s sep+=10pt
+        }{},
+        % where level=4{l sep-=40}{},
+        % where n children=0{tier=bottom}{},
+        where n children=0{minimum size=2.3em}{},
+    [$S$
+        [$R_1$
+            [$R_2$ [$E_1$][$E_2$][$E_3$]]
+            [$E_4$][$E_5$]
+            [$R_3$ [$E_6$][$E_7$][$E_8$]]
+            ]
+        ]
+    ]
+\end{forest}
+    \caption[MEADcast network topology tree]{MEADcast network topology tree.
+    $S$ represents the sender, $R_i$ MEADcast routers, and $E_j$ group members.}
+\label{fig:mead_rcvr_grp}
+\end{figure}
 
 \begin{algorithm}
     \caption{Sender: grouping algorithm}\label{alg:sender_grouping}
@@ -594,8 +718,8 @@ To understand the grouping of receivers into \gls{mead} packets, one has to
 \Comment{Gets next router based on depth-first search}
 \While{$r$}
 \Label \texttt{start:}
-    \While{$r.freeLeafs > 0$}
-        \State $m\gets n + r.freeLeafs + 1$
+    \While{$r.freeLeaves > 0$}
+        \State $m\gets n + r.freeLeaves + 1$
         \If{$m > max$}
             \State \textbf{go to} \texttt{start}
         \ElsIf{$m \geq max - 1$}
@@ -632,8 +756,8 @@ To understand the grouping of receivers into \gls{mead} packets, one has to
     \Comment{Adds MEADcast header to \texttt{group.mdc} list}
     \State $r\gets \text{getStart($r$)}$
 \EndWhile
-    \State addRemainingLeafs($s$)
-    \Comment Adds the remaining leafs to \texttt{group.uni} list 
+    \State addRemainingLeaves($s$)
+    \Comment Adds the remaining leaves to \texttt{group.uni} list 
     \State \Return $group$
 \end{algorithmic}
 \end{algorithm}
@@ -703,30 +827,37 @@ Moreover, the availability of alternative routes facilitates the representation
 
 \subsubsection{UC1: Live Stream} % (fold)
 \label{par:impl UC1: Live Stream}
-The topology for UC1 is depicted in \autoref{fig:exp_live_stream}, consisting of
-    up to 96 nodes, comprising up to 70 receivers (max. 5 per client network) and
-    26 routers.
-The configuration encompasses four network domain each representing a building
+In accordance with the requirements outlined for \uci{} in
+    \autoref{par:EX1: Live Stream}, \autoref{fig:exp_live_stream} illustrates
+    the chosen topology, which comprises up to 96 nodes, consisting of a
+    maximum of 70 receivers (with a maximum of 5 per client network) and 26
+    routers.
+% The topology for UC1 is depicted in \autoref{fig:exp_live_stream}, consisting of
+%     up to 96 nodes, comprising up to 70 receivers (max. 5 per client network) and
+%     26 routers.
+The configuration encompasses four network domains each representing a building
     on a campus or even an entire location.
-Client $C_{3001}$ is selected as the sender.
-In the areas of the client networks $C_{21}-C_{23}$, $C_{35}-C_{36}$, and
-    $C_{41}-C_{46}$ there is a high receiver distribution.
-In contrast, networks $C_{11}$, $C_{14}$, $C_{16}$, $C_{28}$, and $C_38$
-    possess a lower receiver density.
+Client $C_{3001}$ is designated as the sender.
+Areas within client networks $C_{21}$-$C_{23}$, $C_{35}$-$C_{36}$, and
+    $C_{41}$-$C_{46}$ exhibit high receiver clustering, while networks
+    $C_{11}$, $C_{14}$, $C_{16}$, $C_{28}$, and $C_{38}$ demonstrate low
+    receiver density.
 The selection of client networks encompasses varying distances between sender
-    and receivers, ranging from four hops for $C_{35}$ and $C_{36}$ up to eight
-    hops for $C_{28}$.
+    $C_{3001}$ and receivers, ranging from four hops for $C_{35}$ and $C_{36}$
+    to eight hops for $C_{28}$.
 
-The chosen topology facilitates the measurement of \gls{mead}'s performance for
-    mid to large-sized groups, comprising a mixture of highly clustered and
-    isolated nodes, highlighting the protocol's potential in scenarios of
-    heterogen receiver distributions.
+The chosen topology aligns with the requirements formulated in
+    \autoref{par:EX1: Live Stream} and facilitates the measurement of
+    \gls{mead}'s performance for mid to large-sized groups, incorporating a
+    mixture of highly clustered and isolated nodes.
+This highlights the protocol's potential in scenarios of heterogeneous receiver
+    distributions.
 
 \begin{figure}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_live_stream.pdf}
     \end{center}
-    \caption[UC1: Live stream]{UC1: Live stream ($C_{3001}$ \textit{is sender})}
+    \caption[UC1: Live Stream]{\nuci{} ($C_{3001}$ \textit{is sender})}
     \label{fig:exp_live_stream}
 \end{figure}
 % subsubsection UC1 Live Stream (end)
@@ -734,51 +865,56 @@ The chosen topology facilitates the measurement of \gls{mead}'s performance for
 
 \subsubsection{UC2: File transfer} % (fold)
 \label{par:implEX2: File transfer}
-The topology for UC2 includes up to 58 nodes, composed of 45 receivers (max. 5
-    per client network) and 13 routers.
+In accordance with the requirements provided for \ucii{} in
+    \autoref{par:EX2: File Transfer}, \autoref{fig:exp_file_transfer}
+    illustrates the chosen topology, consisting of up to 58 nodes, comprising
+    45 receivers (with a maximum of 5 per client network) and 13 routers.
 The node selection encompasses the entire network domain three, representing
-    a server network or even an entire data center, with the sender $C_{4001}$
-    representing the package source mirror. 
-The entire range of client networks ($C_{30}-C_{38}$) is located within one
-    highly clustered area.
+    either a server network or even an entire data center, with the sender
+    $C_{4001}$ serving as the package source mirror. 
+All client networks ($C_{30}$-$C_{38}$) are located within one highly
+    clustered area.
 Furthermore, we have the flexibility to adjust the number of receivers by
     scaling the number of active nodes within a client network within a range
     of 1-5.
 
-The chosen topology enables the measurement of \gls{mead}'s performance for
-    mid to large-sized groups of highly clustered nodes, demonstrating the
-    protocol's potential in scenarios with ideal conditions.
+The chosen topology aligns with the requirements outlined in
+    \autoref{par:EX2: File Transfer} and facilitates the evaluation of
+    \gls{mead}'s performance for mid to large-sized groups of highly clustered
+    nodes, demonstrating the protocol's potential in scenarios with ideal
+    conditions.
 
 \begin{figure}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_file_transfer.pdf}
     \end{center}
-    \caption[UC2: File transfer]{UC2: File transfer ($C_{4001}$ \textit{is sender})}
+    \caption[UC2: File Transfer]{\nucii{} ($C_{4001}$ \textit{is sender})}
     \label{fig:exp_file_transfer}
 \end{figure}
 
 \subsubsection{UC3 Video conference} % (fold)
 \label{par:impl EX3 Video conference}
-As depicted in \autoref{fig:exp_video_conference}, the composition of nodes
-    includes a total of up to 78 nodes, comprising 60 clients (max. 5 per
-    client network)
-    and 18 routers.
-However, since this use case aims to asses \gls{mead}'s suitability for small
+In accordance with the requirements formulated for \uciii{} in
+    \autoref{par:EX3 Video conference}, \autoref{fig:exp_video_conference}
+    depicts the chosen topology, including a total of up to 78 nodes, comprising
+    60 clients (with a maximum of 5 per client network) and 18 routers.
+However, since this use case aims to assess \gls{mead}'s suitability for small
     to medium-sized \gls{p2p} conferences, the number of clients is typically
     lower.
-The topology encompasses local clustering in the area of $C_{33}-C_{36}$
-    and $C_{21}-C_{25}$ representing sub-teams in different office locations.
+The topology features local clustering in the area of $C_{33}$-$C_{36}$
+    and $C_{21}$-$C_{25}$, representing sub-teams in different office locations.
 Conversely, $C_{12}$, $C_{40}$, and $C_{46}$ exhibit a low receiver density
     representing customers or service providers in remote areas.
 The selection of client networks encompasses varying distances between clients,
-    ranging from one hop within local clusters like between $C_{33}$ and
+    ranging from one hop within local clusters such as between $C_{33}$ and
     $C_{34}$, up to eight hops between $C_{25}$ and $C_{46}$.
-Since this use cases focuses on \gls{p2p} communication, all clients transmit
+Since this use case focuses on \gls{p2p} communication, all clients transmit
     and receive traffic.
 
-The chosen topology facilitates the investigation of \gls{mead}'s suitability
-    for \gls{p2p} communication and whether the protocol's application can
-    bridge the asymmetric access link bandwidth.
+The chosen topology aligns with the requirements stated in
+    \autoref{par:EX3 Video conference} and facilitates the investigation of
+    \gls{mead}'s suitability for \gls{p2p} communication and whether the
+    protocol can bridge the asymmetric access link bandwidth.
 Moreover, the topology enables the examination of the effect of high \gls{mead}
     traffic volume on \gls{mead} routers.
 
@@ -786,18 +922,19 @@ Moreover, the topology enables the examination of the effect of high \gls{mead}
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_video_conference.pdf}
     \end{center}
-    \caption[UC3: P2P Video Conference]{UC3: P2P Video Conference (\textit{all members are senders})}
+    \caption[UC3: P2P Video Conference]{\nuciii{} (\textit{all members are senders})}
     \label{fig:exp_video_conference}
 \end{figure}
 
 \subsubsection{UC4 Online Gaming} % (fold)
 \label{par:EX4 Online Gaming}
-The topology design for UC4 is illustrated in \autoref{fig:exp_online_gaming},
-    comprising up to 72 nodes, including 45 clients (max. 5 per client network)
-    and 27 routers.
-However, since this use case aims to asses \gls{mead}'s suitability for small
+In accordance with the requirements outlined for \uciv{} in
+    \autoref{par:EX4 Online game}, \autoref{fig:exp_online_gaming}
+    illustrates the chosen topology, comprising up to 72 nodes, including
+    45 receivers (with a maximum of 5 per client network) and 27 routers.
+However, since this use case aims to assess \gls{mead}'s suitability for small
     to medium-sized groups, the number of clients is typically lower.
-The design features an evenly spread distribution of client network with a low
+The design features an evenly spread distribution of client networks with a low
     receiver density.
 No router is directly connected to more than one client network.
 Client $C_{4501}$ is designated as the sender.
@@ -805,7 +942,8 @@ The selection of client networks encompasses varying distances between sender
     and receivers, ranging from four hops for $C_{43}$ up to eight hops for
     $C_{24}$ and $C_{28}$.
 
-The chosen topology design facilitates the evaluation of \gls{mead}'s
+The chosen topology design aligns with the requirements provided in
+    \autoref{par:EX4 Online game} and facilitates the evaluation of \gls{mead}'s
     implication on latency and jitter.
 Moreover, the topology enables the investigation of \gls{mead}'s performance in
     scenarios with suboptimal conditions, particularly with a high receiver
@@ -815,7 +953,7 @@ Moreover, the topology enables the investigation of \gls{mead}'s performance in
     \begin{center}
         \includegraphics[width=.75\textwidth]{exp_online_gaming.pdf}
     \end{center}
-    \caption[UC4: Online Gaming]{UC4: Online Gaming ($C_{45}$ \textit{is sender})}
+    \caption[UC4: Online Gaming]{\nuciv{} ($C_{45}$ \textit{is sender})}
     \label{fig:exp_online_gaming}
 \end{figure}
 % subsection Testbed (end)
@@ -943,8 +1081,8 @@ It is noteworthy while OSPF mandates routers to possess only a link-local
 We conducted over 180 measurements across three distinct use cases (UC1-3),
     repeating each measurement multiple times to ensure the validity and
     reliability of the collected data.
-Specifically, we conducted more than 120 measurements for UC1, 50 for UC2, and
-    10 for UC3.
+Specifically, we conducted more than 120 measurements for \uci{}, 50 for
+    \ucii{}, and 10 for \uciii{}.
 
 Each \textit{use case} is delineated by its compilation of routers, transit and
     stub networks, and specific application characteristics, including
@@ -956,7 +1094,7 @@ This series comprises measurements for IP Unicast, IP Multicast, and various
 A \gls{mead} configuration is composed of the sender parameterization and the 
     network support level.
 For instance, \autoref{tab:usecase_experiment_measurement} provides an excerpt
-    of two experiments conducted within UC1 (Live stream).
+    of two experiments conducted within \nuci{}.
 
 \begin{table}
 \centering
@@ -1001,7 +1139,7 @@ Stream   & Mead     & 28        & 2         & 2.5    & L1     & 0      & 0      
 \caption[Use case, experiments and measurements]{
     Use case, experiments and measurements.
     Excerpt of two experiments comprising multiple measurements conducted
-    within UC1 (Live stream).
+    within \nuci{}.
 }
 \label{tab:usecase_experiment_measurement}
 \end{table}
@@ -1030,7 +1168,7 @@ For this purpose, we utilized \textit{``ifstat''}.
 % Uni (1:n):
 %   - rx: ssh into all machines, start Iperf server and detach from it
 %   - tx: ssh into sender and start one Iperf instance per receiver via gnu parallel
-To conduct IP Unicast measurements for UC1 and UC2 we connected to all
+To conduct IP Unicast measurements for \uci{} and \ucii{} we connected to all
     receivers using GNU parallel and SSH, initiated Iperf in server mode and
     detached from the process.
 On the sender we initiated one instance of Iperf per receiver using GNU
@@ -1061,7 +1199,7 @@ It is noteworthy, that we initiated the Iperf client (our sender) with the
 % Uni (m:n):
 %   - rx: same
 %   - tx: ssh into each client and do the same as 1:n
-To conduct IP Unicast measurements for UC3 (\gls{p2p}), we employed one
+To conduct IP Unicast measurements for \uciii{} (\gls{p2p}), we employed one
     instance of Iperf in server mode on each client ($n$), along with $n-1$
     instances of Iperf in client mode, sending traffic to each other.
 % Multicast (m:n)
@@ -1119,14 +1257,14 @@ Additionally, the \texttt{"--ok"} parameter was consistently set to 80\% of the
 
 % - proved that MEADcast on/off flag has no impact
 
-\paragraph{UC1} % (fold)
+\paragraph{UC1: Live Stream} % (fold)
 \label{par:UC1}
 % - As cartesian says 5 Mbit/s for a HD video stream, however since this turned
 %   out as unfeasible due to our resource limitations did base line experiment
 %   1 Mbit/s audio stream and 2.5 Mbit/s for a SD video stream
 % - 1-5 Clients per stub net (total 14-70)
 % - For high numbers still sometimes unreliable data
-Initially, we conducted experiments for UC1 with a data volume of 5 Mbit/s,
+Initially, we conducted experiments for \uci{} with a data volume of 5 Mbit/s,
     a common requirement for HD video streams \cite{cartesian_us_bw}.
 However, during the measurements, it became evident that our hardware resources
     were insufficient to support this data volume as the group size increased.
@@ -1140,7 +1278,7 @@ However, even the experiment with 70 clients and a data volume of 2.5 Mbit/s
     exceeded our resource capacities, resulting in unreliable data.
 % paragraph UC1 (end)
 
-\paragraph{UC2} % (fold)
+\paragraph{UC2: File Transfer} % (fold)
 \label{par:UC2}
 % - BC iperf has no feature to MAX out bandwidth, went up until we reached
 %   packet loss of approx 1.5%
@@ -1159,7 +1297,7 @@ Subsequently, we conducted experiments with 1, 3, and 5 clients per router
     (totaling 9, 27, 45), with a data volume of 25 MB.
 % paragraph UC2 (end)
 
-\paragraph{UC3} % (fold)
+\paragraph{UC3: P2P Video Conference} % (fold)
 \label{par:UC3}
 % - To high packet loss already in base experiment
 Initially, we conducted an experiment with 12 clients (1 per stub network) and
@@ -1168,12 +1306,12 @@ Initially, we conducted an experiment with 12 clients (1 per stub network) and
 However, even in this modest experiment, we observed packet loss rates of
     50\%.
 Due to the unreliable data, resulting from our resource limitations we decided
-    to discontinue experiments for UC3.
+    to discontinue experiments for \uciii{}.
 % paragraph UC3 (end)
 
-\paragraph{UC4} % (fold)
+\paragraph{UC4: Online Gaming} % (fold)
 \label{par:UC4}
-The primary objective of UC4 was to evaluate the potential impact of \gls{mead}
+The primary objective of \uciv{} was to evaluate the potential impact of \gls{mead}
     processing on latency and jitter.
 However, due to the constrained time frame of this thesis and the fact that 
     latency and jitter metrics were collected throughout all previous
@@ -1198,32 +1336,32 @@ However, due to the constrained time frame of this thesis and the fact that
 Dynamic network environments were explored to asses the impact of common
     phenomena such as routing changes, network disruptions, and packet dropping
     by intermediate nodes on \gls{mead}.
-The measurements were conducted within the topology of UC3, with C1201 acting
-    as the sender and three receivers located in the stub networks C33-C36
-    each.
-These effects were consequently induced on the link between R1 and R3.
+The measurements were conducted within the topology of \uciii{}, with
+    $C_{1201}$ acting as the sender and three receivers located in the stub
+    networks $C_{33}$-$C_{36}$ each.
+These effects were consequently induced on the link between $R_1$ and $R_3$.
 
-A route change was simulated by altering the link state on R3's
+A route change was simulated by altering the link state on $R_3$'s
     \textit{``enp2s0''} interface from ``up'' to ``down''.
 This action prompted the underlying routing protocol on R1 to immediately
-    switch to an alternative route via R4.
+    switch to an alternative route via $R_4$.
 
 To simulate a link failure, a firewall rule using \textit{``Iptables''} was
-    applied on R3 to drop any traffic received on the link towards R1.
+    applied on $R_3$ to drop any traffic received on the link towards $R_1$.
 The corresponding commands are detailed in \autoref{lst:r3_link_failure}.
 Similar to the route alteration experiment, R1 adapted to an alternative route
     via R4.
 
 For simulating packet dropping by an intermediate node, a firewall rule was
-    employed on R3 to drop packets containing an IPv6 routing header extension
-    on the link towards R1.
+    employed on $R_3$ to drop packets containing an IPv6 routing header extension
+    on the link towards $R_1$.
 First, \gls{mead} transmission with periodic discovery phase was initiated,
     followed by enabling the firewall rule during \gls{mead} data transmission.
 The associated commands are provided in \autoref{lst:r3_fw}.
 After 8 seconds this rule was disabled again, to observe \gls{mead} reverting to
     its initial grouping.
 This experiment was conducted with both 100\% network support and support only
-    on L2 and L3 in network domain 3 (R31, R310, R311).
+    on L2 and L3 in network domain 3 ($R_{31}$, $R_{310}$, $R_{311}$).
 With 100\% network support, the implications of \gls{mead} falling back to
     another router located in front of the firewall were measured.
 Network support only on L2 and L3 in network domain 3, enabled the
