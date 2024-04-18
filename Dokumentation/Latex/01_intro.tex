@@ -11,8 +11,8 @@
 % still lacks far behind expectations
 % several reasons...
 Over the last two decades, the number of people with access to the internet has
-    continuously increased at a rate of 5\%, resulting in a current total of
-    over 5 billion individual internet users \cite{itu_digdev}.
+    continuously increased at a rate of 5\% per year, resulting in a current
+    total of over 5 billion individual internet users \cite{itu_digdev}.
 Furthermore, the unrelenting demand for data has led to an average growth in
     total bandwidth usage of 30\% over the past five years.
 This development was further accelerated by the COVID-19 pandemic, as the
@@ -185,72 +185,74 @@ This include issues such as packet acknowledgment and the client side
 The current state of the internet put forth various unicast-based alternatives,
     aimed at addressing the absence of a globally usable multicast protocol
     \cite{universal_mc}.
-One such alternative, known as MEADcast \cite{meadcast1}, offers the capability
+One such alternative, known as \gls{mead} \cite{meadcast1}, offers the capability
     for 1:n sender-based IPv6 multipoint communication over the internet
     \cite{meadcast2}.
-Key features of MEADcast include the preservation of receiver privacy,
+Key features of \gls{mead} include the preservation of receiver privacy,
     technology-agnostic destinations, and zero network support requirements.
 
 Building upon prior research conducted by \citeauthor{meadcast2}
     \cite{meadcast2}, the primary goal of this thesis is to conduct a
-    real-world evaluation of MEADcast, utilizing a Linux Kernel implementation
+    evaluation of \gls{mead}, utilizing a Linux Kernel implementation
     of the required router software.
 This step represents a logical progression from earlier investigations of
-    MEADcast, which were based on network simulations \cite{meadcast1} and
+    \gls{mead}, which were based on network simulations \cite{meadcast1} and
     \gls{sdn} \cite{sdn_ba}.
 The evaluation primarily focuses on the following aspects:
 
 \paragraph{Feasibility Study} % (fold)
 \label{par:Feasibility Study}
 The first part of the evaluation assesses the feasibility of deploying
-    MEADcast in a network.
+    \gls{mead} in a medium-sized network.
 This aims to identify potential limitations and structural issues of the
     current protocol specification.
-Further investigation examines the practicality of using MEADcast on the
-    internet, taking into consideration concerns related to IPv6 extension
-    header processing \cite{rfc7872_ext_hdrs_drop_rate}.
+% Further investigation examines the practicality of using \gls{mead} on the
+%     internet, taking into consideration concerns related to IPv6 extension
+%     header processing \cite{rfc7872_ext_hdrs_drop_rate}.
 % paragraph Feasibility Study (end)
 
 \paragraph{Performance Evaluation} % (fold)
 \label{par:Performance Evaluation}
-A comparative performance analysis is conducted to evaluate MEADcast in
+A comparative performance analysis is conducted to evaluate \gls{mead} in
     comparison to both IP Unicast and multicast.
 This assessment provides insights into the efficiency and effectiveness of
-    MEADcast as a multipoint communication solution.
+    \gls{mead} as a multipoint communication solution.
 % paragraph Performance Evaluation (end)
 
 \paragraph{Scenario identification} % (fold)
 \label{par:Scenario identification}
 Building on the results of the previous evaluation steps, this phase involves
     identifying scenarios, application categories, and characteristics that
-    justify the utilization of MEADcast.
-Thereby, it can be determined where MEADcast may offer advantages and excel in
+    justify the utilization of \gls{mead}.
+Thereby, it can be determined where \gls{mead} may offer advantages and excel in
     real-world applications.
 % paragraph Scenario identification (end)
     
 \noindent\\
 Aligned with the established objectives, this thesis presents a series of
     contributions.
-Firstly, it introduces a Linux Kernel implementation of the MEADcast router,
-    facilitating the deployment of MEADcast in a real network.
-Second, it offers a traffic generator designed to serve as the MEADcast sender,
-    simulating the application of the protocol.
-These contributions are further solidified through the deployment of MEADcast
-    in both a controlled testbed environment and a real-world network.
-Lastly, this research evaluates MEADcast's feasibility, performance, and
-    potential application scenarios based on a series of conducted experiments.
+Firstly, it introduces a Linux Kernel implementation of the \gls{mead} router,
+    facilitating the deployment of \gls{mead} in a real network.
+Second, it provides a standalone sender implementation, enabeling arbitrary 
+    applications to utilize \gls{mead} delivery by directing their traffic into
+    a TUN device.
+These contributions are further solidified through the deployment of \gls{mead}
+    in a medium-sized network.
+Lastly, this research evaluates \gls{mead}'s feasibility, performance, and
+    potential application scenarios based on a series of conducted use cases.
 This evaluation provides valuable insights for its future implementation and
     development, ultimately enabling us to propose a revision of the protocol
     specification.
 
-The findings indicate, that with certain limitations, MEADcast is applicable in
-    real networks.
-The current protocol specification suffers from poor availability on the
-    internet due to the limited processing of IPv6 packets with extension
-    headers.
-However, the proposed modification effectively addresses this obstacle while
-    enhancing receiver privacy.
-Our measurements suggest that MEADcast's performance falls between uni- and
+The findings indicate, the feasibility of deploying \gls{mead} within
+    medium-sized networks.
+Furthermore, \gls{mead} demonstrates significant reductions in network bandwidth
+    utilization, sender upstream bandwidth consumption, and total transfer time
+    compared to IP Unicast.
+Nonetheless, the current specification exhibits from routing inefficiencies,
+    header overhead, and security concerns.
+To address these issues, this thesis proposes several refinements. 
+Our measurements suggest that \gls{mead}'s performance falls between uni- and
     multicast, particularly showing promise in scenarios characterized by
     limited bandwidth and network control.
 
@@ -264,23 +266,25 @@ To ensure the achievement of the previously defined goals, this thesis follows
 % First, we conduct a literature review to analyze the current challenges of
 %     IP Multicast.
 First, we conduct a literature review of several multicast protocols and
-    analyze the current challenges of global multipoint communication.
+    analyze the current challenges of multipoint communication.
 With a clear understanding of the relevant protocols and their limitations we
     define the objectives of this thesis.
 % Based on these results, we define the objectives of this thesis.
+Subsequently, we explore application domains and characteristics potentially 
+    benefiting from multicast communication.
 Furthermore, we select adequate evaluation metrics and criteria to asses
-    MEADcast's feasibility, performance, and potential application scenarios.
-Subsequently, we design a series of experiments aimed at capturing these
+    \gls{mead}'s feasibility, performance, and potential application scenarios.
+Subsequently, we design a series of use cases aimed at capturing these
     metrics.
-Next, we outline the testbed requirements derived from these experiments and
+Next, we outline the testbed requirements derived from these use cases and
     elaborate on a corresponding testbed design.
 % Next, we derive requirements from the experiments and elaborate on a testbed
 %     design.
-MEADcast is then deployed in the testbed, and the experiments are conducted.
+\gls{mead} is then deployed in the testbed, and the experiments are conducted.
 Finally, we present the obtained results.
 These findings are critically evaluated with respect to the thesis' overarching
     goal, providing valuable insights into the feasibility and performance of
-    MEADcast.
+    \gls{mead}.
 This analysis allows us to identify scenarios and applications for which the
     protocol is well-suited.
 % This analysis opens the door to identifying scenarios and applications the
@@ -296,16 +300,18 @@ every node/.style={node distance=1.2cm},
 force/.style={rectangle, rounded corners, draw, fill=black!8, text width=2.75cm, text badly centered, minimum height=1cm, font=\footnotesize\sffamily}]
 
 \node [force]                                                           (problem)       {Problem analysis};
-\node [force, below of=problem,         right=-1.35cm of problem]       (goal)          {Goal definition};
-\node [force, below of=goal,            right=-1.35cm of goal]          (criteria)      {Metric \& Criteria selection};
-\node [force, below of=criteria,        right=-1.35cm of criteria]      (design)        {Experiment design};
-\node [force, below of=design,          right=-1.35cm of design]        (requirements)  {Requirements analysis};
-\node [force, below of=requirements,    right=-1.35cm of requirements]  (testbed)       {Testbed design};
-\node [force, below of=testbed,         right=-1.35cm of testbed]       (experiment)    {Experiment conduction};
-\node [force, below of=experiment,      right=-1.35cm of experiment]    (evaluation)    {Evaluation};
+\node [force, below of=problem,         right=-1.50cm of problem]       (goal)          {Goal definition};
+\node [force, below of=goal,            right=-1.50cm of goal]          (domain)        {Application domains \& characteristics};
+\node [force, below of=domain,          right=-1.50cm of domain]        (criteria)      {Metric \& Criteria selection};
+\node [force, below of=criteria,        right=-1.50cm of criteria]      (design)        {Use case selection};
+\node [force, below of=design,          right=-1.50cm of design]        (requirements)  {Requirements analysis};
+\node [force, below of=requirements,    right=-1.50cm of requirements]  (testbed)       {Testbed design};
+\node [force, below of=testbed,         right=-1.50cm of testbed]       (experiment)    {Experiment conduction};
+\node [force, below of=experiment,      right=-1.50cm of experiment]    (evaluation)    {Evaluation};
 
 \draw[-latex,thick] (problem.south west)        +(7mm,0) |- (goal.west);
-\draw[-latex,thick] (goal.south west)           +(7mm,0) |- (criteria.west);
+\draw[-latex,thick] (goal.south west)           +(7mm,0) |- (domain.west);
+\draw[-latex,thick] (domain.south west)           +(7mm,0) |- (criteria.west);
 \draw[-latex,thick] (criteria.south west)       +(7mm,0) |- (design.west);
 \draw[-latex,thick] (design.south west)         +(7mm,0) |- (requirements.west);
 \draw[-latex,thick] (requirements.south west)   +(7mm,0) |- (testbed.west);
@@ -327,19 +333,28 @@ The method employed in this thesis ensures a cohesive narrative, with each
     articulates the goal of this thesis.
 Moving forward, \autoref{chap:Background and Work} establishes the theoretical
     foundation for subsequent investigations, by examining several multicast
-    protocols, including IP Multicast, Xcast, and MEADcast.
-Additionally, the chapter provides a brief overview of Kernel development
-    fundamentals and the network stack, laying the groundwork for the router
-    implementation.
-\autoref{chap:Design} presents our selection of evaluation metrics and
-    criteria, outlines the testbed requirements and presents the corresponding
-    testbed design.
+    protocols, including IP Multicast, \gls{xcast}, \gls{xcast+}, and \gls{mead}.
+Given that, we have to design a representative medium-sized network topology,
+    this chapter also provides a brief overview of a state-of-the-art 
+    model for medium to large-sized networks.
+Additionally, this chapter  provides a brief overview of a state-of-the-art
+    model for medium to large-sized network, laying the groundwork for the 
+    subsequent network topology design.
+% Additionally, the chapter provides a brief overview of Kernel development
+%     fundamentals and the network stack, laying the groundwork for the router
+%     implementation.
+\autoref{chap:Design} presents a range of potential application domains, their
+    characteristics, our selection of research questions and evaluation metrics,
+    a series of use cases, testing parameters, and implementation requirements.
+    % and
+    % criteria, outlines the testbed requirements and presents the corresponding
+    % testbed design.
 \autoref{chap:Implementation} delves into technical details about the Kernel
-    implementation of the router software and provides detailed specifications
-    of the testbed.
+    implementation of the router software, sender functionality, and provides detailed
+    specifications of the topology and experiment conduction.
 This chapter serves as the foundation for the practical experiments.
-In \autoref{chap:Evaluation} we present the results from our experiments and
-    evaluate them.
+Moving forward to \autoref{chap:Evaluation}, we present the results from our
+    experiments and evaluate them.
 Finally, \autoref{chap:Summary} summarizes the findings and draws conclusions
     from this research.
 Additionally, it outlines potential avenues for future work and exploration in

@@ -81,7 +81,7 @@ The first application domain is \textit{Multimedia Streaming}, encompassing
     various applications transmitting multimedia content to an arbitrary number
     of destinations, such as IPTV \cite{meadcast2, ratnasamy2006revisiting},
     Internet Radio \cite{meadcast1}, podcasts, and live streaming (e.g.
-    Twitch).
+    Twitch\footnote{\url{https://www.twitch.tv/}}).
 \textit{Conferencing and Collaboration} is the second domain, comprising Audio
     and Video Conferences \cite{overlay_mc_routing, meadcast2,
     mc_routing_multimedia}, \gls{voip} \cite{gxcast, xcast_rfc}, as well as
@@ -94,7 +94,7 @@ The next domain \textit{File Transfer}, covers numerous applications
     synchronization \cite{overlay_mc_routing}.
 \textit{Information delivery} comprises applications pushing information to 
     multiple destinations.
-One example is a news application, which notifies it's users about new
+One example is a news application, which notifies its users about new
     information of topics or channels they have subscribed
     \cite{diot2000deployment}.
 Other applications include widely utilized smartphone notifications, RSS feeds
@@ -295,7 +295,7 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
     \item [2] \textsl{(s)mall, (m)edium, (l)arge}
     \end{tablenotes}
     \end{threeparttable}
-    \caption{Characteristics of the application domains}
+    \caption[Characteristics of the application domains]{Characteristics of the application domains (based on \autocite{cartesian_us_bw, diot2000deployment})}
     \label{tab:appscenarios}
 \end{table}
 % section Application Characteristics (end)
@@ -323,68 +323,68 @@ Nevertheless, it is sensitive to the packet drop rate, since it has to ensure
 % Following, this section depicts how we answer these questions.
 Aligned with the goal of this thesis, this section formulates overarching
     research questions derived from the previously introduced potential
-    application domains, guiding the design of the experiments.
+    application domains, guiding the design of the use cases.
 Additionally, this section outlines our approach to answering these questions.
 
 \begin{enumerate}
     \item[\textit{RQ1}]\label{rq1}
-        \textit{How robust is the current MEADcast specification?}\par
-        While prior research on MEADcast has primarily taken place in simulated
+        \textit{How robust is the current \gls{mead} specification?}\par
+        While prior research on \gls{mead} has primarily taken place in simulated
             environments \cite{meadcast1, meadcast2} and small stub networks
-            \cite{sdn_ba}, this thesis endeavors to assess MEADcast in a more
+            \cite{sdn_ba}, this thesis endeavors to assess \gls{mead} in a more
             realistic setting.
         To achieve this, we perform a stress test to evaluate the protocol's
             behavior in a less ``clinical'' environment.
-        During this test we observe MEADcast's reaction to deliberate routing
+        During this test we observe \gls{mead}'s reaction to deliberate routing
             changes, to evaluate its adaptivity and suitability for dynamic
             network environments.
         Further, we simulate network disruptions by inducing router outages, to
-            assess MEADcast's resilience and recovery capabilities.
-        The stress test also examines MEADcast anomaly handling by injecting
+            assess \gls{mead}'s resilience and recovery capabilities.
+        The stress test also examines \gls{mead} anomaly handling by injecting
             modified discovery responses.
-        Additionally, a firewall is employed to intentionally drop MEADcast
+        Additionally, a firewall is employed to intentionally drop \gls{mead}
             packets during the data delivery phase, enabling us to evaluate the
             efficacy of the fallback mechanism.
         The results of the stress test shed light on the robustness of the
-            current MEADcast specification, especially in diverse network
+            current \gls{mead} specification, especially in diverse network
             conditions.
         This investigation aims to provide valuable insights into the
-            real-world applicability and resilience of MEADcast.
+            real-world applicability and resilience of \gls{mead}.
         \item[\textit{RQ2}]\label{rq2}
         % typical metrics: throughput, latency, jitter, resource utilization,
         %   ... in different scenarios
         % impact of the discovery phase
-        \textit{How does MEADcast perform compared to IP Unicast and
+        \textit{How does \gls{mead} perform compared to IP Unicast and
         IP Multicast?}\par
         In addition to assessing the robustness of a protocol, its performance,
             especially in comparison to existing alternatives, is a pivotal
             factor influencing its adoption.
         To address this research question, comparative performance measurements
-            for MEADcast, IP Unicast, and IP Multicast are conducted across a
-            series of experiments elaborated in \autoref{sec:Scenarios}.
+            for \gls{mead}, IP Unicast, and IP Multicast are conducted across a
+            series of use cases elaborated in \autoref{sec:Use cases}.
         These measurements encompass metrics such as throughput, latency,
             jitter, and resource utilization.
-        Special attention is given to the impact of MEADcast's discovery phase
+        Special attention is given to the impact of \gls{mead}'s discovery phase
             on its performance.
         This encompasses assessing the overhead produced by the discovery
             mechanism.
         Furthermore, we evaluate how the protocol's shift from extensive
-            unicast to MEADcast delivery affects the performance metrics.
-        The outcomes contribute not only to evaluating MEADcast performance but
+            unicast to \gls{mead} delivery affects the performance metrics.
+        The outcomes contribute not only to evaluating \gls{mead} performance but
             also to drawing conclusions for subsequent research questions.
         \item[\textit{RQ3}]\label{rq3}
         \textit{Which applications and characteristics are well served by
-        MEADcast?}\par
+        \gls{mead}?}\par
         % first look at motivations, application domains and characteristics
         % for multicast. Then select scenarios to portray a variety
         Addressing this research question involves designing a series of 
-            experiments depicting a diverse range of applications with distinct
-            characteristics (see \autoref{sec:Scenarios}).
+            use cases depicting a diverse range of applications with distinct
+            characteristics (see \autoref{sec:Use cases}).
         The selection of scenarios is guided by an initial exploration of
             motivations for employing multicast communication, and more
-            specifically, MEADcast.
+            specifically, \gls{mead}.
         These motivations lay the groundwork for identifying a range of
-            potential application domains where MEADcast deployment could prove
+            potential application domains where \gls{mead} deployment could prove
             beneficial.
         Subsequently, we formulate application characteristics distinguishing
             these domains.
@@ -392,33 +392,33 @@ Additionally, this section outlines our approach to answering these questions.
             represent different application domains and their unique set of
             characteristics.
         This comprehensive selection ensures a throughout examination of
-            MEADcast's suitability across a diverse spectrum of use cases.
-        The results aim to delineate MEADcast's application space by
+            \gls{mead}'s suitability across a diverse spectrum of use cases.
+        The results aim to delineate \gls{mead}'s application space by
             identifying its strengths and limitations.
     \item[\textit{RQ4}] \label{rq4}
-        \textit{In which conditions is the usage of MEADcast sensible?}\par
+        \textit{In which conditions is the usage of \gls{mead} sensible?}\par
         % testing parameters based on scenarios
         % Number of EPs
         % Number of MEADcast routers
         % EP distribution
         % Available Bandwidth
-        The viability of employing MEADcast is influenced not only by
+        The viability of employing \gls{mead} is influenced not only by
             application domains and their characteristics but also by
             prevailing circumstances.
         To investigate this aspect, the experiments are executed with various
             parameter configurations.
         For instance, the level of network control and the number of available
-            MEADcast routers affect the performance and thus the viability of
-            MEADcast.
+            \gls{mead} routers affect the performance and thus the viability of
+            \gls{mead}.
         This applies equally to testing parameters like available bandwidth,
             number of endpoints, and their distribution.
         % Further testing parameters are the available bandwidth, the number of
         %     receivers, and their distribution.
         The goal is to provide insights into the conditions under which
-            deploying MEADcast is advantageous compared to existing
+            deploying \gls{mead} is advantageous compared to existing
             alternatives.
         The results aim to offer guidance for making informed decisions
-            regarding the adoption of MEADcast in specific circumstances.
+            regarding the adoption of \gls{mead} in specific circumstances.
         % The results aims to provide guidance, under which circumstances
         %     employing MEADcast is favorable in comparison to existing
         %     alternatives.
@@ -456,11 +456,11 @@ Based on the previously exhibited application domains and characteristics this
 
 The primary goal is, to develop a series of use cases encompassing various
     domains and characteristics, aimed at answering our research questions.
-This comprehensive selection ensures a throughout examination of MEADcast's
+This comprehensive selection ensures a throughout examination of \gls{mead}'s
     suitability across a diverse spectrum of use cases.
-Therefore, the results from the use cases are pivotal to answer \textit{RQ3}.
-The specific characteristics of each use case are illustrated in
-    \autoref{tab:ex_char}.
+Therefore, the results from the use cases are pivotal to answer \textit{\rqiii{}}.
+The specific characteristics of each corresponding application domain are
+    illustrated in \autoref{tab:appscenarios}.
 The chosen implementation for each use case is provided in
     \autoref{sub:Network Topology}.
 
@@ -519,7 +519,7 @@ Although mechanisms exist to limit bandwidth consumption, we only consider
     scenarios of full downstream bandwidth utilization.
 The number of receivers varies significantly, ranging from a few servers to
     entire data centers.
-The primary objective of this experiment is to investigate how well MEADcast
+The primary objective of this experiment is to investigate how well \gls{mead}
     handles recurring bursts of high traffic volume.
 Additionally, we aim to asses the reduction in total network bandwidth
     consumption, sender upstream bandwidth consumption, and total transfer time 
@@ -584,31 +584,31 @@ Secondly, to evaulate \gls{mead}'s performance in suboptimal settings,
 % File transfer 1:n     burst       large       high            high
 % Conference    m:n     steady      med         high            low
 % Online Game   m:n     steady      small       low             low
-\begin{table}[h!]
-    \centering
-    \begin{threeparttable}
-    \begin{tabular}{lcccccccc}
-    \toprule
-        & \multicolumn{2}{c}{\textbf{Communication}}
-        & \multicolumn{3}{c}{\textbf{Network}}
-        & \multicolumn{3}{c}{\textbf{Group/Session}} \\
-        \cmidrule(lr){2-3}\cmidrule(lr){4-6}\cmidrule(lr){7-9}
-        \textbf{Scenario}     & \makecell{Pattern}      & \makecell{Interval} & \makecell{Pkt.\\size} & \makecell{Through.\\(tx/rx)} & \makecell{Latency\\/Jitter} & \makecell{Dura-\\tion\tnote{1}} & \makecell{Mem.\\ship} & Size\\
-    \midrule
-        Live Stream   & 1:n     & steady      & med.         & high/med.       & med.    & h-d   & dyn.  & l\\
-        File transfer & 1:n     & burst       & large        & high/high       & high    & s-h   & stat. & s-l\\
-        Conference    & m:n     & steady      & med.         & high/high       & low     & m-h   & stat. & s-m\\
-        Online Game   & m:n     & steady      & small        & low/med.        & low     & m-h   & stat. & s-m\\
-    \bottomrule
-        
-    \end{tabular}
-    \begin{tablenotes}
-    \item [1] \textsl{(s)econds, (h)ours, (d)ays}
-    \end{tablenotes}
-    \end{threeparttable}
-    \caption{Show diff scenarios meeting}
-    \label{tab:ex_char}
-\end{table}
+% \begin{table}[h!]
+%     \centering
+%     \begin{threeparttable}
+%     \begin{tabular}{lcccccccc}
+%     \toprule
+%         & \multicolumn{2}{c}{\textbf{Communication}}
+%         & \multicolumn{3}{c}{\textbf{Network}}
+%         & \multicolumn{3}{c}{\textbf{Group/Session}} \\
+%         \cmidrule(lr){2-3}\cmidrule(lr){4-6}\cmidrule(lr){7-9}
+%         \textbf{Scenario}     & \makecell{Pattern}      & \makecell{Interval} & \makecell{Pkt.\\size} & \makecell{Through.\\(tx/rx)} & \makecell{Latency\\/Jitter} & \makecell{Dura-\\tion\tnote{1}} & \makecell{Mem.\\ship} & Size\\
+%     \midrule
+%         Live Stream   & 1:n     & steady      & med.         & high/med.       & med.    & h-d   & dyn.  & l\\
+%         File transfer & 1:n     & burst       & large        & high/high       & high    & s-h   & stat. & s-l\\
+%         Conference    & m:n     & steady      & med.         & high/high       & low     & m-h   & stat. & s-m\\
+%         Online Game   & m:n     & steady      & small        & low/med.        & low     & m-h   & stat. & s-m\\
+%     \bottomrule
+%         
+%     \end{tabular}
+%     \begin{tablenotes}
+%     \item [1] \textsl{(s)econds, (h)ours, (d)ays}
+%     \end{tablenotes}
+%     \end{threeparttable}
+%     \caption{Show diff scenarios meeting}
+%     \label{tab:ex_char}
+% \end{table}
 % section Use cases (end)
 
 \section{Testing parameters} % (fold)
@@ -618,45 +618,44 @@ Secondly, to evaulate \gls{mead}'s performance in suboptimal settings,
 % - number & location of MEADcast routers
 % - group size (per packet)
 % - discovery interval
-The series of experiments introduced earlier shares several testing parameters.
-Consequently, these experiments incorporate diverse parameter configurations
-    intended to assess their influence on measurements, specifically addressing
-    \textit{RQ2} and \textit{RQ4}.
+The series of use cases introduced earlier shares several testing parameters.
+Consequently, these scenarios incorporate diverse parameter configurations
+    such as the number of \gls{mead} router, intended to assess their influence on the results from our experiments, specifically addressing \textit{\rqii{}} and \textit{\rqiv{}}.
 
 The first parameter is the \textit{number and distribution of receivers}.
 Generally, with a larger number of receivers, a multicast protocol tends to
     achieve proportionally higher bandwidth savings compared to unicast.
 However, we anticipate that the distribution of receivers significantly impacts
-    MEADcast's performance.
-Therefore, the experiments encompass various distributions, ranging from highly
+    \gls{mead}'s performance.
+Therefore, the use cases encompass various distributions, ranging from highly
     clustered receivers with minimal internal distances to uniformly spread
     distributions.
 This parameter aims to illuminate how spatial receiver arrangement influences
     the protocol's efficiency.
 
-The second testing parameter is the \textit{degree of MEADcast support}.
+The second testing parameter is the \textit{degree of \gls{mead} support}.
 Analogous to the first parameter, we hypothesize that the number and placement
-    of MEADcast-capable routers have a significant impact on the protocol's
+    of \gls{mead}-capable routers have a significant impact on the protocol's
     performance.
 To investigate this, the experiments are conducted ranging from a minimal
-    degree of MEADcast routers to complete protocol support within the testbed.
-By varying this parameter, we aim to assess MEADcast's efficiency under
+    degree of \gls{mead} routers to complete protocol support within the testbed.
+By varying this parameter, we aim to assess \gls{mead}'s efficiency under
     conditions of limited network control, offering valuable insights
-    directly addressing \textit{RQ4}.
+    directly addressing \textit{\rqiv{}}.
 
-The third, parameter resolves around \textit{grouping receivers} into MEADcast
+The third, parameter resolves around \textit{grouping receivers} into \gls{mead}
     packets.
 Evaluating the balance between the number of recipients per packet and the
     available \gls{sdu} size is crucial.
 A larger number of recipients per packet potentially reduces traffic volume by
     consolidating identical packet streams.
-However, this also enlarges the MEADcast header, consequently diminishing the
+However, this also enlarges the \gls{mead} header, consequently diminishing the
     available \gls{sdu} size.
 This trade-off might inadvertently increase traffic volume since more packets
     are required to transmit the total payload.
 Furthermore, the grouping algorithm itself is considered.
 For instance, recipients sharing the same parent router could be distributed
-    across different packets to achieve an optimal balance between the MEADcast
+    across different packets to achieve an optimal balance between the \gls{mead}
     header and payload size.
 Moreover, receivers with distinct parents might be merged under a common
     ancestor to accommodate them within a single packet.
@@ -693,7 +692,7 @@ Therefore, a \textit{medium-sized topology} comprising around 200 nodes
 
 \paragraph{Realistic topology} % (fold)
 \label{par:Realistic topology}
-Aligned with \textit{RQ1}, the graph should reflect a realistic medium-sized
+Aligned with \textit{\rqi{}}, the graph should reflect a realistic medium-sized
     network topology.
 As discussed in \autoref{sec:Hierachical Three-Layer Internet Model}, a
     realistic topology comprises three network layers: Core, Distribution, and
@@ -715,15 +714,15 @@ This layer must establish connectivity between end devices and serves as the
 \label{par:Endpoint distribution}
 The use cases require various numbers of endpoints and their distribution.
 The topology must accommodate group sizes ranging from small to medium-sized
-    (UC3, UC4) up to medium to large-sized groups (UC1, UC2).
-Moreover, UC1, UC2, and UC3 require areas of \textit{high receiver clustering}.
-Additionally, UC1, UC3, and UC4 mandate areas characterized by \textit{low
+    (\uciii{}, \uciv{}) up to medium to large-sized groups (\uci{}, \ucii{}).
+Moreover, \uci{}, \ucii{}, and \uciii{} require areas of \textit{high receiver clustering}.
+Additionally, \uci{}, \uciii{}, and \uciv{} mandate areas characterized by \textit{low
     receiver density}.
-Since UC1 and UC3 require both local clustering and low receiver density, the
+Since \uci{} and \uciii{} require both local clustering and low receiver density, the
     topology must facilitate \textit{varying distances} between sender and
     receivers.
 All use cases require the integration of \textit{multiple network domains}.
-UC1, UC3, and UC4 employ isolated remote hosts, necessitating the incorporation
+\uci{}, \uciii{}, and \uciv{} employ isolated remote hosts, necessitating the incorporation
     of paths of \textit{sufficient length}.
 Additionally, the comprehensive evaluation of \gls{mead}'s performance across
     diverse levels of network support and various grouping strategies, also
@@ -752,15 +751,15 @@ Given the evaluation of a Layer 3 IPv6-based protocol, the presence of multiple
 Beyond that, IP Multicast routing is indispensable for a comparison of \gls{mead}
     and IP Multicast.
 Furthermore, our use cases mandate various up and downstream capacities.
-UC3 and UC4 require moderate downstream requirements of 1-3 Mbit/s and 0.5-1
+\uciii{} and \uciv{} require moderate downstream requirements of 1-3 Mbit/s and 0.5-1
     Mbit/s, respectively.
-UC1 and UC2 demand a downstream bandwidth of at least 5 Mbit/s.
-Moreover, UC1, UC2, and UC3 also mandate an upstream bandwidth of multiple
+\uci{} and \ucii{} demand a downstream bandwidth of at least 5 Mbit/s.
+Moreover, \uci{}, \ucii{}, and \uciii{} also mandate an upstream bandwidth of multiple
     Mbit/s on the sender side.
-Additionally, assessing the resilience of MEADcast in dynamic network
+Additionally, assessing the resilience of \gls{mead} in dynamic network
     environments necessitates the inclusion of \textit{alternative paths} to
     simulate routing alterations and network disruptions.
-Furthermore, to pursue \textit{RQ1} the incorporation of an intermediate node,
+Furthermore, to pursue \textit{\rqi{}} the incorporation of an intermediate node,
     capable dropping packets is required.
 % paragraph Connectivity (end)
 
@@ -831,7 +830,7 @@ This section discusses requirements for the router and sender software
 % - Transimtting data both via MEADcast as well as unicast (fallback mechanism)
 \paragraph{Sender} % (fold)
 \label{par:Sender}
-To ensure a comprehensive assessment of MEADcast, the sender should include the
+To ensure a comprehensive assessment of \gls{mead}, the sender should include the
     following features:
 
 First, the sender must periodically dispatch discovery requests to the
@@ -840,14 +839,14 @@ Additionally, the sender needs to receive discovery responses and process them.
 After, the discovery timeout is exceeded the sender should start grouping the
     endpoints.
 Therefore, the sender is required to efficiently organize and group receivers
-    into MEADcast packets, facilitating streamlined data transmission.
-Whenever possible, the software should support MEADcast data transmission.
-However, unicast is used as a fallback mechanism, if MEADcast is not available
+    into \gls{mead} packets, facilitating streamlined data transmission.
+Whenever possible, the software should support \gls{mead} data transmission.
+However, unicast is used as a fallback mechanism, if \gls{mead} is not available
     on certain paths.
 The discovery interval, discovery timeout, and grouping functionalities should
     be configurable, allowing flexibility for experimentation and optimization
     based on various network conditions and scenarios.
-Considering our evaluation of MEADcast is based on metrics such as latency and
+Considering our evaluation of \gls{mead} is based on metrics such as latency and
     jitter, the sender should possess the capability to either measure these
     metrics directly or act as a proxy for traffic received from network
     measurement tools.
@@ -862,31 +861,31 @@ Considering our evaluation of MEADcast is based on metrics such as latency and
 % - Turn MEADcast support on and off
 \paragraph{Router} % (fold)
 \label{par:Router}
-To enable the usage of MEADcast the router should encompass the following
+To enable the usage of \gls{mead} the router should encompass the following
     features:
 
 The router should receive discovery requests, reply to them with a discovery
     response, and forward the request according to the destination address.
 Additionally, the router needs to receive, process, modify, replicate, and
-    forward MEADcast data packets accordingly.
-For each receiver listed in the MEADcast header assigned to the router itself,
+    forward \gls{mead} data packets accordingly.
+For each receiver listed in the \gls{mead} header assigned to the router itself,
     the data should be transmitted the data to the respective recipient using
     IP Unicast.
-In case of a MEADcast to unicast transformation Layer 4 checksum correction is
+In case of a \gls{mead} to unicast transformation Layer 4 checksum correction is
     may required.
-Lastly, it is preferable, if MEADcast can be turned on and off, to ease the
+Lastly, it is preferable, if \gls{mead} can be turned on and off, to ease the
     deployment of various level of network support.
 % paragraph Router (end)
 
 \paragraph{Non-functional} % (fold)
 \label{par:Non-functional}
-Given that the performance evaluation of MEADcast encompasses time-sensitive
+Given that the performance evaluation of \gls{mead} encompasses time-sensitive
     metrics such as latency and jitter, it is imperative that the clocks of
     each node are synchronized.
 This synchronization is crucial for ensuring comparable measurements.
 Additionally, similar routing procedures must be employed for IP Unicast, IP
-    multicast, and MEADcast to maintain consistency in the evaluation.
-For instance, comparing software-based MEADcast routing with hardware-based IP
+    multicast, and \gls{mead} to maintain consistency in the evaluation.
+For instance, comparing software-based \gls{mead} routing with hardware-based IP
     routing would not yield meaningful results.
 % paragraph Non-functional (end)
 % subsection Requirements (end)

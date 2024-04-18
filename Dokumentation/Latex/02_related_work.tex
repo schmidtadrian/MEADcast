@@ -1,6 +1,11 @@
 \chapter{Background and Related Work} % (fold)
 \label{chap:Background and Work}
-
+This chapter serves to establish the theoretical background for our study.
+\autoref{sec:Mutlicast Protocols} introduces various multicast protocols,
+    including IP Multicast, \gls{xcast}, \gls{xcast+}, and \gls{mead}.
+\autoref{sec:Hierachical Three-Layer Internet Model} lays the groundwork
+    for our topology design by presenting a state-of-the-art model tailored for
+    designing medium to large-sized network topologies.
 
 \section{Multicast Protocols} % (fold)
 \label{sec:Mutlicast Protocols}
@@ -10,16 +15,13 @@ Multicast communication refers to the simultaneous delivery of data towards an
 Numerous network protocols have been developed to facilitate multicast
 communication, encompassing both Network Layer as well as Application Layer
     implementations \cite{universal_mc, overlay_mc_routing}.
-This chapter first distinguishes Multicast from other communication schemes.
-Subsequently, various multicast protocols are introduced.
+This section first distinguishes Multicast from other communication schemes,
+    followed by an introduction to various multicast protocols.
 
 According to the OSI model \cite{osi1980} Layer 3, known as the Network Layer,
     is responsible for end-to-end delivery of data between nodes.
-In computer networks data is transferred through \glspl{pdu}, composed of
-    protocol specific control information (e.g. source and destination
-    address), along with a payload carrying the actual data.
-To establish a path from the sender to the destination(s), packets (Layer 3
-    \glspl{pdu}) may traverse multiple intermediate nodes \cite{rfc791_ip}.
+To establish a path from the sender to the destination(s), packets (Layer 3)
+    may traverse multiple intermediate nodes \cite{rfc791_ip}.
 This process is called routing and can be classified into various schemes.
 For the purpose of this thesis, our primary focus lies on the schemes depicted
     in \autoref{fig:multicast}.
@@ -230,7 +232,7 @@ Finally, routers $R_6$ and $R_7$ forward default IP Unicast packets to $E_2$
         ]
     ]
 \end{forest}
-    \caption{Xcast processing (based on \cite{xcast_rfc})}
+    \caption[Xcast processing]{Xcast processing (based on \cite{xcast_rfc})}
 \label{fig:xcast}
 \end{figure}
 
@@ -308,14 +310,14 @@ When the client side \glspl{dr} $R_3$, $R_6$, and $R_7$ receive the packet,
     \cite{meadcast2}.
 The sender is responsible for all group management tasks, while the receivers
     consistently receive IP Unicast traffic, remaining agnostic to the use
-    of MEADcast \cite{meadcast1}.
+    of \gls{mead} \cite{meadcast1}.
 \gls{mead} endures across varying levels of network support, allowing for a
     gradual deployment of \gls{mead} router.
 The protocol's design draws inspiration from \gls{xcast} \cite{meadcast1}.
 
 \gls{mead} operates in two phases: discovery and data delivery.
 On the sender side, this entails functionalities such as transmitting unicast
-    and MEADcast packets as well as discovering \gls{mead} routers along the
+    and \gls{mead} packets as well as discovering \gls{mead} routers along the
     paths to receivers \cite{meadcast2}.
 \gls{mead} routers, on the other hand, are responsible for forwarding and
     transforming \gls{mead} packets, as well as responding to and forwarding
@@ -373,8 +375,8 @@ It might forward the packet, create replicas, and forward them to other
 \begin{figure}
     \centering
     \includegraphics[width=.95\textwidth]{Bilder/mead_seq_dia.pdf}
-    \caption{Interaction among participants in a MEADcast session (based on
-        \cite{meadcast2})}
+    \caption[Interaction among participants in a MEADcast session]{
+        Interaction among participants in a \gls{mead} session (based on \cite{meadcast2})}
     \label{fig:mead_seq_dia}
 \end{figure}
 
@@ -455,7 +457,7 @@ A brief description of each field is provided in
     \bitbox{16}{Port N}
 \end{rightwordgroup} \\
 \end{bytefield}
-    \caption[MEADcast Header]{MEADcast Header (based on \cite{meadcast2, meadcast1})}
+    \caption[MEADcast Header]{\gls{mead} Header (based on \cite{meadcast2, meadcast1})}
     \label{fig:mead_hdr}
 \end{figure}
 
@@ -497,10 +499,10 @@ Dcvr Flags    & Flags to mark a \gls{mead} packet as discovery request,
                 response or data message \cite{meadcast2}.
                 The size of the field lacks specification. \\
 Hops          & Specifies the distance between the sender and a router, denoted
-                in the number of MEADcast hops.
+                in the number of \gls{mead} hops.
                 This field is utilized during the discovery phase. The sender
                 initializes the field with zero, and it is incremented by each
-                intermediate MEADcast router encountered.
+                intermediate \gls{mead} router encountered.
                 The field size lacks specification.\\
 Reserved      & A reserved field of unspecified size \cite{meadcast2}. \\
 Delivery Map  & A 32-bit Bitmap, where each bit at position $i$ indicates
@@ -511,14 +513,14 @@ Router Map    & A 32-bit Bitmap, where each bit at position $i$ indicates
                 whether an address at index $i$ in the address list is a
                 router (0 = receiver, 1 = router) \cite{meadcast2}.\\
 Address List  & A variable-length list comprising the IPv6 addresses of
-                receivers and MEADcast routers \cite{meadcast2}. \\ \midrule
+                receivers and \gls{mead} routers \cite{meadcast2}. \\ \midrule
 Dst Opt Preamble & The values for the Destination Option Preamble such as
                     Option Type and Option Data Len lack specification. \\
 Port List     & A variable-length list encompassing the Layer 3 ports for each
                 receiver in the address list \cite{meadcast2}.\\
 \bottomrule
 \end{tabularx}
-\caption{MEADcast header field description}
+    \caption[MEADcast header field description]{\gls{mead} header field description}
 \label{tab:02_meadcast_header}
 \end{table}
 \egroup
@@ -728,7 +730,7 @@ Subsequently, they each send IP Unicast packets to their respective
     ]
 \end{forest}
 \caption[MEADcast data delivery]{
-    MEADcast Data Delivery:
+    \gls{mead} Data Delivery:
     An underscored address signifies a set bit in the router bitmap, while a
         stroked-through address indicates that the corresponding router bit is
         set to ``delivered'' (0) in the delivery bitmap.
@@ -887,8 +889,9 @@ CPU-intensive packet manipulations resulting from security measures,
     \begin{center}
         \includegraphics[width=.6\textwidth]{three_layer_model.pdf}
     \end{center}
-    \caption{Hierarchical three-layer internetworking model (based on
-    \cite{cisco_3_tier})}
+    \caption[Hierarchical three-layer internetworking model]{
+        Hierarchical three-layer internetworking model (based on
+        \cite{cisco_3_tier})}
     \label{fig:three-layer}
 \end{figure}
 

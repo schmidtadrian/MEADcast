@@ -1,7 +1,15 @@
 \chapter{Implementation} % (fold)
 \label{chap:Implementation}
-This chapter introduces the employed protocol specification, the implementation
-    of the \gls{mead} router and sender, as well as the testbed.
+This chapter focuses on the implementation of our experiment.
+Initially, \autoref{sec:Protocol Specification} presents the implemented
+    \gls{mead} specification.
+Subsequently, \autoref{sec:Router} delves into the technical details of the
+    Kernel implementation of the router software.
+\autoref{sec:Sender} provides insights into the sender implementation, including
+    the interaction of discovery and data delivery phases and the receiver
+    grouping algorithm.
+Finally, \autoref{sec:Experiment} demonstrates our designed network topologies,
+    deployment of the testbed, and the conduction of the experiment.
 
 \section{Protocol Specification} % (fold)
 \label{sec:Protocol Specification}
@@ -28,19 +36,19 @@ Lastly, according to various research studies, packets containing a Hop-by-Hop
 
 Next, we introduce the detailed characteristics of the \gls{mead} header in our
     implementation.
-The first four octets of the \gls{mead} header constitute the static Routing
+The first four octets of the \gls{mead} header constitute the static routing
     extension header, which is shared by all routing variants.
 This differs from previous implementations of \gls{mead}, which omitted the
-    Segments Left field \cite{sdn_ba}.
+    \textit{Segments Left} field \cite{sdn_ba}.
 We decided to include this field to comply with RFC 8200
     \cite{rfc8200_ipv6_hdr}, reducing the likelihood that intermediate nodes
-    drop \gls{mead} packets due to a malformed Routing header.
-Since there is no existing Routing Type designated for \gls{mead}, we utilize the
+    drop \gls{mead} packets due to a malformed routing header.
+Since there is no existing \textit{Routing Type} designated for \gls{mead}, we utilize the
     experimental values of 253 and 254 in accordance with RFC3692
     \cite{rfc3692_ipv6_rt_type}.
-The Segments Left field remains fixed to zero and is never altered because,
+The \textit{Segments Left} field remains fixed to zero and is never altered because,
     according to RFC 8200 \cite{rfc8200_ipv6_hdr}, intermediate nodes that do
-    not recognize the employed Routing type value must ignore the Routing
+    not recognize the employed \textit{Routing Type} value must ignore the routing
     header and proceed to process the next header.
 An illustration of the \gls{mead} header layout can be found in
     \autoref{lst:meadcast_header}, along with an in-depth description of each
@@ -70,7 +78,7 @@ Due to the time frame of this thesis, we omit the usage of the optional port
     \skippedwords \\
     \wordbox[lrb]{1}{} \\
 \end{bytefield}
-\caption{\gls{mead} header specification}
+\caption[Employed MEADcast header specification]{Employed \gls{mead} header specification}
 \label{lst:meadcast_header}
 \end{figure}
 
@@ -81,7 +89,7 @@ Due to the time frame of this thesis, we omit the usage of the optional port
 \setlength{\tabcolsep}{1.2em}
 \begin{tabularx}{\textwidth}{lX}
 \toprule
-\textbf{Field}& \textbf{Desciption} \\
+\textbf{Field}& \textbf{Description} \\
 \midrule
 Next Header   & A 8-bit selector, identifying the type of the immediately
                 following header \cite{rfc8200_ipv6_hdr}.
@@ -143,7 +151,7 @@ Address List  & A variable-length list comprising the IPv6 addresses of
                 practical limit of 32 addresses.\\
 \bottomrule
 \end{tabularx}
-\caption{Employed \gls{mead} header field description}
+\caption[Employed MEADcast header field description]{Employed \gls{mead} header field description}
 \label{tab:meadcast_header}
 \end{table}
 \egroup
@@ -166,15 +174,15 @@ To avoid the burden of recompiling or switching the kernel to enable or disable
     \gls{mead} support, we introduce a runtime configuration flag.
 This flag is managed through Sysctl, providing the virtual file
     \inlinelst{/proc/sys/net/ipv6/meadcast/enable}, which contains either 0 for
-    disabled and 1 for enabled.
+    disabled and 1 for enabled (see \autoref{lst:rt_cfg}).
 For instance, the root user can enable \gls{mead} support by running the command
     \inlinelst{"echo 1 > /proc/sys/net/ipv6/meadcast/enable"}.
 However, it is crucial to ensure that this additional check does not adversely
     impact performance compared to a plain kernel, as it could potentially
     affect the reliability of experimental results.
 
-As illustrated in \autoref{sub:Network Stack}, packets not designated to the
-    router itself follow the ``forwarding'' packet flow in the Kernel.
+Packets not designated to the router itself follow the ``forwarding'' packet
+    flow in the Kernel.
 IPv6 extension headers of these packets are normally ignored by the Kernel
     (except for the Router Alert extension).
 Consequently, we embedded the entry point for \gls{mead} processing at the end of
@@ -235,7 +243,7 @@ For example, if $R_u$ has one designated endpoint, $R_p$ could execute a
     performance.
 The threshold can also be configured during runtime by setting the parameter
     \inlinelst{/proc/sys/net/ipv6/meadcast/min\_dsts}.
-Setting \inlinelst{min\_dsts} to 0 disables premature \gls{mead} to IP Unicast
+Setting \inlinelst{min\_dsts} to zero disables premature \gls{mead} to IP Unicast
     transformation.
 
 If the packet is forwarded via \gls{mead}, the router updates both the delivery
@@ -270,25 +278,32 @@ Additionally, in alignment with RFC 1624 \cite{rfc1624}, the L4 checksum is
 %   - recalc checksum
 \begin{figure}
     \begin{center}
-        \includegraphics[scale=1]{router_hdr_parsing.pdf}
+        \includegraphics[scale=.85]{router_hdr_parsing.pdf}
     \end{center}
-    \caption{Router header parsing}
+    \caption[Router: MEADcast header parsing]{Router: \gls{mead} header parsing}
     \label{fig:router_hdr_parsing}
 \end{figure}
 
-\begin{figure}
-    \begin{center}
-        \includegraphics[width=\textwidth]{router_procedure.pdf}
-    \end{center}
-    \caption{\gls{mead} router procedure}
-    \label{fig:router_procedure}
-\end{figure}
+% \begin{figure}
+%     \begin{center}
+%         \includegraphics[width=\textwidth]{router_procedure.pdf}
+%     \end{center}
+%     \caption{\gls{mead} router procedure}
+%     \label{fig:router_procedure}
+% \end{figure}
 % section Router (end)
 
 
 \section{Sender} % (fold)
 \label{sec:Sender}
 This section provides an overview of our \gls{mead} sender implementation.
+\autoref{sub:Sender Architecture} delves into the internal implementation
+    specifics, such as threading and data structures.
+\autoref{sub:Grouping} provides an introduction into the algorithm which
+    groups a list of receivers into \gls{mead} packets.
+
+\subsection{Software Architecture}
+\label{sub:Sender Architecture}
 To ensure efficient processing that is comparable to existing network
     protocol implementations, we chose to implement the sender in the C
     language.
@@ -492,7 +507,7 @@ This procedure is required because complex structures can not be created
 \end{figure}
 % paragraph Discovery Thread (end)
 
-\subsection{Grouping} % (fold)
+\subsection{Grouping Algorithm} % (fold)
 \label{sub:Grouping}
 This section illustrates the receiver grouping algorithm, utilizing an exemplary
     topology tree depicted in \autoref{fig:mead_rcvr_grp}.
@@ -505,7 +520,7 @@ Initially, \hyperref[sec:Max 5]{Example 1} and \hyperref[sec:Max 10]{Example 2}
 \hyperref[sec:Max 10 Min Leaf 3]{Example 5} highlights the effect of the \textit{``Minimum
     Leaf Count''} parameter (see \texttt{"--min-leaves"} in \autoref{lst:send_help}).
 A comprehensive description of all sender parameters is provided in \autoref{lst:send_help}.
-Furthermore, \autoref{alg:sender_grouping} demonstrates the core grouping
+Furthermore, \hyperref[alg:sender_grouping]{Algorithm 1} demonstrates the core grouping
     algorithm.
 
 \subsubsection{Example 1:\quad Max. Address List Length: 5} % (fold)
@@ -610,7 +625,7 @@ As no unvisited leaves remain, the final grouping is
 In this instance, we examine the topology illustrated in \autoref{fig:mead_rcvr_grp},
     with a maximum address list length of ten and a merge range of one.
 With a minimum leaf count of three the sender $S$ marks all leaves of routers with
-    less than 3 leaves for unicast delivery.
+    less than three leaves for unicast delivery.
 The initial \gls{dfs} returns $R_2$.
 Subsequently, a new \gls{mead} header is generated, encompassing $R_2$ along its
     unvisited leaves, which are then marked as visited.
@@ -701,8 +716,8 @@ As no unvisited leaves remain, the final grouping is
         ]
     ]
 \end{forest}
-    \caption[MEADcast network topology tree]{MEADcast network topology tree.
-    $S$ represents the sender, $R_i$ MEADcast routers, and $E_j$ group members.}
+    \caption[MEADcast network topology tree]{\gls{mead} network topology tree.
+    $S$ represents the sender, $R_i$ \gls{mead} routers, and $E_j$ group members.}
 \label{fig:mead_rcvr_grp}
 \end{figure}
 
@@ -765,6 +780,13 @@ As no unvisited leaves remain, the final grouping is
 
 \section{Experiment} % (fold)
 \label{sec:Experiment}
+This section illustrates the implementation of the experiment.
+Initially, \autoref{sub:Network Topology} depicts the network topology and
+    the selected designs for each use case.
+Subsequently, \autoref{sub:Technical Infrastructure} delves into the deployment
+    process of our virtual testbed.
+Finally, \autoref{sub:Conduction} provides insights into the conduction
+    of each use case.
 
 \subsection{Network topology} % (fold)
 \label{sub:Network Topology}
@@ -780,18 +802,19 @@ The architecture of our testbed aligns with the in \autoref{sub:Topology}
 
 % less clinical / more variety so sometimes two routers on access layer
 The testbed comprises 205 nodes consisting of 40 routers and 165 end devices.
-The network is divided into 4 domains, each potentially representing distinct
+The network is divided into four domains, each potentially representing distinct
     buildings on a university campus.
-All 4 domains encompass 7-9 client networks, accommodating 5 end devices each.
-The access layer of each domain comprises up to 7 routers (3-digit router IDs
+All four domains encompass seven to nine client networks, accommodating five
+    end devices each.
+The access layer of each domain comprises up to seven routers (3-digit router IDs
     in \autoref{fig:topology}).
 Since this thesis evaluates a transport protocol, we waive the application of
-    switches on the access layer, deploying solely  layer 3 devices.
-The distribution layer of each domain encompasses 2-3 interconnected routers
+    switches on the access layer, deploying solely layer 3 devices.
+The distribution layer of each domain encompasses two to three interconnected routers
     (2-digit router IDs), aggregating the access layers within its respective
     domain and facilitating the connection to the core layer.
-The testbed's core consists of 4 routers (1-digit router IDs) interconnecting
-    the 4 network domains.
+The testbed's core consists of routers routers (1-digit router IDs) interconnecting
+    the four network domains.
 Additionally, the backbone possesses a high connectivity, ensuring both high
     availability and redundancy.
 To reduce management and operational overhead, the testbed incorporates fewer
@@ -815,7 +838,7 @@ Moreover, the availability of alternative routes facilitates the representation
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=.8\textwidth]{testbed_topology.pdf}
+        \includegraphics[width=.65\textwidth]{testbed_topology.pdf}
     \end{center}
     \caption{Testbed Topology}
     \label{fig:topology}
@@ -830,7 +853,7 @@ Moreover, the availability of alternative routes facilitates the representation
 In accordance with the requirements outlined for \uci{} in
     \autoref{par:EX1: Live Stream}, \autoref{fig:exp_live_stream} illustrates
     the chosen topology, which comprises up to 96 nodes, consisting of a
-    maximum of 70 receivers (with a maximum of 5 per client network) and 26
+    maximum of 70 receivers (with a maximum of five per client network) and 26
     routers.
 % The topology for UC1 is depicted in \autoref{fig:exp_live_stream}, consisting of
 %     up to 96 nodes, comprising up to 70 receivers (max. 5 per client network) and
@@ -855,7 +878,7 @@ This highlights the protocol's potential in scenarios of heterogeneous receiver
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=.75\textwidth]{exp_live_stream.pdf}
+        \includegraphics[width=.7\textwidth]{exp_live_stream.pdf}
     \end{center}
     \caption[UC1: Live Stream]{\nuci{} ($C_{3001}$ \textit{is sender})}
     \label{fig:exp_live_stream}
@@ -868,7 +891,7 @@ This highlights the protocol's potential in scenarios of heterogeneous receiver
 In accordance with the requirements provided for \ucii{} in
     \autoref{par:EX2: File Transfer}, \autoref{fig:exp_file_transfer}
     illustrates the chosen topology, consisting of up to 58 nodes, comprising
-    45 receivers (with a maximum of 5 per client network) and 13 routers.
+    45 receivers (with a maximum of five per client network) and 13 routers.
 The node selection encompasses the entire network domain three, representing
     either a server network or even an entire data center, with the sender
     $C_{4001}$ serving as the package source mirror. 
@@ -876,7 +899,7 @@ All client networks ($C_{30}$-$C_{38}$) are located within one highly
     clustered area.
 Furthermore, we have the flexibility to adjust the number of receivers by
     scaling the number of active nodes within a client network within a range
-    of 1-5.
+    of one to five.
 
 The chosen topology aligns with the requirements outlined in
     \autoref{par:EX2: File Transfer} and facilitates the evaluation of
@@ -886,18 +909,18 @@ The chosen topology aligns with the requirements outlined in
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=.75\textwidth]{exp_file_transfer.pdf}
+        \includegraphics[width=.7\textwidth]{exp_file_transfer.pdf}
     \end{center}
     \caption[UC2: File Transfer]{\nucii{} ($C_{4001}$ \textit{is sender})}
     \label{fig:exp_file_transfer}
 \end{figure}
 
-\subsubsection{UC3 Video conference} % (fold)
+\subsubsection{UC3: P2P Video conference} % (fold)
 \label{par:impl EX3 Video conference}
 In accordance with the requirements formulated for \uciii{} in
     \autoref{par:EX3 Video conference}, \autoref{fig:exp_video_conference}
     depicts the chosen topology, including a total of up to 78 nodes, comprising
-    60 clients (with a maximum of 5 per client network) and 18 routers.
+    60 clients (with a maximum of five per client network) and 18 routers.
 However, since this use case aims to assess \gls{mead}'s suitability for small
     to medium-sized \gls{p2p} conferences, the number of clients is typically
     lower.
@@ -920,18 +943,18 @@ Moreover, the topology enables the examination of the effect of high \gls{mead}
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=.75\textwidth]{exp_video_conference.pdf}
+        \includegraphics[width=.7\textwidth]{exp_video_conference.pdf}
     \end{center}
     \caption[UC3: P2P Video Conference]{\nuciii{} (\textit{all members are senders})}
     \label{fig:exp_video_conference}
 \end{figure}
 
-\subsubsection{UC4 Online Gaming} % (fold)
+\subsubsection{UC4: Online Gaming} % (fold)
 \label{par:EX4 Online Gaming}
 In accordance with the requirements outlined for \uciv{} in
     \autoref{par:EX4 Online game}, \autoref{fig:exp_online_gaming}
     illustrates the chosen topology, comprising up to 72 nodes, including
-    45 receivers (with a maximum of 5 per client network) and 27 routers.
+    45 receivers (with a maximum of five per client network) and 27 routers.
 However, since this use case aims to assess \gls{mead}'s suitability for small
     to medium-sized groups, the number of clients is typically lower.
 The design features an evenly spread distribution of client networks with a low
@@ -951,7 +974,7 @@ Moreover, the topology enables the investigation of \gls{mead}'s performance in
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=.75\textwidth]{exp_online_gaming.pdf}
+        \includegraphics[width=.7\textwidth]{exp_online_gaming.pdf}
     \end{center}
     \caption[UC4: Online Gaming]{\nuciv{} ($C_{45}$ \textit{is sender})}
     \label{fig:exp_online_gaming}
@@ -976,7 +999,7 @@ The testbed comprises \glspl{vm} connected by virtual networks.
 The hypervisor, based on Debian 11.3, is equipped with 4 CPUs, 8 threads, 32 GB
     memory, and 120 GB of storage capacity.
 
-Each VM is configured with 1 vCPU, 256 MB, and 8 GB of storage.
+Each \gls{vm} is configured with 1 vCPU, 256 MB, and 8 GB of storage.
 To optimize resource utilization, we employ the para-virtualized ``virtio''
     network adapter for the \glspl{vm}.
 We utilize two types of \glspl{vm}: clients and routers, both based on a Debian
@@ -1042,7 +1065,7 @@ Instead, the host injects para-virtualized \gls{ptp} devices into the guests
     facilitating highly accurate time synchronization.
 Apart from loading the \texttt{"kvm\_ptp"} Kernel module and configuring
     \textit{``chrony''} as usual, setting the clock source on the host via
-    Kernel command line parameters to X was necessary.
+    Kernel command line parameters to \texttt{"clocksource=tsc"} was necessary.
 
 % Router, routing protocol,
 The router operates on our custom \gls{mead} Kernel version 6.5.2.
@@ -1059,7 +1082,7 @@ It is noteworthy while OSPF mandates routers to possess only a link-local
 
 \begin{figure}
     \begin{center}
-        \includegraphics[width=0.85\textwidth]{topo_format.pdf}
+        \includegraphics[width=0.75\textwidth]{topo_format.pdf}
     \end{center}
     \caption[Example topology]{
         Example topology generated from the configuration file shown in
@@ -1100,7 +1123,7 @@ For instance, \autoref{tab:usecase_experiment_measurement} provides an excerpt
 \centering
 \begin{tabular}{@{}ccccccccccc@{}}
 \toprule
-& & \multicolumn{3}{c}{\textbf{Experiment}} & \multicolumn{6}{c}{\textbf{\gls{mead}}} \\
+& & \multicolumn{3}{c}{\textbf{Experiment}} & \multicolumn{6}{c}{\textbf{MEADcast}} \\
 \cmidrule(lr){3-5}\cmidrule(lr){6-11}
 & &
 \multicolumn{2}{c}{Clients}
@@ -1161,6 +1184,9 @@ As the experiments were conducted in a virtual environment, we simply needed to
     measure the receive and transmission bandwidth of each virtual network,
     which is essentially a network bridge on the host system.
 For this purpose, we utilized \textit{``ifstat''}.
+To measure CPU and memory utilization, we employed a tool called \textit{``sar''}.
+However, during the majority of our measurements, resource utilization peaked,
+    hindering our ability to obtain meaningful results.
 % paragraph Measurment (end)
 
 \paragraph{RX/TX} % (fold)
@@ -1170,8 +1196,8 @@ For this purpose, we utilized \textit{``ifstat''}.
 %   - tx: ssh into sender and start one Iperf instance per receiver via gnu parallel
 To conduct IP Unicast measurements for \uci{} and \ucii{} we connected to all
     receivers using GNU parallel and SSH, initiated Iperf in server mode and
-    detached from the process.
-On the sender we initiated one instance of Iperf per receiver using GNU
+    detached from the process (see \autoref{lst:uni_start_cmd}).
+On the sender we initiated one instance of \textit{``Iperf''} per receiver using GNU
     parallel.
 
 % Multicast:
@@ -1179,7 +1205,7 @@ On the sender we initiated one instance of Iperf per receiver using GNU
 %   - tx: start Iperf client on sender with Multicast address
 For the IP Multicast measurements, the procedure on the receiver side is
     identical to IP Unicast, except that Iperf listens on a IPv6 Multicast
-    address.
+    address (see \autoref{lst:multi_start_cmd}).
 On the sender side, one instance of Iperf is started to transmit traffic
     towards all multicast listeners.
 
@@ -1187,7 +1213,7 @@ On the sender side, one instance of Iperf is started to transmit traffic
 %   - rx: same as Unicast
 %   - tx: start MEADcast sender, and send IPerf into TUN dev
 To measure \gls{mead}, the procedure on the receiver side is identical to IP
-    Unicast.
+    Unicast (see \autoref{lst:mead_start_cmd}).
 On the sender we started the \gls{mead} sender implementation and configured
     Iperf to send its traffic into the TUN device, as shown in
     \autoref{fig:tun_dev}.
@@ -1300,7 +1326,7 @@ Subsequently, we conducted experiments with 1, 3, and 5 clients per router
 \paragraph{UC3: P2P Video Conference} % (fold)
 \label{par:UC3}
 % - To high packet loss already in base experiment
-Initially, we conducted an experiment with 12 clients (1 per stub network) and
+Initially, we conducted an experiment with twelve clients (one per stub network) and
     a data volume of 1 MB/s, a requirement commonly seen in video conferences
     \cite{cartesian_us_bw}.
 However, even in this modest experiment, we observed packet loss rates of
@@ -1343,14 +1369,14 @@ These effects were consequently induced on the link between $R_1$ and $R_3$.
 
 A route change was simulated by altering the link state on $R_3$'s
     \textit{``enp2s0''} interface from ``up'' to ``down''.
-This action prompted the underlying routing protocol on R1 to immediately
+This action prompted the underlying routing protocol on $R_1$ to immediately
     switch to an alternative route via $R_4$.
 
 To simulate a link failure, a firewall rule using \textit{``Iptables''} was
     applied on $R_3$ to drop any traffic received on the link towards $R_1$.
 The corresponding commands are detailed in \autoref{lst:r3_link_failure}.
-Similar to the route alteration experiment, R1 adapted to an alternative route
-    via R4.
+Similar to the route alteration experiment, $R_1$ adapted to an alternative route
+    via $R_4$.
 
 For simulating packet dropping by an intermediate node, a firewall rule was
     employed on $R_3$ to drop packets containing an IPv6 routing header extension
@@ -1358,7 +1384,7 @@ For simulating packet dropping by an intermediate node, a firewall rule was
 First, \gls{mead} transmission with periodic discovery phase was initiated,
     followed by enabling the firewall rule during \gls{mead} data transmission.
 The associated commands are provided in \autoref{lst:r3_fw}.
-After 8 seconds this rule was disabled again, to observe \gls{mead} reverting to
+After eight seconds this rule was disabled again, to observe \gls{mead} reverting to
     its initial grouping.
 This experiment was conducted with both 100\% network support and support only
     on L2 and L3 in network domain 3 ($R_{31}$, $R_{310}$, $R_{311}$).

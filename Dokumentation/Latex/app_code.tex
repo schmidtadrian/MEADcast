@@ -1,7 +1,8 @@
 \chapter{Code} % (fold)
 \label{chap:Code}
 
-\begin{listing}
+
+\begin{listing}[h]
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
 sudo python3 mk_topo.py \
     -t "template/testbed.json" \
@@ -21,7 +22,7 @@ sudo python3 mk_topo.py \
 \label{lst:cmd_mk_topo_start}
 \end{listing}
 
-\begin{listing}
+\begin{listing}[h]
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines]{json}
 {
     "stub_range": "fd14:0::/32",
@@ -73,7 +74,7 @@ sudo python3 mk_topo.py \
     \label{lst:topo_cfg_format}
 \end{listing}
 
-\begin{listing}
+\begin{listing}[h]
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{text}
 Usage: mdc_send [OPTIONS...] [PEER ADDRESSES] [PEER PORT]
 MEADcast sender
@@ -129,7 +130,7 @@ for any corresponding short options.
 \end{listing}
 
 
-\begin{listing}
+\begin{listing}[h]
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
 sudo ip6tables -A INPUT -i enp2s0 -j DROP
 sudo ip6tables -A FORWARD -i enp2s0 -j DROP
@@ -139,7 +140,7 @@ sudo ip6tables -A FORWARD -i enp2s0 -j DROP
 \end{listing}
 
 
-\begin{listing}
+\begin{listing}[h]
 \begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
 # enable
 sudo ip6tables -A INPUT -i enp2s0 -m ipv6header --header ipv6-route --soft -j DROP
@@ -152,3 +153,63 @@ sudo ip6tables -F
 \label{lst:r3_fw}
 \end{listing}
 % chapter Code (end)
+
+\begin{listing}[h]
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
+HOSTS="/home/rnp/experiments/ex1_stream/util/s1_rx"; \
+    ~/rx $HOSTS start && \
+    ssh -i ~/id_rsa_vms user@10.10.30.1 'time parallel -v -a s1_tx -j $(cat s1_tx | wc -l) iperf -c {} -u -V -e --no-udp-fin -b 5000k -t 45' && \
+    sleep 3 && \
+    ~/rx $HOSTS stop ~/experiments/ex1_stream/s1/res/uni/5_45s/  > /dev/null
+\end{minted}
+    \caption[Start command IP Unicast measurement]{Start command IP Unicast measurement.
+        The \texttt{"rx start"} command connects to each address in \texttt{"\$HOSTS"} and starts Iperf in server mode.
+        The sender 10.10.30.1 transmits 5 Mbit/s for 45 seconds to all addresses in \texttt{"s1\_tx"}.
+        The \texttt{"rx stop"} command connects to each receiver, stops Iperf and copies the result to the destination directory.
+    }
+\label{lst:uni_start_cmd}
+\end{listing}
+
+\begin{listing}[h]
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
+HOSTS="/home/rnp/experiments/ex1_stream/util/s5_rx"; \
+    ~/rx $HOSTS start multi fd14::3:30:1  && \
+    ssh -i ~/id_rsa_vms user@10.10.30.1 'time iperf -c [ff3e::4321:1234]%enp2s0 -T 32 -u -V -e --no-udp-fin -b 2500k -t 45' && \
+    sleep 3 && \
+    ~/rx $HOSTS stop ~/experiments/ex1_stream/s5/res/multi/3_45s/ > /dev/null
+\end{minted}
+    \caption[Start command IP Multicast measurement]{Start command IP Muticast measurement.
+        The \texttt{"rx"} script connects to each address in \texttt{"\$HOSTS"} and starts Iperf in server mode listening in \gls{ssm} to \texttt{"fd14::3:30:1"}.
+        The sender 10.10.30.1 transmits 2.5 Mbit/s for 45 seconds via IP Multicast.
+        The \texttt{"rx stop"} command connects to each receiver, stops Iperf and copies the result to the destination directory.
+    }
+\label{lst:multi_start_cmd}
+\end{listing}
+
+\begin{listing}[h]
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
+HOSTS="/home/rnp/experiments/ex1_stream/util/s5_rx"; \
+    ~/rx $HOSTS start && \
+    ssh -i ~/id_rsa_vms user@10.10.30.1 "time iperf -c fd15::1 -u -V -e --no-udp-fin -b 1000k -t 45 -l $(echo '1484 - 20 * 16 - 52' | bc)" && \
+    sleep 3 && \
+    ~/rx $HOSTS stop ~/experiments/ex1_stream/s5/res/mead/1_45s/merge/2_20/ > /dev/null
+\end{minted}
+    \caption[Start command MEADcast measurement]{Start command \gls{mead} measurement.
+        The \texttt{"rx"} script connects to each address in \texttt{"\$HOSTS"} and starts Iperf in server mode.
+        The sender 10.10.30.1 transmits 1 Mbit/s for 45 seconds to \texttt{"fd15::1"}, which is usually the address of the TUN interface.
+        The \texttt{"rx stop"} command connects to each receiver, stops Iperf and copies the result to the destination directory.
+    }
+\label{lst:mead_start_cmd}
+\end{listing}
+
+\begin{listing}
+\begin{minted}[linenos, frame=lines, framesep=2mm, breaklines, fontsize=\small]{bash}
+# enable / disable MEADcast
+echo 1 > /proc/sys/net/ipv6/meadcast/enable
+
+# set minimum destination count for premature M2U
+echo 3 > /proc/sys/net/ipv6/meadcast/min_dsts
+\end{minted}
+    \caption[MEADcast router configuration]{MEADcast router configuration }
+\label{lst:rt_cfg}
+\end{listing}
