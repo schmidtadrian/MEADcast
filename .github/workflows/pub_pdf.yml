@@ -13,17 +13,19 @@ jobs:
       - name: Install prerequisites
         run: |
           sudo apt-get update
-          sudo apt-get install texlive-latex-extra texlive-science texlive-bibtex-extra biber latexmk inkscape
+          sudo apt-get install texlive-latex-extra texlive-science texlive-bibtex-extra texlive-luatex biber latexmk inkscape
       - uses: actions/checkout@v3
-      - name: Build
+      - name: Build Thesis
         working-directory: Dokumentation/Latex
+        run: latexmk
+      - name: Build Slides
+        working-directory: slides
         run: latexmk
       - name: Copy
         run: |
           mkdir public -v
           cp Dokumentation/Latex/out/schm24.pdf public/ -v
-          pwd
-          ls -l
+          cp slides/out/main.pdf public/initial_presentation.pdf -v
       - name: Publish
         uses: JamesIves/github-pages-deploy-action@v4
         with:

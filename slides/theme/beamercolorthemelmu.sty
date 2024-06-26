@@ -1,0 +1,83 @@
+\mode<presentation>
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LMU Colors %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% LMU Corporate Design Manual
+% https://www.lmu.de/de/die-lmu/struktur/zentrale-universitaetsverwaltung/kommunikation-und-presse/lmu-brand-guide/designgrundsaetze/farben/index.html
+\definecolor{lmu@green}{RGB}{0,136,58}
+\definecolor{lmu@black}{RGB}{35,35,35}
+\definecolor{lmu@white}{RGB}{255,255,255}
+
+\definecolor{lmu@darkgray}{RGB}{98,100,104}
+\definecolor{lmu@mediumgray}{RGB}{192,193,195}
+\definecolor{lmu@brightgray}{RGB}{230,230,231}
+\definecolor{lmu@lightgray}{RGB}{245,245,245}
+
+\definecolor{lmu@blue}{RGB}{15,25,135}
+\definecolor{lmu@cyan}{RGB}{0,159,227}
+\definecolor{lmu@violet}{RGB}{140,64,145}
+\definecolor{lmu@red}{RGB}{215,25,25}
+\definecolor{lmu@orange}{RGB}{241,135,0}
+
+% Webstyleguide
+\definecolor{lmu@background}{RGB}{255,255,255}
+\definecolor{lmu@background1}{RGB}{255,255,255}
+
+% normal text darkgray
+\definecolor{lmu@normaltext}{RGB}{35,35,35}
+\definecolor{lmu@visitedhyperlink}{RGB}{0,159,227}
+\definecolor{lmu@line1}{RGB}{178,177,172}
+\definecolor{lmu@line2}{RGB}{175,175,175}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Color Definitions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamercolor{normal text}{%
+	fg=lmu@normaltext,
+	bg=lmu@background
+}
+
+\usebeamercolor[fg]{normal text}
+
+\setbeamercolor{palette primary}{%
+	use=normal text,
+	fg=normal text.bg,
+	bg=normal text.fg
+}
+
+\setbeamercolor*{structure}{fg=lmu@normaltext}
+\setbeamercolor*{alerted text}{fg=red!75!black}
+\setbeamercolor*{author}{fg=lmu@darkgray}
+\setbeamercolor*{author in head/foot}{bg=lmu@background1,fg=lmu@mediumgray}
+\setbeamercolor*{institute}{fg=lmu@darkgray}
+\setbeamercolor*{title}{fg=lmu@green,bg=lmu@background}
+\setbeamercolor*{subtitle}{fg=lmu@green,bg=lmu@background}
+\setbeamercolor{section in head/foot}{fg=lmu@green}
+
+\setbeamercolor{frametitle}{fg=lmu@green,bg=lmu@background}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Blocks %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\setbeamercolor*{block title}{fg=structure.fg,bg=lmu@lightgray}
+%\setbeamercolor*{block body}{bg=white}
+%
+%\setbeamercolor*{block title example}{fg=lmu@normaltext,bg=lmu@normaltext!50!white}
+%\setbeamercolor*{block body example}{fg=lmu@normaltext,bg=white}
+%
+%\setbeamercolor*{block title alerted}{fg=red!75!black,bg=red!50!white}
+%\setbeamercolor*{block body alerted}{bg=white}
+
+\setbeamercolor{block title}{%
+	use=normal text,
+	fg=normal text.fg,
+	bg=normal text.bg!80!fg
+}
+\setbeamercolor{block body}{
+	use={block title, normal text},
+	bg=block title.bg!50!normal text.bg
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Math %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\setbeamercolor{math text}{fg=lmu@black}
+
+\mode<all>
