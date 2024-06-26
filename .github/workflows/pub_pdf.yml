@@ -16,7 +16,7 @@ jobs:
           sudo apt-get install texlive-latex-extra texlive-science texlive-bibtex-extra texlive-luatex biber latexmk inkscape
       - uses: actions/checkout@v3
       - name: Build Thesis
-        working-directory: Dokumentation/Latex
+        working-directory: doc/Latex
         run: latexmk
       - name: Build Slides
         working-directory: slides
@@ -24,7 +24,7 @@ jobs:
       - name: Copy
         run: |
           mkdir public -v
-          cp Dokumentation/Latex/out/schm24.pdf public/ -v
+          cp doc/Latex/out/schm24.pdf public/ -v
           cp slides/out/main.pdf public/initial_presentation.pdf -v
       - name: Publish
         uses: JamesIves/github-pages-deploy-action@v4

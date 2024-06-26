@@ -29,7 +29,7 @@
 \def\tableautorefname{Table}%
 \def\equationautorefname{Equation}%
 
-\graphicspath{{./Bilder/}}
+\graphicspath{{./img/}}
 
 \input{hyphenation} % in dieses File kommen Wörter die Latex nicht richtig trennt
 
@@ -71,7 +71,7 @@
 \makeglossaries
 \input{glossary}
 
-\addbibresource{Bib/main.bib}
+\addbibresource{bib/main.bib}
 \definecolor{light-gray}{gray}{0.95}
 
 % \lstdefinestyle{mystyle}{
@@ -117,12 +117,12 @@
 
 % ---------------------------------------------------------------
 \frontmatter % Titelblätter und Erklärung jeweils spezifisch für die jeweilige Uni einbinden
-    \include{./Titel/titel-lmu} % Titelblätter LMU - auskommentieren falls TUM-Arbeit
-%    \include{./Titel/titel-tum} % Titelblätter TUM - auskommentiert lassen falls LMU-Arbeit
+    \include{./title/titel-lmu} % Titelblätter LMU - auskommentieren falls TUM-Arbeit
+%    \include{./title/titel-tum} % Titelblätter TUM - auskommentiert lassen falls LMU-Arbeit
     \thispagestyle{empty}
     \cleardoublepage
-    \include{./Titel/erklaerung-lmu} % Erklärung (Arbeit selbstständig verfasst) - auskommentieren falls TUM-Arbeit
-%    \include{./Titel/erklaerung-tum} % Erklärung (Arbeit selbstständig verfasst) - auskommentiert lassen falls LMU-Arbeit
+    \include{./title/erklaerung-lmu} % Erklärung (Arbeit selbstständig verfasst) - auskommentieren falls TUM-Arbeit
+%    \include{./title/erklaerung-tum} % Erklärung (Arbeit selbstständig verfasst) - auskommentiert lassen falls LMU-Arbeit
     \thispagestyle{empty}
     \cleardoublepage
     \include{abstract} % Abstract
