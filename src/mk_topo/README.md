@@ -1,6 +1,14 @@
 # mk_topo
 Script to generate network topology.
 
+Based on KVM, [nocloud image](https://cloud.debian.org/images/cloud/)
+    (netplan), libguestfs-tools, frr.
+Network is IPv6 only, expect IPv4 mgm net.
+Routers use ospf6 and pim-sm for dynamic routing.
+
+To use direct kernel boot ensure, all required modules are directly included
+    in the kernel itself (no external module).
+
 ## Prerequisites
 Python yaml parser:
 ```sh
@@ -23,18 +31,10 @@ virsh net-autostart mgm.xml
 virsh net-start mgm.xml
 ```
 
-## Overview
-Based on KVM, [nocloud image](https://cloud.debian.org/images/cloud/) (netplan), libguestfs-tools, frr.
-Network is IPv6 only, expect IPv4 mgm net.
-Routers use ospf6 and pim-sm for dynamic routing.
-
-To use direct kernel boot ensure, all required modules are directly included
-in the kernel itself (no external module).
-
-## Example
+## Usage
 ```sh
 sudo python3 mk_topo.py \
--t template/topo4.json \
+-t template/topo_simple.json \
 -o out/ \
 -n template/net.xml \
 -u user \
@@ -46,6 +46,9 @@ sudo python3 mk_topo.py \
 -f template/frr.conf \
 -k kernel=/var/lib/libvirt/images/kernel/vmlinuz-6.5.2-dirty,initrd=/var/lib/libvirt/images/kernel/initrd.img-6.5.2-dirty,kernel_args="root=/dev/vda1 ro console=ttyS0,115200 2"
 ```
+For information how to build the router kernel image see:
+    [build_kernel.md](../../doc/build_kernel.md).
+For further information see `--help`.
 
 ## Testing
 To test whether IPv6 Multicast routing is working use ssmping and iperf:

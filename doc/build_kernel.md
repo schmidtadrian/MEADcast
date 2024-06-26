@@ -58,7 +58,7 @@ make ARCH=x86_64 CROSS_COMPILE=x86_64-linux-gnu- targz-pkg -j<NUM_CORE>
 Start the NoCloud image VM again and copy the file
 `linux-6.5.2-dirty-x86_64.tar.gz` into it along with the `deb_kinstall.sh` file.
 
-To install the Kernel in the VM run ([../src/deb_kinstall.sh](deb_kinstall.sh)):
+To install the Kernel in the VM run ([deb_kinstall.sh](../src/deb_kinstall.sh)):
 ```sh
 ./deb_kinstall.sh linux-6.5.2-dirty-x86_64.tar.gz 6.5.2-dirty
 ```
